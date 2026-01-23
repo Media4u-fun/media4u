@@ -123,7 +123,7 @@ function HeroSection() {
           transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
           className="flex flex-col sm:flex-row gap-4 justify-center"
         >
-          <Link href="/work">
+          <Link href="/portfolio">
             <Button size="lg">View Our Work</Button>
           </Link>
           <Link href="/contact">

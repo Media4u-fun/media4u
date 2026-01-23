@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
+import { useQuery } from "convex/react";
 import { Section, SectionHeader } from "@/components/ui/section";
 import { Button } from "@/components/ui/button";
+import { api } from "@convex/_generated/api";
 import Link from "next/link";
 
 type ProjectCategory = "all" | "vr" | "web" | "multiverse";
@@ -16,7 +18,16 @@ interface Project {
   gradient: string;
 }
 
-const PROJECTS: Project[] = [
+interface ConvexProject {
+  _id: string;
+  slug: string;
+  title: string;
+  category: Exclude<ProjectCategory, "all">;
+  description: string;
+  gradient: string;
+}
+
+const FALLBACK_PROJECTS: Project[] = [
   {
     id: "virtual-conference-hall",
     title: "Virtual Conference Hall",
@@ -82,6 +93,20 @@ const CATEGORY_COLORS: Record<Exclude<ProjectCategory, "all">, string> = {
 
 export default function PortfolioPage() {
   const [activeFilter, setActiveFilter] = useState<ProjectCategory>("all");
+
+  // Fetch projects from Convex
+  const convexProjects = useQuery(api.portfolio.getAllProjects);
+
+  // Use Convex projects if available, fallback to hardcoded data
+  const PROJECTS = (convexProjects && convexProjects.length > 0
+    ? convexProjects.map((p: ConvexProject) => ({
+        id: p._id || p.slug,
+        title: p.title,
+        category: p.category,
+        description: p.description,
+        gradient: p.gradient,
+      }))
+    : FALLBACK_PROJECTS) as Project[];
 
   const filteredProjects =
     activeFilter === "all"

@@ -2,7 +2,9 @@
 
 import { useState, type FormEvent, type ChangeEvent } from "react";
 import { motion } from "motion/react";
+import { useMutation } from "convex/react";
 import { Button } from "@/components/ui/button";
+import { api } from "@convex/_generated/api";
 
 const SERVICES = [
   "VR Environments",
@@ -34,6 +36,9 @@ function validateEmail(email: string): boolean {
 }
 
 export function ContactForm() {
+  const submitContact = useMutation(api.contactSubmissions.submitContact);
+  const sendEmail = useMutation(api.emails.sendContactFormEmail);
+
   const [formData, setFormData] = useState<FormData>({
     name: "",
     email: "",
@@ -44,6 +49,7 @@ export function ContactForm() {
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState<string>("");
 
   function validateForm(): boolean {
     const newErrors: FormErrors = {};
@@ -85,6 +91,7 @@ export function ContactForm() {
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>): Promise<void> {
     e.preventDefault();
+    setSubmitError("");
 
     if (!validateForm()) {
       return;
@@ -92,12 +99,34 @@ export function ContactForm() {
 
     setIsSubmitting(true);
 
-    // Simulate form submission
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    try {
+      // Submit contact form to database
+      await submitContact({
+        name: formData.name,
+        email: formData.email,
+        service: formData.service as string,
+        message: formData.message,
+      });
 
-    setIsSubmitting(false);
-    setIsSubmitted(true);
-    setFormData({ name: "", email: "", service: "", message: "" });
+      // Send email notification
+      await sendEmail({
+        name: formData.name,
+        email: formData.email,
+        service: formData.service as string,
+        message: formData.message,
+      });
+
+      setIsSubmitting(false);
+      setIsSubmitted(true);
+      setFormData({ name: "", email: "", service: "", message: "" });
+    } catch (error) {
+      setIsSubmitting(false);
+      setSubmitError(
+        error instanceof Error
+          ? error.message
+          : "Failed to submit form. Please try again."
+      );
+    }
   }
 
   return (
@@ -139,6 +168,15 @@ export function ContactForm() {
         </motion.div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-6">
+          {submitError && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="p-4 rounded-xl bg-red-500/10 border border-red-500/50 text-red-400"
+            >
+              {submitError}
+            </motion.div>
+          )}
           {/* Name Input */}
           <div>
             <label

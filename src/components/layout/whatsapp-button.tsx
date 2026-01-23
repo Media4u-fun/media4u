@@ -3,9 +3,11 @@
 import { motion } from "motion/react";
 
 export function WhatsAppButton() {
+  const phoneNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "15551234567";
+
   return (
     <motion.a
-      href="https://wa.me/yourphonenumber"
+      href={`https://wa.me/${phoneNumber}`}
       target="_blank"
       rel="noopener noreferrer"
       className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-[#25d366] flex items-center justify-center shadow-lg shadow-[#25d366]/30 whatsapp-pulse"

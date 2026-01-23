@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import { motion } from "motion/react";
+import { useMutation, useQuery } from "convex/react";
 import { Section } from "@/components/ui/section";
 import { Button } from "@/components/ui/button";
+import { api } from "@convex/_generated/api";
 
 interface BlogPost {
   id: string;
@@ -16,7 +18,8 @@ interface BlogPost {
   featured?: boolean;
 }
 
-const BLOG_POSTS: BlogPost[] = [
+// Fallback data in case Convex is not yet seeded
+const FALLBACK_BLOG_POSTS: BlogPost[] = [
   {
     id: "future-vr-business",
     title: "The Future of Virtual Reality in Business",
@@ -105,11 +108,47 @@ function BlogCard({ post, index, featured = false }: { post: BlogPost; index: nu
 }
 
 function NewsletterSection() {
+  const subscribe = useMutation(api.newsletter.subscribeToNewsletter);
   const [email, setEmail] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>): void {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
-    setEmail("");
+    setMessage(null);
+
+    if (!email.trim()) {
+      setMessage({ type: "error", text: "Please enter an email address" });
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const result = await subscribe({ email });
+
+      if (result.success) {
+        setMessage({
+          type: "success",
+          text: result.newSubscription
+            ? "Welcome! Check your email for a confirmation."
+            : "Thank you for subscribing!",
+        });
+        setEmail("");
+      } else {
+        setMessage({
+          type: "error",
+          text: result.error || "Failed to subscribe. Please try again.",
+        });
+      }
+    } catch (error) {
+      setMessage({
+        type: "error",
+        text: error instanceof Error ? error.message : "An error occurred. Please try again.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -134,14 +173,27 @@ function NewsletterSection() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Enter your email"
-              required
-              className="flex-1 px-6 py-4 rounded-full bg-white/[0.03] border border-white/[0.08] text-white placeholder:text-gray-500 focus:outline-none focus:border-cyan-500/50 focus:bg-white/[0.05] transition-all"
+              disabled={isSubmitting}
+              className="flex-1 px-6 py-4 rounded-full bg-white/[0.03] border border-white/[0.08] text-white placeholder:text-gray-500 focus:outline-none focus:border-cyan-500/50 focus:bg-white/[0.05] transition-all disabled:opacity-50"
               aria-label="Email address"
             />
-            <Button type="submit" variant="primary" size="lg">
-              Subscribe
+            <Button type="submit" variant="primary" size="lg" disabled={isSubmitting}>
+              {isSubmitting ? "Subscribing..." : "Subscribe"}
             </Button>
           </form>
+          {message && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className={`mt-4 p-3 rounded-lg text-sm ${
+                message.type === "success"
+                  ? "bg-emerald-500/10 border border-emerald-500/50 text-emerald-400"
+                  : "bg-red-500/10 border border-red-500/50 text-red-400"
+              }`}
+            >
+              {message.text}
+            </motion.div>
+          )}
           <p className="text-gray-500 text-sm mt-4">
             No spam, ever. Unsubscribe anytime.
           </p>
@@ -153,9 +205,16 @@ function NewsletterSection() {
 
 export default function BlogPage() {
   const [visiblePosts, setVisiblePosts] = useState(5);
+
+  // Fetch blog posts from Convex
+  const convexPosts = useQuery(api.blog.getAllPosts, { publishedOnly: true });
+
+  // Use Convex posts if available, fallback to hardcoded data
+  const BLOG_POSTS = (convexPosts && convexPosts.length > 0 ? convexPosts : FALLBACK_BLOG_POSTS) as BlogPost[];
+
   const featuredPost = BLOG_POSTS[0];
   const regularPosts = BLOG_POSTS.slice(1, visiblePosts);
-  const hasMorePosts = visiblePosts < BLOG_POSTS.length + 5;
+  const hasMorePosts = visiblePosts < BLOG_POSTS.length;
 
   function handleLoadMore(): void {
     setVisiblePosts((prev) => prev + 4);
