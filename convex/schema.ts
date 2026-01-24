@@ -101,4 +101,17 @@ export default defineSchema({
     .index("by_slug", ["slug"])
     .index("by_type", ["type"])
     .index("by_featured", ["featured"]),
+
+  // Site Settings (global configuration)
+  siteSettings: defineTable({
+    key: v.string(), // e.g., "social_media", "contact_info"
+    instagramUrl: v.optional(v.string()),
+    facebookUrl: v.optional(v.string()),
+    tiktokUrl: v.optional(v.string()),
+    linkedinUrl: v.optional(v.string()),
+    contactEmail: v.optional(v.string()),
+    whatsappNumber: v.optional(v.string()),
+    updatedAt: v.number(),
+  })
+    .index("by_key", ["key"]),
 });

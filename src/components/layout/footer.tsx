@@ -1,4 +1,8 @@
+"use client";
+
 import Link from "next/link";
+import { useQuery } from "convex/react";
+import { api } from "@convex/_generated/api";
 
 const quickLinks = [
   { href: "/about", label: "About Us" },
@@ -14,6 +18,14 @@ const serviceLinks = [
 ];
 
 export function Footer() {
+  const settings = useQuery(api.settings.getSettings);
+
+  // Use Convex settings, fallback to env vars
+  const instagramUrl = settings?.instagramUrl || process.env.NEXT_PUBLIC_INSTAGRAM_URL;
+  const facebookUrl = settings?.facebookUrl || process.env.NEXT_PUBLIC_FACEBOOK_URL;
+  const tiktokUrl = settings?.tiktokUrl || process.env.NEXT_PUBLIC_TIKTOK_URL;
+  const linkedinUrl = settings?.linkedinUrl || process.env.NEXT_PUBLIC_LINKEDIN_URL;
+
   return (
     <footer className="relative border-t border-white/5">
       {/* Gradient overlay */}
@@ -97,9 +109,9 @@ export function Footer() {
             &copy; {new Date().getFullYear()} Media4U. All rights reserved.
           </p>
           <div className="flex items-center gap-4">
-            {process.env.NEXT_PUBLIC_INSTAGRAM_URL && (
+            {instagramUrl && (
               <a
-                href={process.env.NEXT_PUBLIC_INSTAGRAM_URL}
+                href={instagramUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-9 h-9 rounded-lg bg-white/5 flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 transition-all duration-200"
@@ -111,9 +123,9 @@ export function Footer() {
                 </svg>
               </a>
             )}
-            {process.env.NEXT_PUBLIC_FACEBOOK_URL && (
+            {facebookUrl && (
               <a
-                href={process.env.NEXT_PUBLIC_FACEBOOK_URL}
+                href={facebookUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-9 h-9 rounded-lg bg-white/5 flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 transition-all duration-200"
@@ -124,9 +136,9 @@ export function Footer() {
                 </svg>
               </a>
             )}
-            {process.env.NEXT_PUBLIC_TIKTOK_URL && (
+            {tiktokUrl && (
               <a
-                href={process.env.NEXT_PUBLIC_TIKTOK_URL}
+                href={tiktokUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-9 h-9 rounded-lg bg-white/5 flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 transition-all duration-200"
@@ -137,9 +149,9 @@ export function Footer() {
                 </svg>
               </a>
             )}
-            {process.env.NEXT_PUBLIC_LINKEDIN_URL && (
+            {linkedinUrl && (
               <a
-                href={process.env.NEXT_PUBLIC_LINKEDIN_URL}
+                href={linkedinUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-9 h-9 rounded-lg bg-white/5 flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 transition-all duration-200"
