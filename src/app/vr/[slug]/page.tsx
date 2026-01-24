@@ -11,7 +11,7 @@ import { useState } from "react";
 
 export default function VRDetailPage() {
   const params = useParams();
-  const slug = params.slug as string;
+  const slug = (params?.slug as string) || "";
   const experience = useQuery(api.vr.getExperienceBySlug, { slug });
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 

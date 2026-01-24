@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 
 export default function BlogDetailPage() {
   const params = useParams();
-  const slug = params.slug as string;
+  const slug = (params?.slug as string) || "";
   const post = useQuery(api.blog.getBlogPostBySlug, { slug });
   const allPosts = useQuery(api.blog.getAllPosts, { publishedOnly: true });
 

@@ -66,8 +66,8 @@ export const getAllProjects = query({
   handler: async (ctx) => {
     return await ctx.db
       .query("portfolioProjects")
-      .order("desc", "by_creationTime")
-      .collect();
+      .collect()
+      .then((projects) => projects.sort((a, b) => b.createdAt - a.createdAt));
   },
 });
 

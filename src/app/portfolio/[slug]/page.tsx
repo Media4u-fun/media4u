@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 
 export default function ProjectDetailPage() {
   const params = useParams();
-  const slug = params.slug as string;
+  const slug = (params?.slug as string) || "";
   const project = useQuery(api.portfolio.getProjectBySlug, { slug });
 
   if (project === undefined) {
@@ -41,8 +41,8 @@ export default function ProjectDetailPage() {
   }
 
   const hasImages = project.images && project.images.length > 0;
-  const mainImage = hasImages ? project.images[0] : null;
-  const galleryImages = hasImages ? project.images.slice(1) : [];
+  const mainImage = hasImages ? project.images![0] : null;
+  const galleryImages = hasImages ? project.images!.slice(1) : [];
 
   return (
     <div className="min-h-screen mesh-bg">
