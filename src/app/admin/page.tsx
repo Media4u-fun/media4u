@@ -6,9 +6,9 @@ import { api } from "@convex/_generated/api";
 import Link from "next/link";
 
 export default function AdminDashboard() {
-  const contactSubmissions = useQuery(api.contactSubmissions.getContactSubmissions);
-  const subscriberCount = useQuery(api.newsletter.getSubscriberCount);
-  const blogPosts = useQuery(api.blog.getAllPosts);
+  const contactSubmissions = useQuery(api.contactSubmissions.getContactSubmissions, {});
+  const subscriberCount = useQuery(api.newsletter.getSubscriberCount, {});
+  const blogPosts = useQuery(api.blog.getAllPosts, {});
   const projects = useQuery(api.portfolio.getAllProjects);
 
   const stats = [

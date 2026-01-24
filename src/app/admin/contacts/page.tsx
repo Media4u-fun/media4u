@@ -21,7 +21,7 @@ const statusLabels: Record<ContactStatus, string> = {
 };
 
 export default function ContactsAdminPage() {
-  const submissions = useQuery(api.contactSubmissions.getContactSubmissions);
+  const submissions = useQuery(api.contactSubmissions.getContactSubmissions, {});
   const updateStatus = useMutation(api.contactSubmissions.updateContactStatus);
   const deleteSubmission = useMutation(api.contactSubmissions.deleteContactSubmission);
   const [selectedId, setSelectedId] = useState<string | null>(null);

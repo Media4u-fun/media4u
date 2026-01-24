@@ -8,28 +8,39 @@ import { Button } from "@/components/ui/button";
 import { api } from "@convex/_generated/api";
 import Link from "next/link";
 
-type ProjectCategory = "all" | "vr" | "web" | "multiverse";
+type ProjectCategory = "all" | "vr" | "web" | "integrated";
+
+interface DbProject {
+  _id: string;
+  title: string;
+  slug: string;
+  category: string;
+  description: string;
+  gradient: string;
+  featured: boolean;
+  fullDescription?: string;
+  technologies?: string[];
+  images?: string[];
+  testimonial?: string;
+  results?: string[];
+  createdAt: number;
+  updatedAt: number;
+}
 
 interface Project {
   id: string;
-  title: string;
-  category: Exclude<ProjectCategory, "all">;
-  description: string;
-  gradient: string;
-}
-
-interface ConvexProject {
-  _id: string;
   slug: string;
   title: string;
   category: Exclude<ProjectCategory, "all">;
   description: string;
   gradient: string;
+  images?: string[];
 }
 
 const FALLBACK_PROJECTS: Project[] = [
   {
     id: "virtual-conference-hall",
+    slug: "virtual-conference-hall",
     title: "Virtual Conference Hall",
     category: "vr",
     description: "Immersive 3D conference space with real-time collaboration tools for remote teams.",
@@ -37,6 +48,7 @@ const FALLBACK_PROJECTS: Project[] = [
   },
   {
     id: "tech-startup-landing",
+    slug: "tech-startup-landing",
     title: "Tech Startup Landing Page",
     category: "web",
     description: "High-converting landing page with dynamic animations and seamless user experience.",
@@ -44,13 +56,15 @@ const FALLBACK_PROJECTS: Project[] = [
   },
   {
     id: "connected-brand",
+    slug: "connected-brand",
     title: "Connected Brand Experience",
-    category: "multiverse",
+    category: "integrated",
     description: "Cross-platform brand presence spanning web, VR, and interactive installations.",
     gradient: "from-amber-500 via-orange-500 to-red-500",
   },
   {
     id: "virtual-art-gallery",
+    slug: "virtual-art-gallery",
     title: "Virtual Art Gallery",
     category: "vr",
     description: "Museum-quality virtual space showcasing digital and traditional artwork collections.",
@@ -58,6 +72,7 @@ const FALLBACK_PROJECTS: Project[] = [
   },
   {
     id: "ecommerce-platform",
+    slug: "ecommerce-platform",
     title: "E-Commerce Platform",
     category: "web",
     description: "Full-featured online store with 3D product previews and AR try-on capabilities.",
@@ -65,6 +80,7 @@ const FALLBACK_PROJECTS: Project[] = [
   },
   {
     id: "educational-vr-campus",
+    slug: "educational-vr-campus",
     title: "Educational VR Campus",
     category: "vr",
     description: "Interactive virtual campus environment for immersive learning experiences.",
@@ -74,21 +90,21 @@ const FALLBACK_PROJECTS: Project[] = [
 
 const FILTER_TABS: { value: ProjectCategory; label: string }[] = [
   { value: "all", label: "All Projects" },
-  { value: "vr", label: "VR Environments" },
-  { value: "web", label: "Web Design" },
-  { value: "multiverse", label: "Multiverse" },
+  { value: "web", label: "Websites" },
+  { value: "vr", label: "VR Experiences" },
+  { value: "integrated", label: "Web + VR" },
 ];
 
 const CATEGORY_LABELS: Record<Exclude<ProjectCategory, "all">, string> = {
-  vr: "VR Environment",
-  web: "Web Design",
-  multiverse: "Multiverse",
+  vr: "VR Experience",
+  web: "Website",
+  integrated: "Web + VR",
 };
 
 const CATEGORY_COLORS: Record<Exclude<ProjectCategory, "all">, string> = {
   vr: "bg-cyan-500/20 text-cyan-400 border-cyan-500/30",
-  web: "bg-purple-500/20 text-purple-400 border-purple-500/30",
-  multiverse: "bg-pink-500/20 text-pink-400 border-pink-500/30",
+  web: "bg-magenta-500/20 text-magenta-400 border-magenta-500/30",
+  integrated: "bg-purple-500/20 text-purple-400 border-purple-500/30",
 };
 
 export default function PortfolioPage() {
@@ -96,17 +112,20 @@ export default function PortfolioPage() {
 
   // Fetch projects from Convex
   const convexProjects = useQuery(api.portfolio.getAllProjects);
+  const isLoading = convexProjects === undefined;
 
-  // Use Convex projects if available, fallback to hardcoded data
-  const PROJECTS = (convexProjects && convexProjects.length > 0
-    ? convexProjects.map((p: ConvexProject) => ({
-        id: p._id || p.slug,
+  // Transform Convex data when available
+  const PROJECTS = convexProjects
+    ? convexProjects.map((p: DbProject) => ({
+        id: p._id,
+        slug: p.slug,
         title: p.title,
-        category: p.category,
+        category: p.category as Exclude<ProjectCategory, "all">,
         description: p.description,
         gradient: p.gradient,
+        images: p.images,
       }))
-    : FALLBACK_PROJECTS) as Project[];
+    : [];
 
   const filteredProjects =
     activeFilter === "all"
@@ -118,9 +137,9 @@ export default function PortfolioPage() {
       <Section className="pt-32 md:pt-40">
         <SectionHeader
           tag="Our Work"
-          title="Featured "
+          title="Client "
           highlight="Projects"
-          description="Explore our portfolio of immersive VR environments, cutting-edge web experiences, and innovative multiverse solutions."
+          description="Web design, VR experiences, and integrated solutions that bring brands to life. Ready to add your project here? Let's talk."
         />
 
         <FilterTabs
@@ -129,7 +148,7 @@ export default function PortfolioPage() {
           onFilterChange={setActiveFilter}
         />
 
-        <ProjectGrid projects={filteredProjects} />
+        <ProjectGrid projects={filteredProjects} isLoading={isLoading} />
       </Section>
 
       <CTASection />
@@ -175,20 +194,50 @@ function FilterTabs({ tabs, activeFilter, onFilterChange }: FilterTabsProps) {
 
 interface ProjectGridProps {
   projects: Project[];
+  isLoading: boolean;
 }
 
-function ProjectGrid({ projects }: ProjectGridProps) {
+function ProjectGrid({ projects, isLoading }: ProjectGridProps) {
+  // Show 6 skeleton cards while loading
+  const skeletonCount = 6;
+
   return (
-    <motion.div
-      layout
-      className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-    >
-      <AnimatePresence mode="popLayout">
-        {projects.map((project, index) => (
-          <ProjectCard key={project.id} project={project} index={index} />
-        ))}
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <AnimatePresence>
+        {isLoading
+          ? Array.from({ length: skeletonCount }).map((_, index) => (
+              <ProjectCardSkeleton key={`skeleton-${index}`} index={index} />
+            ))
+          : projects.map((project, index) => (
+              <ProjectCard key={project.id} project={project} index={index} />
+            ))}
       </AnimatePresence>
-    </motion.div>
+    </div>
+  );
+}
+
+interface ProjectCardSkeletonProps {
+  index: number;
+}
+
+function ProjectCardSkeleton({ index }: ProjectCardSkeletonProps) {
+  return (
+    <div className="group relative rounded-2xl bg-white/[0.02] border border-white/[0.06] overflow-hidden">
+      {/* Image skeleton */}
+      <div className="relative h-48 overflow-hidden bg-white/5">
+        <div className="absolute inset-0 bg-gradient-to-r from-white/5 via-white/10 to-white/5 animate-shimmer" />
+      </div>
+
+      {/* Content skeleton */}
+      <div className="p-6 space-y-3">
+        {/* Title skeleton */}
+        <div className="h-6 bg-white/5 rounded w-3/4 animate-shimmer" />
+        {/* Description skeleton line 1 */}
+        <div className="h-4 bg-white/5 rounded w-full animate-shimmer" />
+        {/* Description skeleton line 2 */}
+        <div className="h-4 bg-white/5 rounded w-5/6 animate-shimmer" />
+      </div>
+    </div>
   );
 }
 
@@ -198,24 +247,39 @@ interface ProjectCardProps {
 }
 
 function ProjectCard({ project, index }: ProjectCardProps) {
+  const hasImage = project.images && project.images.length > 0;
+
   return (
-    <motion.article
-      layout
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.9 }}
-      transition={{ duration: 0.4, delay: index * 0.1 }}
-      whileHover={{ y: -8 }}
-      className="group relative rounded-2xl bg-white/[0.02] border border-white/[0.06] overflow-hidden transition-all duration-300 hover:border-white/[0.12] hover:shadow-[0_0_60px_rgba(0,212,255,0.15)]"
-    >
-      <div
-        className={`relative h-48 bg-gradient-to-br ${project.gradient} overflow-hidden`}
+    <Link href={`/portfolio/${project.slug}`}>
+      <motion.article
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.3 }}
+        whileHover={{ y: -8 }}
+        className="group relative rounded-2xl bg-white/[0.02] border border-white/[0.06] overflow-hidden transition-all duration-300 hover:border-white/[0.12] hover:shadow-[0_0_60px_rgba(0,212,255,0.15)] cursor-pointer h-full"
       >
-        <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors duration-300" />
-        <div className="absolute inset-0 opacity-30 group-hover:opacity-50 transition-opacity duration-300">
-          <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-white/20 rounded-full blur-3xl" />
-          <div className="absolute bottom-1/4 right-1/4 w-24 h-24 bg-white/10 rounded-full blur-2xl" />
-        </div>
+      <div className="relative h-48 overflow-hidden bg-gradient-to-br">
+        {hasImage ? (
+          <>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={project.images[0]}
+              alt={project.title}
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors duration-300" />
+          </>
+        ) : (
+          <>
+            <div className={`absolute inset-0 bg-gradient-to-br ${project.gradient}`} />
+            <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors duration-300" />
+            <div className="absolute inset-0 opacity-30 group-hover:opacity-50 transition-opacity duration-300">
+              <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-white/20 rounded-full blur-3xl" />
+              <div className="absolute bottom-1/4 right-1/4 w-24 h-24 bg-white/10 rounded-full blur-2xl" />
+            </div>
+          </>
+        )}
         <div className="absolute bottom-4 left-4">
           <span
             className={`inline-block px-3 py-1 text-xs font-semibold rounded-full border ${CATEGORY_COLORS[project.category]}`}
@@ -238,6 +302,7 @@ function ProjectCard({ project, index }: ProjectCardProps) {
         <div className="absolute inset-0 rounded-2xl border border-cyan-500/20" />
       </div>
     </motion.article>
+    </Link>
   );
 }
 
@@ -246,21 +311,22 @@ function CTASection() {
     <Section className="border-t border-white/[0.06]">
       <div className="text-center">
         <h2 className="text-3xl md:text-4xl lg:text-5xl font-display font-bold mb-4">
-          Ready to Start{" "}
-          <span className="text-gradient-cyber">Your Project</span>?
+          Let&apos;s Build Something{" "}
+          <span className="text-gradient-cyber">Amazing</span>
         </h2>
         <p className="text-gray-400 text-lg max-w-2xl mx-auto mb-8">
-          Transform your vision into reality with our cutting-edge VR and web solutions.
+          Whether you need a professional website, an immersive VR experience, or both working together—
+          we&apos;re here to help your brand grow.
         </p>
         <div className="flex flex-wrap justify-center gap-4">
           <Link href="/contact">
             <Button variant="primary" size="lg">
-              Get in Touch
+              Start Your Project
             </Button>
           </Link>
           <Link href="/services">
             <Button variant="secondary" size="lg">
-              View Services
+              See Our Services
             </Button>
           </Link>
         </div>

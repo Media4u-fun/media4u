@@ -7,74 +7,15 @@ import { Button } from "@/components/ui/button";
 
 const services = [
   {
-    id: "vr-environments",
-    title: "VR Environments",
-    description:
-      "Immersive virtual reality experiences that transport your audience to custom-designed digital worlds.",
-    features: [
-      "Custom 3D environment design",
-      "Interactive elements & hotspots",
-      "Multi-platform deployment",
-      "Real-time collaboration spaces",
-    ],
-    gradient: "from-cyber-cyan to-cyber-purple",
-    glowColor: "cyan",
-    icon: (
-      <svg
-        viewBox="0 0 100 100"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        className="w-full h-full"
-      >
-        <defs>
-          <linearGradient id="vr-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#00d4ff" />
-            <stop offset="100%" stopColor="#8b5cf6" />
-          </linearGradient>
-        </defs>
-        <rect
-          x="15"
-          y="30"
-          width="70"
-          height="40"
-          rx="8"
-          stroke="url(#vr-grad)"
-          strokeWidth="2"
-          fill="none"
-        />
-        <circle cx="35" cy="50" r="8" stroke="url(#vr-grad)" strokeWidth="2" fill="none" />
-        <circle cx="65" cy="50" r="8" stroke="url(#vr-grad)" strokeWidth="2" fill="none" />
-        <path
-          d="M10 50 L15 50"
-          stroke="url(#vr-grad)"
-          strokeWidth="2"
-          strokeLinecap="round"
-        />
-        <path
-          d="M85 50 L90 50"
-          stroke="url(#vr-grad)"
-          strokeWidth="2"
-          strokeLinecap="round"
-        />
-        <path
-          d="M43 50 L57 50"
-          stroke="url(#vr-grad)"
-          strokeWidth="2"
-          strokeLinecap="round"
-        />
-      </svg>
-    ),
-  },
-  {
     id: "web-design",
-    title: "Web Design & Development",
+    title: "Professional Websites",
     description:
-      "Cutting-edge websites that blend stunning aesthetics with powerful functionality and performance.",
+      "Clean, fast, conversion-focused websites that represent your brand and connect with your audience. From small business sites to custom landing pages.",
     features: [
-      "Custom responsive design",
-      "SEO optimization",
-      "E-commerce solutions",
-      "CMS integration",
+      "Responsive mobile-first design",
+      "SEO optimization built-in",
+      "Fast & accessible performance",
+      "Easy to maintain & update",
     ],
     gradient: "from-cyber-magenta to-cyber-cyan",
     glowColor: "magenta",
@@ -128,18 +69,119 @@ const services = [
     ),
   },
   {
-    id: "multiverse",
-    title: "Multiverse Projects",
+    id: "vr-environments",
+    title: "VR Storefronts & Environments",
     description:
-      "Unified brand experiences across multiple virtual platforms and metaverse environments.",
+      "Immersive virtual spaces where your brand comes to life. Build interactive VR storefronts, showrooms, and community spaces that engage customers worldwide.",
     features: [
-      "Cross-platform integration",
-      "Unified brand presence",
-      "Social VR experiences",
-      "Metaverse strategy",
+      "Custom 3D design & branding",
+      "Interactive displays & portals",
+      "Connect to web with hotlinks",
+      "Multi-platform deployment",
+    ],
+    gradient: "from-cyber-cyan to-cyber-purple",
+    glowColor: "cyan",
+    icon: (
+      <svg
+        viewBox="0 0 100 100"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        className="w-full h-full"
+      >
+        <defs>
+          <linearGradient id="vr-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#00d4ff" />
+            <stop offset="100%" stopColor="#8b5cf6" />
+          </linearGradient>
+        </defs>
+        <rect
+          x="15"
+          y="30"
+          width="70"
+          height="40"
+          rx="8"
+          stroke="url(#vr-grad)"
+          strokeWidth="2"
+          fill="none"
+        />
+        <circle cx="35" cy="50" r="8" stroke="url(#vr-grad)" strokeWidth="2" fill="none" />
+        <circle cx="65" cy="50" r="8" stroke="url(#vr-grad)" strokeWidth="2" fill="none" />
+        <path
+          d="M10 50 L15 50"
+          stroke="url(#vr-grad)"
+          strokeWidth="2"
+          strokeLinecap="round"
+        />
+        <path
+          d="M85 50 L90 50"
+          stroke="url(#vr-grad)"
+          strokeWidth="2"
+          strokeLinecap="round"
+        />
+        <path
+          d="M43 50 L57 50"
+          stroke="url(#vr-grad)"
+          strokeWidth="2"
+          strokeLinecap="round"
+        />
+      </svg>
+    ),
+  },
+  {
+    id: "branding",
+    title: "Branding & Design Assets",
+    description:
+      "Visual identity and promotional materials that make your brand stand out. Logos, social graphics, video assets, and multi-format designs for every platform.",
+    features: [
+      "Logo & brand identity design",
+      "Social media graphics (1x1, 16x9, 9x16)",
+      "Video & podcast promo assets",
+      "Print-ready & digital-optimized",
     ],
     gradient: "from-cyber-purple to-cyber-magenta",
     glowColor: "purple",
+    icon: (
+      <svg
+        viewBox="0 0 100 100"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        className="w-full h-full"
+      >
+        <defs>
+          <linearGradient id="brand-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#8b5cf6" />
+            <stop offset="100%" stopColor="#ff2d92" />
+          </linearGradient>
+        </defs>
+        <circle cx="50" cy="40" r="20" stroke="url(#brand-grad)" strokeWidth="2" fill="none" />
+        <circle cx="50" cy="40" r="12" stroke="url(#brand-grad)" strokeWidth="1.5" fill="none" opacity="0.6" />
+        <path
+          d="M50 20 L58 30 L50 32 L42 30 Z"
+          stroke="url(#brand-grad)"
+          strokeWidth="2"
+          fill="url(#brand-grad)"
+          opacity="0.5"
+        />
+        <rect x="25" y="65" width="50" height="12" rx="2" stroke="url(#brand-grad)" strokeWidth="2" fill="none" />
+        <line x1="35" y1="65" x2="35" y2="77" stroke="url(#brand-grad)" strokeWidth="1.5" />
+        <line x1="50" y1="65" x2="50" y2="77" stroke="url(#brand-grad)" strokeWidth="1.5" />
+        <line x1="65" y1="65" x2="65" y2="77" stroke="url(#brand-grad)" strokeWidth="1.5" />
+      </svg>
+    ),
+  },
+  {
+    id: "multiverse",
+    title: "Integrated Web + VR Experiences",
+    description:
+      "Connect your website to VR storefronts with interactive portals and linked experiences. Your web presence and VR world working as one unified brand.",
+    features: [
+      "Website ↔ VR portal integration",
+      "Branded spaces across platforms",
+      "Interactive hotlinks & navigation",
+      "Unified brand experience",
+    ],
+    gradient: "from-cyber-magenta to-cyber-cyan",
+    glowColor: "magenta",
     icon: (
       <svg
         viewBox="0 0 100 100"
@@ -176,66 +218,6 @@ const services = [
         <circle cx="50" cy="80" r="4" fill="#ff2d92" />
         <circle cx="20" cy="50" r="4" fill="#00d4ff" />
         <circle cx="80" cy="50" r="4" fill="#8b5cf6" />
-      </svg>
-    ),
-  },
-  {
-    id: "consulting",
-    title: "Creative Consulting",
-    description:
-      "Strategic guidance to help your organization navigate the digital landscape and emerging technologies.",
-    features: [
-      "Digital strategy development",
-      "Technology assessment",
-      "Implementation roadmapping",
-      "Team training & workshops",
-    ],
-    gradient: "from-cyber-cyan to-cyber-magenta",
-    glowColor: "cyan",
-    icon: (
-      <svg
-        viewBox="0 0 100 100"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        className="w-full h-full"
-      >
-        <defs>
-          <linearGradient id="consult-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#00d4ff" />
-            <stop offset="100%" stopColor="#ff2d92" />
-          </linearGradient>
-        </defs>
-        <circle cx="50" cy="30" r="15" stroke="url(#consult-grad)" strokeWidth="2" fill="none" />
-        <path
-          d="M50 45 L50 55"
-          stroke="url(#consult-grad)"
-          strokeWidth="2"
-          strokeLinecap="round"
-        />
-        <path
-          d="M30 65 L50 55 L70 65"
-          stroke="url(#consult-grad)"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          fill="none"
-        />
-        <path
-          d="M30 65 L30 80 L50 85 L70 80 L70 65"
-          stroke="url(#consult-grad)"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          fill="none"
-        />
-        <circle cx="50" cy="30" r="5" fill="url(#consult-grad)" opacity="0.5" />
-        <path
-          d="M45 28 L48 32 L56 24"
-          stroke="white"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
       </svg>
     ),
   },
@@ -344,10 +326,10 @@ export default function ServicesPage(): React.ReactNode {
     <main className="min-h-screen bg-void-950">
       <Section className="pt-32 md:pt-40">
         <SectionHeader
-          tag="Services"
-          title="What We "
-          highlight="Offer"
-          description="From immersive VR experiences to cutting-edge web solutions, we craft digital experiences that push boundaries and captivate audiences."
+          tag="Our Services"
+          title="Web + VR + "
+          highlight="Branding"
+          description="We're a hybrid creative studio. Build your web presence, create immersive VR experiences, and develop visual branding—all designed to work together."
         />
       </Section>
 
@@ -382,13 +364,12 @@ export default function ServicesPage(): React.ReactNode {
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(0,212,255,0.08),transparent_70%)]" />
             <div className="relative z-10">
               <h2 className="text-3xl md:text-4xl lg:text-5xl font-display font-bold mb-4">
-                Custom Solutions for{" "}
-                <span className="text-gradient-cyber">Every Budget</span>
+                All Services Work{" "}
+                <span className="text-gradient-cyber">Together</span>
               </h2>
               <p className="text-gray-400 text-lg max-w-2xl mx-auto mb-8">
-                Every project is unique. Let us create a tailored package that
-                fits your vision and budget. Get in touch to discuss your
-                requirements.
+                Whether you need a website, VR storefront, branding, or all three—we create
+                cohesive solutions where every piece strengthens your overall presence.
               </p>
               <Link href="/contact">
                 <Button variant="primary" size="lg">

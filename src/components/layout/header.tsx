@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
 import { useAuth } from "@/components/AuthContext";
@@ -30,14 +31,19 @@ export function Header() {
 
       <nav className="max-w-7xl mx-auto px-6 flex items-center justify-between">
         {/* Logo */}
-        <Link href="/" className="relative group">
-          <span className="font-display text-2xl font-bold tracking-tight">
-            Media<span className="text-gradient-cyber">4U</span>
-          </span>
+        <Link href="/" className="relative group flex items-center">
+          <Image
+            src="/media4u-logo.png"
+            alt="Media4U Logo"
+            width={50}
+            height={50}
+            priority
+            className="w-12 h-12 hover:scale-110 transition-transform duration-300"
+          />
         </Link>
 
         {/* Desktop Navigation */}
-        <div className="hidden lg:flex items-center gap-8">
+        <div className="hidden lg:flex items-center gap-8 absolute left-1/2 transform -translate-x-1/2">
           {navLinks.map((link) => (
             <Link
               key={link.href}
@@ -57,10 +63,12 @@ export function Header() {
           >
             Contact
           </Link>
+        </div>
 
-          {/* Auth Buttons */}
+        {/* Auth Buttons */}
+        <div className="hidden lg:flex items-center gap-3">
           {isAuthenticated ? (
-            <div className="flex items-center gap-4">
+            <>
               <Link
                 href={user?.role === "admin" ? "/admin" : "/"}
                 className="text-sm font-medium text-gray-300 hover:text-white transition-colors"
@@ -73,9 +81,9 @@ export function Header() {
               >
                 Logout
               </button>
-            </div>
+            </>
           ) : (
-            <div className="flex items-center gap-3">
+            <>
               <Link
                 href="/login"
                 className="px-4 py-2 rounded-full text-cyan-400 text-sm font-semibold hover:text-cyan-300 transition-colors"
@@ -88,7 +96,7 @@ export function Header() {
               >
                 Sign Up
               </Link>
-            </div>
+            </>
           )}
         </div>
 

@@ -41,13 +41,13 @@ export const getNewsletterSubscribers = query({
     unsubscribedOnly: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
-    let query = ctx.db.query("newsletterSubscribers");
+    const baseQuery = ctx.db.query("newsletterSubscribers");
 
-    if (args.unsubscribedOnly) {
-      query = query.withIndex("by_subscribed", (q) => q.eq("unsubscribed", true));
-    }
+    const filteredQuery = args.unsubscribedOnly
+      ? baseQuery.withIndex("by_subscribed", (q) => q.eq("unsubscribed", true))
+      : baseQuery;
 
-    return await query.collect();
+    return await filteredQuery.collect();
   },
 });
 

@@ -65,13 +65,13 @@ export const getAllPosts = query({
     publishedOnly: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
-    let query = ctx.db.query("blogPosts");
+    const baseQuery = ctx.db.query("blogPosts");
 
-    if (args.publishedOnly === true) {
-      query = query.withIndex("by_published", (q) => q.eq("published", true));
-    }
+    const filteredQuery = args.publishedOnly === true
+      ? baseQuery.withIndex("by_published", (q) => q.eq("published", true))
+      : baseQuery;
 
-    const posts = await query.order("desc").collect();
+    const posts = await filteredQuery.order("desc").collect();
     return posts;
   },
 });

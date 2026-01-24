@@ -39,7 +39,7 @@ export default function LoginPage() {
         setError("Invalid email or password");
         setPassword("");
       }
-    } catch (err) {
+    } catch {
       setError("Login failed. Please try again.");
       setPassword("");
     } finally {
@@ -135,7 +135,7 @@ export default function LoginPage() {
             transition={{ duration: 0.5, delay: 0.35 }}
             className="mt-6 text-center text-gray-400 text-sm"
           >
-            Don't have an account?{" "}
+            Don&apos;t have an account?{" "}
             <Link href="/signup" className="text-cyan-400 hover:text-cyan-300 font-medium">
               Sign up
             </Link>

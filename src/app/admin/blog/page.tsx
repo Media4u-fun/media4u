@@ -34,7 +34,7 @@ const gradients = [
 ];
 
 export default function BlogAdminPage() {
-  const posts = useQuery(api.blog.getAllPosts);
+  const posts = useQuery(api.blog.getAllPosts, {});
   const createPost = useMutation(api.blog.createBlogPost);
   const updatePost = useMutation(api.blog.updateBlogPost);
   const deletePost = useMutation(api.blog.deleteBlogPost);

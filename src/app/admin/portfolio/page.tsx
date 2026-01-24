@@ -15,6 +15,7 @@ interface ProjectFormData {
   gradient: string;
   featured: boolean;
   technologies?: string[];
+  images?: string[];
   testimonial?: string;
   results?: string[];
 }
@@ -33,7 +34,7 @@ const gradients = [
   "from-indigo-500 via-purple-500 to-pink-500",
 ];
 
-const categories = ["vr", "web", "multiverse"];
+const categories = ["vr", "web", "integrated"];
 
 export default function PortfolioAdminPage() {
   const projects = useQuery(api.portfolio.getAllProjects);
@@ -43,6 +44,7 @@ export default function PortfolioAdminPage() {
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<string>("");
   const [formData, setFormData] = useState<ProjectFormData>({
     title: "",
     slug: "",
@@ -52,9 +54,69 @@ export default function PortfolioAdminPage() {
     gradient: gradients[0],
     featured: false,
     technologies: [],
+    images: [],
     testimonial: "",
     results: [],
   });
+
+  async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = e.target.files;
+    if (!files) return;
+
+    const newImages: string[] = [];
+
+    for (let i = 0; i < files.length; i++) {
+      setUploadProgress(`Uploading image ${i + 1} of ${files.length}...`);
+
+      const file = files[i];
+
+      try {
+        // Create FormData for our API route
+        const apiFormData = new FormData();
+        apiFormData.append("file", file);
+
+        // Upload through our secure API route
+        const response = await fetch("/api/upload-image", {
+          method: "POST",
+          body: apiFormData,
+        });
+
+        if (!response.ok) {
+          throw new Error(`Upload failed: ${response.statusText}`);
+        }
+
+        const data = (await response.json()) as {
+          success: boolean;
+          url?: string;
+          error?: string;
+        };
+
+        if (data.success && data.url) {
+          newImages.push(data.url);
+
+          if (newImages.length === files.length) {
+            setFormData({
+              ...formData,
+              images: [...(formData.images || []), ...newImages],
+            });
+            setUploadProgress("");
+          }
+        } else {
+          throw new Error(data.error || "Upload failed");
+        }
+      } catch (error) {
+        console.error("Upload failed:", error);
+        setUploadProgress(`Error uploading ${file.name}`);
+      }
+    }
+  }
+
+  function removeImage(index: number) {
+    setFormData({
+      ...formData,
+      images: formData.images?.filter((_, i) => i !== index) || [],
+    });
+  }
 
   function handleNewProject() {
     setIsCreating(true);
@@ -68,6 +130,7 @@ export default function PortfolioAdminPage() {
       gradient: gradients[0],
       featured: false,
       technologies: [],
+      images: [],
       testimonial: "",
       results: [],
     });
@@ -85,6 +148,7 @@ export default function PortfolioAdminPage() {
       gradient: project.gradient,
       featured: project.featured,
       technologies: project.technologies || [],
+      images: project.images || [],
       testimonial: project.testimonial || "",
       results: project.results || [],
     });
@@ -147,18 +211,18 @@ export default function PortfolioAdminPage() {
         </button>
       </motion.div>
 
-      <div className="grid lg:grid-cols-3 gap-6">
-        {/* List */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        {/* Projects List Sidebar */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
           className="lg:col-span-1"
         >
-          <div className="glass-elevated rounded-2xl overflow-hidden">
-            <div className="p-4 border-b border-white/10 bg-white/5">
+          <div className="glass-elevated rounded-2xl overflow-hidden h-full">
+            <div className="p-4 border-b border-white/10 bg-white/5 sticky top-0">
               <p className="text-sm font-semibold text-gray-300">{projects?.length || 0} Projects</p>
             </div>
-            <div className="divide-y divide-white/10 max-h-96 overflow-y-auto">
+            <div className="divide-y divide-white/10 overflow-y-auto max-h-[calc(100vh-300px)]">
               {projects?.map((project) => (
                 <motion.button
                   key={project._id}
@@ -190,9 +254,9 @@ export default function PortfolioAdminPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="lg:col-span-2"
+          className="lg:col-span-3"
         >
-          <div className="glass-elevated rounded-2xl p-6 space-y-6 max-h-96 overflow-y-auto">
+          <div className="glass-elevated rounded-2xl p-8 space-y-8 overflow-y-auto max-h-[calc(100vh-200px)]">
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">Title</label>
               <input
@@ -267,6 +331,58 @@ export default function PortfolioAdminPage() {
                 rows={2}
                 placeholder="Detailed description"
               />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Project Images {formData.images?.length ? `(${formData.images.length})` : ""}
+              </label>
+              <div className="mb-4 p-4 rounded-lg bg-cyan-500/10 border border-cyan-500/30">
+                <p className="text-sm text-cyan-400">
+                  💡 <strong>Tip:</strong> Upload images in 16:9 aspect ratio (e.g., 1920x1080, 1600x900) for best display
+                </p>
+              </div>
+              <div className="border-2 border-dashed border-white/20 rounded-lg p-4 text-center hover:border-cyan-500/50 transition-colors">
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                  id="image-upload"
+                />
+                <label htmlFor="image-upload" className="cursor-pointer">
+                  <p className="text-sm text-gray-400">Click to upload or drag and drop</p>
+                  <p className="text-xs text-gray-500 mt-1">PNG, JPG, GIF up to 5MB</p>
+                </label>
+              </div>
+              {uploadProgress && (
+                <p className="text-sm text-cyan-400 mt-2">{uploadProgress}</p>
+              )}
+              {formData.images && formData.images.length > 0 && (
+                <div className="mt-4">
+                  <p className="text-sm text-gray-300 mb-3">Uploaded Images:</p>
+                  <div className="grid grid-cols-2 gap-4">
+                    {formData.images.map((img, idx) => (
+                      <div key={idx} className="relative group">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={img}
+                          alt={`Project ${idx + 1}`}
+                          className="w-full h-48 object-cover rounded-lg border border-white/10"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeImage(idx)}
+                          className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             <label className="flex items-center gap-3 cursor-pointer">

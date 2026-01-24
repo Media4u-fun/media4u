@@ -2,7 +2,7 @@
 
 import { useState, type FormEvent, type ChangeEvent } from "react";
 import { motion } from "motion/react";
-import { useMutation } from "convex/react";
+import { useMutation, useAction } from "convex/react";
 import { Button } from "@/components/ui/button";
 import { api } from "@convex/_generated/api";
 
@@ -37,7 +37,7 @@ function validateEmail(email: string): boolean {
 
 export function ContactForm() {
   const submitContact = useMutation(api.contactSubmissions.submitContact);
-  const sendEmail = useMutation(api.emails.sendContactFormEmail);
+  const sendEmail = useAction(api.emails.sendContactFormEmail);
 
   const [formData, setFormData] = useState<FormData>({
     name: "",

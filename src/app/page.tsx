@@ -91,7 +91,7 @@ function HeroSection() {
           transition={{ duration: 0.8, ease: "easeOut" }}
         >
           <span className="inline-block mb-6 text-xs font-semibold tracking-[0.3em] uppercase text-cyber-cyan">
-            VR / Web / Multiverse
+            VR Commerce / Metaverse / Global Business
           </span>
         </motion.div>
 
@@ -101,10 +101,10 @@ function HeroSection() {
           transition={{ duration: 0.8, delay: 0.1, ease: "easeOut" }}
           className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-display font-bold mb-6 leading-tight"
         >
-          Bringing Your{" "}
-          <span className="text-gradient-cyber">Digital Vision</span>
+          Virtual Commerce for a{" "}
+          <span className="text-gradient-cyber">Global Marketplace</span>
           <br />
-          to Life
+          Powered by the Metaverse
         </motion.h1>
 
         <motion.p
@@ -113,8 +113,9 @@ function HeroSection() {
           transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
           className="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mb-10"
         >
-          We craft immersive VR environments, stunning web experiences, and
-          cutting-edge multiverse projects that push the boundaries of digital creation.
+          Create immersive virtual storefronts, buy and sell digital real estate, and
+          conduct global commerce in the metaverse. Connect with customers worldwide in
+          stunning, interactive VR environments.
         </motion.p>
 
         <motion.div
@@ -139,31 +140,31 @@ const services = [
   {
     icon: (
       <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6M5 19h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
       </svg>
     ),
-    title: "VR Environments",
-    description: "Immersive virtual reality experiences that transport users to entirely new worlds. From interactive showrooms to training simulations.",
+    title: "Virtual Storefronts",
+    description: "Build immersive VR storefronts that showcase your products and services. Give customers a unique shopping experience in the metaverse with interactive displays and global reach.",
     glow: "cyan" as const,
   },
   {
     icon: (
       <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25m18 0A2.25 2.25 0 0018.75 3H5.25A2.25 2.25 0 003 5.25m18 0V12a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 12V5.25" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2.149-2.149a3 3 0 014.243 0L12 12m0 0l2.149-2.149a3 3 0 014.243 0L21 12M3 12a9 9 0 0118 0m-9 9v-2.25a2.25 2.25 0 012.25-2.25h4.5A2.25 2.25 0 0121 16.5V21" />
       </svg>
     ),
-    title: "Web Design",
-    description: "Stunning, responsive websites that combine aesthetic excellence with flawless functionality. Built for performance and conversion.",
+    title: "Virtual Real Estate",
+    description: "Buy, sell, and own digital properties in premium metaverse locations. From apartments to penthouses, invest in virtual real estate that appreciates in value.",
     glow: "purple" as const,
   },
   {
     icon: (
       <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
     ),
-    title: "Multiverse Projects",
-    description: "Cross-platform digital experiences that seamlessly bridge virtual and physical realities. The future of interactive engagement.",
+    title: "Global Commerce",
+    description: "Conduct business across the metaverse. Reach customers worldwide, process transactions in virtual spaces, and scale your enterprise in the digital economy.",
     glow: "magenta" as const,
   },
 ];
@@ -173,10 +174,10 @@ function ServicesSection() {
     <Section className="relative">
       <AnimatedSection>
         <SectionHeader
-          tag="What We Do"
-          title="Our Services"
-          highlight="Services"
-          description="We specialize in creating digital experiences that captivate, engage, and inspire."
+          tag="Our Offerings"
+          title="VR Commerce Solutions"
+          highlight="Solutions"
+          description="Build your metaverse empire with virtual storefronts, digital real estate, and global commerce capabilities."
         />
       </AnimatedSection>
 
@@ -206,19 +207,18 @@ function AboutSection() {
             About Us
           </span>
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-display font-bold mb-6">
-            Crafting Digital
+            The Future of
             <br />
-            <span className="text-gradient-cyber">Experiences</span>
+            <span className="text-gradient-cyber">Virtual Commerce</span>
           </h2>
           <p className="text-gray-400 text-lg leading-relaxed mb-6">
-            At Media4U, we believe in pushing the boundaries of what&apos;s possible in the digital realm.
-            Our team of passionate creators, developers, and visionaries work together to transform
-            ambitious ideas into stunning realities.
+            Media4U is pioneering the next generation of commerce by leveraging immersive virtual environments
+            and metaverse platforms. We enable businesses and individuals to thrive in the digital economy.
           </p>
           <p className="text-gray-400 leading-relaxed">
-            Whether you&apos;re looking to establish a commanding web presence, create immersive VR
-            experiences, or explore the emerging multiverse landscape, we have the expertise
-            and creativity to bring your vision to life.
+            From building stunning virtual storefronts like Chesapeake Meta Malls to hosting premium digital
+            real estate in Towers of Harmony, we connect global customers with innovative VR commerce
+            solutions that break geographical boundaries and create new economic opportunities.
           </p>
         </AnimatedSection>
 
@@ -229,15 +229,15 @@ function AboutSection() {
               <div className="grid grid-cols-2 gap-8">
                 <div className="text-center">
                   <div className="text-4xl md:text-5xl font-display font-bold text-gradient-cyber mb-2">
-                    50+
+                    Global
                   </div>
-                  <div className="text-gray-400 text-sm">Projects Completed</div>
+                  <div className="text-gray-400 text-sm">Customer Reach</div>
                 </div>
                 <div className="text-center">
                   <div className="text-4xl md:text-5xl font-display font-bold text-gradient-cyber mb-2">
-                    100%
+                    24/7
                   </div>
-                  <div className="text-gray-400 text-sm">Client Satisfaction</div>
+                  <div className="text-gray-400 text-sm">VR Operations</div>
                 </div>
               </div>
               <div className="mt-8 pt-8 border-t border-white/10">
@@ -273,12 +273,12 @@ function CTASection() {
       <AnimatedSection>
         <div className="relative text-center">
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-display font-bold mb-6">
-            Ready to Start Your{" "}
-            <span className="text-gradient-cyber">Project</span>?
+            Ready to Enter the{" "}
+            <span className="text-gradient-cyber">Metaverse</span>?
           </h2>
           <p className="text-gray-400 text-lg max-w-xl mx-auto mb-10">
-            Let&apos;s collaborate and create something extraordinary together.
-            Your digital vision is just a conversation away.
+            Launch your virtual storefront, invest in digital real estate, or expand your
+            business into the global VR marketplace. The future of commerce starts now.
           </p>
           <Link href="/contact">
             <Button size="lg">Get in Touch</Button>

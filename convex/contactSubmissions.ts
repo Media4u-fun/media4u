@@ -30,7 +30,7 @@ export const getContactSubmissions = query({
     if (args.status) {
       return await ctx.db
         .query("contactSubmissions")
-        .withIndex("by_status", (q) => q.eq("status", args.status))
+        .withIndex("by_status", (q) => q.eq("status", args.status!))
         .order("desc")
         .collect();
     }

@@ -109,9 +109,9 @@ export const verifyToken = query({
       const decoded = Buffer.from(args.token, "base64").toString();
       const [userId] = decoded.split(":");
 
-      const user = await ctx.db.get(userId as any);
+      const user = await ctx.db.get(userId as any) as any;
 
-      if (!user) {
+      if (!user || !("email" in user)) {
         return { valid: false, user: null };
       }
 
@@ -143,9 +143,9 @@ export const getCurrentUser = query({
       const decoded = Buffer.from(args.token, "base64").toString();
       const [userId] = decoded.split(":");
 
-      const user = await ctx.db.get(userId as any);
+      const user = await ctx.db.get(userId as any) as any;
 
-      if (!user) {
+      if (!user || !("email" in user)) {
         return null;
       }
 

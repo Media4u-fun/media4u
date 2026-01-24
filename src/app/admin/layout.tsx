@@ -5,6 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { motion } from "motion/react";
 import { useAuth } from "@/components/AuthContext";
 import Link from "next/link";
+import Image from "next/image";
 
 const adminNavItems = [
   { href: "/admin", label: "Dashboard", icon: "📊" },
@@ -60,12 +61,17 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         className="w-64 border-r border-white/10 bg-gradient-to-b from-white/5 to-transparent p-6 sticky top-0 h-screen overflow-y-auto"
       >
         <div className="mb-12">
-          <Link href="/" className="flex items-center gap-2 mb-2">
-            <span className="text-2xl font-display font-bold">
-              Media<span className="text-gradient-cyber">4U</span>
-            </span>
+          <Link href="/" className="flex items-center justify-center mb-6">
+            <Image
+              src="/media4u-logo.png"
+              alt="Media4U Logo"
+              width={60}
+              height={60}
+              priority
+              className="w-16 h-16 hover:scale-110 transition-transform duration-300"
+            />
           </Link>
-          <p className="text-xs text-gray-500 uppercase tracking-wider">Admin Panel</p>
+          <p className="text-xs text-gray-500 uppercase tracking-wider text-center">Admin Panel</p>
         </div>
 
         <nav className="space-y-2 mb-12">

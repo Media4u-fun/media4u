@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "motion/react";
+import Link from "next/link";
 import { useMutation, useQuery } from "convex/react";
 import { Section } from "@/components/ui/section";
 import { Button } from "@/components/ui/button";
@@ -16,6 +17,20 @@ interface BlogPost {
   readTime: string;
   gradient: string;
   featured?: boolean;
+  slug?: string;
+}
+
+interface DbBlogPost {
+  _id: string;
+  title: string;
+  excerpt: string;
+  category: string;
+  date: string;
+  readTime: string;
+  gradient: string;
+  featured: boolean;
+  published: boolean;
+  slug: string;
 }
 
 // Fallback data in case Convex is not yet seeded
@@ -70,15 +85,16 @@ const FALLBACK_BLOG_POSTS: BlogPost[] = [
 
 function BlogCard({ post, index, featured = false }: { post: BlogPost; index: number; featured?: boolean }) {
   return (
-    <motion.article
-      initial={{ opacity: 0, y: 30 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: index * 0.1 }}
-      whileHover={{ y: -8 }}
-      className={`group relative rounded-2xl overflow-hidden bg-white/[0.02] border border-white/[0.06] transition-all duration-300 hover:border-white/[0.12] hover:shadow-[0_0_60px_rgba(0,212,255,0.15)] ${
-        featured ? "md:col-span-2 md:row-span-2" : ""
-      }`}
-    >
+    <Link href={`/blog/${post.slug}`}>
+      <motion.article
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: index * 0.1 }}
+        whileHover={{ y: -8 }}
+        className={`group relative rounded-2xl overflow-hidden bg-white/[0.02] border border-white/[0.06] transition-all duration-300 hover:border-white/[0.12] hover:shadow-[0_0_60px_rgba(0,212,255,0.15)] cursor-pointer h-full ${
+          featured ? "md:col-span-2 md:row-span-2" : ""
+        }`}
+      >
       <div className={`relative ${featured ? "h-64 md:h-80" : "h-48"} overflow-hidden`}>
         <div className={`absolute inset-0 bg-gradient-to-br ${post.gradient} opacity-80`} />
         <div className="absolute inset-0 bg-gradient-to-t from-void-950 via-transparent to-transparent" />
@@ -104,6 +120,7 @@ function BlogCard({ post, index, featured = false }: { post: BlogPost; index: nu
       </div>
       <div className="absolute inset-0 border-2 border-transparent rounded-2xl transition-all duration-300 group-hover:border-cyan-500/20 pointer-events-none" />
     </motion.article>
+    </Link>
   );
 }
 
@@ -209,8 +226,20 @@ export default function BlogPage() {
   // Fetch blog posts from Convex
   const convexPosts = useQuery(api.blog.getAllPosts, { publishedOnly: true });
 
-  // Use Convex posts if available, fallback to hardcoded data
-  const BLOG_POSTS = (convexPosts && convexPosts.length > 0 ? convexPosts : FALLBACK_BLOG_POSTS) as BlogPost[];
+  // Transform Convex data when available, otherwise use fallback
+  const BLOG_POSTS = convexPosts
+    ? convexPosts.map((p: DbBlogPost) => ({
+        id: p._id,
+        title: p.title,
+        excerpt: p.excerpt,
+        category: p.category,
+        date: p.date,
+        readTime: p.readTime,
+        gradient: p.gradient,
+        featured: p.featured,
+        slug: p.slug,
+      }))
+    : FALLBACK_BLOG_POSTS;
 
   const featuredPost = BLOG_POSTS[0];
   const regularPosts = BLOG_POSTS.slice(1, visiblePosts);
@@ -238,7 +267,7 @@ export default function BlogPage() {
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-          <BlogCard post={featuredPost} index={0} featured />
+          <BlogCard key={featuredPost.id} post={featuredPost} index={0} featured />
           {regularPosts.map((post, index) => (
             <BlogCard key={post.id} post={post} index={index + 1} />
           ))}
