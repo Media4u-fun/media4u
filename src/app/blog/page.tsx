@@ -266,14 +266,26 @@ export default function BlogPage() {
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-          <BlogCard key={featuredPost.id} post={featuredPost} index={0} featured />
-          {regularPosts.map((post, index) => (
-            <BlogCard key={post.id} post={post} index={index + 1} />
-          ))}
-        </div>
+        {BLOG_POSTS.length === 0 ? (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center py-20"
+          >
+            <div className="text-6xl mb-4">📝</div>
+            <h2 className="text-2xl font-display font-bold text-white mb-2">No Posts Yet</h2>
+            <p className="text-gray-400">Check back soon for our latest insights!</p>
+          </motion.div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+            <BlogCard key={featuredPost.id} post={featuredPost} index={0} featured />
+            {regularPosts.map((post, index) => (
+              <BlogCard key={post.id} post={post} index={index + 1} />
+            ))}
+          </div>
+        )}
 
-        {hasMorePosts && (
+        {BLOG_POSTS.length > 0 && hasMorePosts && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
