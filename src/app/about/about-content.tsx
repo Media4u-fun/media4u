@@ -21,36 +21,14 @@ const VALUES = [
           strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth={2}
-          d="M13 10V3L4 14h7v7l9-11h-7z"
-        />
-      </svg>
-    ),
-    title: "Innovation",
-    description:
-      "We push the boundaries of what's possible, embracing cutting-edge technology to create experiences that captivate and inspire.",
-    glow: "cyan" as const,
-  },
-  {
-    icon: (
-      <svg
-        className="w-6 h-6"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-        aria-hidden="true"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2}
           d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
         />
       </svg>
     ),
-    title: "Collaboration",
+    title: "Connection",
     description:
-      "Your vision drives our work. We partner closely with every client to transform ideas into immersive digital realities.",
-    glow: "purple" as const,
+      "We use technology as a bridge between people, creating spaces where connection happens naturally.",
+    glow: "cyan" as const,
   },
   {
     icon: (
@@ -69,37 +47,76 @@ const VALUES = [
         />
       </svg>
     ),
-    title: "Excellence",
+    title: "Integrity",
     description:
-      "Quality is non-negotiable. Every pixel, every interaction, every experience is crafted to exceed expectations.",
+      "We create with honesty, excellence, and intention. Every project reflects our commitment to doing work that matters.",
+    glow: "purple" as const,
+  },
+  {
+    icon: (
+      <svg
+        className="w-6 h-6"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+        aria-hidden="true"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M13 10V3L4 14h7v7l9-11h-7z"
+        />
+      </svg>
+    ),
+    title: "Purpose",
+    description:
+      "Faith-informed and purpose-driven, we&apos;re here to help you build something meaningful that serves everyone.",
     glow: "magenta" as const,
   },
 ];
 
-const PROCESS_STEPS = [
+const SERVICES = [
   {
     number: "01",
-    title: "Discovery",
+    title: "Professional Websites",
     description:
-      "We dive deep into your goals, audience, and vision to understand what makes your project unique.",
+      "Modern, conversion-focused sites built for businesses, creators, and ministries who want to grow their reach and impact.",
   },
   {
     number: "02",
-    title: "Design",
+    title: "Immersive VR Environments",
     description:
-      "Concepts evolve into stunning visuals and interactive prototypes that bring your vision to life.",
+      "Custom virtual storefronts, apartments, event spaces, and interactive experiences in the Multiverse and beyond.",
   },
   {
     number: "03",
-    title: "Development",
+    title: "Visual Media & Branding",
     description:
-      "Our engineers transform designs into high-performance, immersive digital experiences.",
+      "Promo assets, social content, video, and creative direction that help you stand out and stay consistent.",
   },
   {
     number: "04",
-    title: "Delivery",
+    title: "Digital Presence",
     description:
-      "Rigorous testing and optimization ensure a flawless launch that exceeds expectations.",
+      "We help you create presence, not just content. Connection, not just clicks. Spaces where people feel welcomed.",
+  },
+];
+
+const TEAM_MEMBERS = [
+  {
+    name: "Mr. Harmony",
+    realName: "Devland Lister",
+    role: "Founder & Visionary",
+    bio: "Devland brings years of IT and tech experience into every project, but his real gift is seeing possibilities others miss. He's a builder at heart—whether it's a VR apartment complex, a digital community space, or a website that feels alive. He believes technology should foster harmony and connection, and that belief shapes everything Media4U creates. Devland leads with vision, purpose, and a deep commitment to doing work that matters.",
+    gradient: "from-cyan-500 to-blue-600",
+  },
+  {
+    name: "Mike",
+    realName: "Iceman",
+    role: "Visual Media Specialist",
+    bio: "Mike turns ideas into visuals you can feel. From websites and branding to VR assets and promotional content, he brings the creative precision that makes every project polished and professional. He's the bridge between concept and execution—taking vision and turning it into something people can see, touch, and experience. His work supports both the technical and creative sides of every project we take on.",
+    gradient: "from-purple-500 to-pink-600",
   },
 ];
 
@@ -140,13 +157,13 @@ export function AboutContent(): ReactElement {
             About Us
           </span>
           <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-display font-bold mb-6">
-            The Team Behind{" "}
-            <span className="text-gradient-cyber">Media4U</span>
+            We Build Digital Experiences That{" "}
+            <span className="text-gradient-cyber">Connect People</span>
           </h1>
           <p className="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto">
-            We are creators, innovators, and dreamers dedicated to crafting
-            immersive digital experiences that blur the line between reality and
-            imagination.
+            Media4U is a creative and technology studio where web design, immersive VR,
+            and visual storytelling come together. We help businesses, creators, and communities
+            show up clearly and confidently—online and in virtual spaces.
           </p>
         </motion.div>
       </Section>
@@ -165,20 +182,20 @@ export function AboutContent(): ReactElement {
               Our Mission
             </span>
             <h2 className="text-3xl md:text-4xl font-display font-bold mb-6">
-              Building the Future of{" "}
-              <span className="text-gradient-cyber">Digital Reality</span>
+              Building Meaningful{" "}
+              <span className="text-gradient-cyber">Digital Experiences</span>
             </h2>
             <div className="space-y-4 text-gray-400">
               <p>
-                At Media4U, we believe technology should inspire wonder. Our
-                mission is to create immersive VR environments and digital
-                solutions that connect people, spark creativity, and transform
-                the way we experience the digital world.
+                We exist to build meaningful digital experiences—spaces where people
+                feel seen, heard, and welcomed. We believe technology should bring
+                people closer, not just fill screens.
               </p>
               <p>
-                From custom multiverse experiences to stunning web platforms, we
-                combine artistic vision with technical excellence to deliver
-                projects that leave lasting impressions.
+                We use technology as a bridge. We create with integrity, excellence,
+                and intention. And we believe the best work happens when creativity,
+                faith, and innovation meet. Media4U is purpose-driven and faith-informed,
+                but we&apos;re here to serve everyone.
               </p>
             </div>
             {/* Decorative Element */}
@@ -215,17 +232,17 @@ export function AboutContent(): ReactElement {
         </div>
       </Section>
 
-      {/* Process Timeline */}
+      {/* What We Do */}
       <Section className="relative overflow-hidden">
         {/* Background Decorations */}
         <div className="absolute top-1/2 left-0 w-96 h-96 bg-cyan-500/5 rounded-full blur-3xl -translate-y-1/2" />
         <div className="absolute top-1/2 right-0 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl -translate-y-1/2" />
 
         <SectionHeader
-          tag="Our Process"
-          title="From Vision to "
-          highlight="Reality"
-          description="A proven approach that transforms ambitious ideas into exceptional digital experiences."
+          tag="What We Do"
+          title="More Than a Website Company. More Than "
+          highlight="VR Studio"
+          description="We&apos;re a hybrid creative partner that blends digital craftsmanship with immersive technology."
         />
 
         <motion.div
@@ -235,36 +252,81 @@ export function AboutContent(): ReactElement {
           viewport={{ once: true, margin: "-100px" }}
           className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mt-12 relative z-10"
         >
-          {PROCESS_STEPS.map((step, index) => (
+          {SERVICES.map((service, index) => (
             <motion.div
-              key={step.number}
+              key={service.number}
               variants={itemVariants}
               className="relative group"
             >
               {/* Connector Line (hidden on last item and mobile) */}
-              {index < PROCESS_STEPS.length - 1 && (
+              {index < SERVICES.length - 1 && (
                 <div className="hidden lg:block absolute top-16 left-full w-full h-px bg-gradient-to-r from-white/10 to-transparent z-0" />
               )}
 
               <div className="relative">
                 {/* Large Gradient Number */}
                 <div className="text-7xl md:text-8xl font-display font-bold text-gradient-cyber opacity-20 group-hover:opacity-40 transition-opacity duration-300">
-                  {step.number}
+                  {service.number}
                 </div>
 
                 {/* Content */}
                 <div className="-mt-8 relative z-10">
                   <h3 className="text-xl md:text-2xl font-display font-semibold mb-3">
-                    {step.title}
+                    {service.title}
                   </h3>
                   <p className="text-gray-400 text-sm leading-relaxed">
-                    {step.description}
+                    {service.description}
                   </p>
                 </div>
 
                 {/* Hover Glow Effect */}
                 <div className="absolute inset-0 -z-10 rounded-2xl bg-gradient-to-b from-cyan-500/0 to-cyan-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               </div>
+            </motion.div>
+          ))}
+        </motion.div>
+      </Section>
+
+      {/* Meet the Team */}
+      <Section>
+        <SectionHeader
+          tag="Meet the Team"
+          title="The People Behind "
+          highlight="Media4U"
+          description="A small, dedicated team focused on building meaningful digital experiences."
+        />
+
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-100px" }}
+          className="grid md:grid-cols-2 gap-8 mt-12 max-w-5xl mx-auto"
+        >
+          {TEAM_MEMBERS.map((member) => (
+            <motion.div
+              key={member.name}
+              variants={itemVariants}
+              className="group relative"
+            >
+              <Card className="h-full">
+                {/* Gradient Header */}
+                <div className={`h-32 bg-gradient-to-r ${member.gradient} opacity-80 rounded-t-2xl`} />
+
+                {/* Content */}
+                <div className="p-6 -mt-16 relative">
+                  <div className="mb-4">
+                    <h3 className="text-2xl md:text-3xl font-display font-bold mb-1">
+                      {member.name}
+                    </h3>
+                    <p className="text-sm text-gray-500">({member.realName})</p>
+                    <p className="text-cyan-400 font-semibold mt-2">{member.role}</p>
+                  </div>
+                  <p className="text-gray-400 text-sm leading-relaxed">
+                    {member.bio}
+                  </p>
+                </div>
+              </Card>
             </motion.div>
           ))}
         </motion.div>
@@ -299,8 +361,8 @@ export function AboutContent(): ReactElement {
               transition={{ delay: 0.2, duration: 0.6 }}
               className="text-3xl md:text-4xl lg:text-5xl font-display font-bold mb-4"
             >
-              Let&apos;s{" "}
-              <span className="text-gradient-cyber">Work Together</span>
+              Let&apos;s Build{" "}
+              <span className="text-gradient-cyber">Something Together</span>
             </motion.h2>
             <motion.p
               initial={{ opacity: 0, y: 20 }}
@@ -309,8 +371,9 @@ export function AboutContent(): ReactElement {
               transition={{ delay: 0.3, duration: 0.6 }}
               className="text-gray-400 text-lg max-w-xl mx-auto mb-8"
             >
-              Ready to bring your vision to life? Let&apos;s create something
-              extraordinary together.
+              We&apos;re not here to sell you a service. We&apos;re here to partner with you on something meaningful.
+              Whether you need a website that converts, a VR space that draws people in, or creative media
+              that tells your story—we&apos;re ready to help you show up with clarity and confidence.
             </motion.p>
             <motion.div
               initial={{ opacity: 0, y: 20 }}

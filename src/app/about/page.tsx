@@ -5,11 +5,11 @@ import { AboutContent } from "./about-content";
 export const metadata: Metadata = {
   title: "About",
   description:
-    "Meet the team behind Media4U. We create immersive VR environments, stunning websites, and innovative multiverse experiences that connect people and inspire creativity.",
+    "Media4U is a creative and technology studio that builds professional websites, immersive VR experiences, and visual media that help people and businesses connect. Meet Mr. Harmony and Mike.",
   openGraph: {
     title: "About | Media4U",
     description:
-      "Meet the team behind Media4U. We create immersive VR environments, stunning websites, and innovative multiverse experiences.",
+      "Media4U blends web design, immersive VR, and visual storytelling. Purpose-driven and faith-informed, we build meaningful digital experiences for everyone.",
   },
 };
 
