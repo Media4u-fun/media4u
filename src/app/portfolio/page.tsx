@@ -37,6 +37,8 @@ interface Project {
   images?: string[];
 }
 
+// Fallback projects data kept for future use if Convex is unavailable
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const FALLBACK_PROJECTS: Project[] = [
   {
     id: "virtual-conference-hall",
@@ -220,7 +222,8 @@ interface ProjectCardSkeletonProps {
   index: number;
 }
 
-function ProjectCardSkeleton({ index }: ProjectCardSkeletonProps) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function ProjectCardSkeleton({ index: _index }: ProjectCardSkeletonProps) {
   return (
     <div className="group relative rounded-2xl bg-white/[0.02] border border-white/[0.06] overflow-hidden">
       {/* Image skeleton */}
@@ -246,7 +249,8 @@ interface ProjectCardProps {
   index: number;
 }
 
-function ProjectCard({ project, index }: ProjectCardProps) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function ProjectCard({ project, index: _index }: ProjectCardProps) {
   const hasImage = project.images && project.images.length > 0;
 
   return (
