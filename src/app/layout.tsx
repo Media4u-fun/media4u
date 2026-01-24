@@ -14,6 +14,11 @@ export const metadata: Metadata = {
   description: "Custom VR environments, stunning websites, and innovative multiverse experiences that connect people and inspire creativity.",
   keywords: ["VR", "virtual reality", "web design", "multiverse", "digital agency", "immersive experiences"],
   authors: [{ name: "Media4U" }],
+  icons: {
+    icon: "/media4u-logo.png",
+    shortcut: "/media4u-logo.png",
+    apple: "/media4u-logo.png",
+  },
   openGraph: {
     type: "website",
     locale: "en_US",
