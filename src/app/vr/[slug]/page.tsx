@@ -9,25 +9,6 @@ import { Section } from "@/components/ui/section";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 
-interface VRExperienceDetail {
-  _id: string;
-  title: string;
-  slug: string;
-  type: "property" | "destination";
-  categories: string[];
-  description: string;
-  fullDescription?: string;
-  thumbnailImage: string;
-  gallery?: string[];
-  features?: Array<{ name: string; description: string }>;
-  multiverseUrl?: string;
-  websiteUrl?: string;
-  contactEmail?: string;
-  gradient: string;
-  featured: boolean;
-  testimonial?: string;
-}
-
 export default function VRDetailPage() {
   const params = useParams();
   const slug = params.slug as string;
@@ -52,7 +33,7 @@ export default function VRDetailPage() {
       <div className="min-h-screen mesh-bg flex items-center justify-center">
         <Section className="text-center">
           <h1 className="text-4xl font-display font-bold mb-4">Experience Not Found</h1>
-          <p className="text-gray-400 mb-8">We couldn't find the experience you're looking for.</p>
+          <p className="text-gray-400 mb-8">We couldn&apos;t find the experience you&apos;re looking for.</p>
           <Link href="/vr">
             <Button variant="primary">Back to VR Experiences</Button>
           </Link>
@@ -252,7 +233,7 @@ export default function VRDetailPage() {
           >
             <div className="relative p-8 rounded-2xl bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/[0.06] backdrop-blur-sm">
               <p className="text-2xl text-gray-300 italic mb-6 leading-relaxed">
-                "{experience.testimonial}"
+                &quot;{experience.testimonial}&quot;
               </p>
               <div className="inline-block px-4 py-2 rounded-full bg-cyan-500/20 border border-cyan-500/50 text-cyan-400 text-sm font-semibold">
                 Experience Testimonial

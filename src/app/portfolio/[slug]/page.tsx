@@ -3,26 +3,10 @@
 import { useQuery } from "convex/react";
 import { useParams } from "next/navigation";
 import { motion } from "motion/react";
-import Image from "next/image";
 import Link from "next/link";
 import { api } from "@convex/_generated/api";
 import { Section } from "@/components/ui/section";
 import { Button } from "@/components/ui/button";
-
-interface ProjectDetail {
-  _id: string;
-  title: string;
-  slug: string;
-  category: string;
-  description: string;
-  fullDescription?: string;
-  gradient: string;
-  images?: string[];
-  technologies?: string[];
-  results?: string[];
-  testimonial?: string;
-  featured: boolean;
-}
 
 export default function ProjectDetailPage() {
   const params = useParams();
@@ -47,7 +31,7 @@ export default function ProjectDetailPage() {
       <div className="min-h-screen mesh-bg flex items-center justify-center">
         <Section className="text-center">
           <h1 className="text-4xl font-display font-bold mb-4">Project Not Found</h1>
-          <p className="text-gray-400 mb-8">We couldn't find the project you're looking for.</p>
+          <p className="text-gray-400 mb-8">We couldn&apos;t find the project you&apos;re looking for.</p>
           <Link href="/portfolio">
             <Button variant="primary">Back to Portfolio</Button>
           </Link>
@@ -220,7 +204,7 @@ export default function ProjectDetailPage() {
           >
             <div className="relative p-8 rounded-2xl bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/[0.06] backdrop-blur-sm">
               <p className="text-2xl text-gray-300 italic mb-6 leading-relaxed">
-                "{project.testimonial}"
+                &quot;{project.testimonial}&quot;
               </p>
               <div className="inline-block px-4 py-2 rounded-full bg-cyan-500/20 border border-cyan-500/50 text-cyan-400 text-sm font-semibold">
                 Client Testimonial
@@ -243,7 +227,7 @@ export default function ProjectDetailPage() {
             Ready to Start Your Project?
           </h2>
           <p className="text-gray-400 text-lg mb-10">
-            Let's create something amazing together. Get in touch with our team today.
+            Let&apos;s create something amazing together. Get in touch with our team today.
           </p>
           <Link href="/contact">
             <Button variant="primary" size="lg">

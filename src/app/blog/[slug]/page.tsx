@@ -8,20 +8,6 @@ import { api } from "@convex/_generated/api";
 import { Section } from "@/components/ui/section";
 import { Button } from "@/components/ui/button";
 
-interface BlogPostDetail {
-  _id: string;
-  title: string;
-  slug: string;
-  excerpt: string;
-  content: string;
-  category: string;
-  date: string;
-  readTime: string;
-  gradient: string;
-  featured: boolean;
-  published: boolean;
-}
-
 export default function BlogDetailPage() {
   const params = useParams();
   const slug = params.slug as string;
@@ -46,7 +32,7 @@ export default function BlogDetailPage() {
       <div className="min-h-screen mesh-bg flex items-center justify-center">
         <Section className="text-center">
           <h1 className="text-4xl font-display font-bold mb-4">Post Not Found</h1>
-          <p className="text-gray-400 mb-8">We couldn't find the blog post you're looking for.</p>
+          <p className="text-gray-400 mb-8">We couldn&apos;t find the blog post you&apos;re looking for.</p>
           <Link href="/blog">
             <Button variant="primary">Back to Blog</Button>
           </Link>

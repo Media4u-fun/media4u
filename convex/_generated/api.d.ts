@@ -16,6 +16,7 @@ import type * as emails from "../emails.js";
 import type * as newsletter from "../newsletter.js";
 import type * as portfolio from "../portfolio.js";
 import type * as seed from "../seed.js";
+import type * as vr from "../vr.js";
 
 import type {
   ApiFromModules,
@@ -32,6 +33,7 @@ declare const fullApi: ApiFromModules<{
   newsletter: typeof newsletter;
   portfolio: typeof portfolio;
   seed: typeof seed;
+  vr: typeof vr;
 }>;
 
 /**
