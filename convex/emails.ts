@@ -127,3 +127,100 @@ export const sendNewsletterWelcomeEmail = action({
     }
   },
 });
+
+export const sendProjectRequestEmail = action({
+  args: {
+    name: v.string(),
+    email: v.string(),
+    businessName: v.optional(v.string()),
+    projectTypes: v.array(v.string()),
+    description: v.string(),
+    timeline: v.string(),
+    budget: v.string(),
+  },
+  handler: async (ctx, args) => {
+    if (!RESEND_API_KEY) {
+      console.error("RESEND_API_KEY not configured");
+      return { success: false, error: "Email service not configured" };
+    }
+
+    try {
+      // Format project types for email
+      const projectTypesList = args.projectTypes.join(", ");
+
+      // Send to admin
+      const adminResponse = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${RESEND_API_KEY}`,
+        },
+        body: JSON.stringify({
+          from: FROM_EMAIL,
+          to: "hello@media4u.fun",
+          subject: `New Project Request from ${args.name}`,
+          html: `
+            <h2>New Project Request</h2>
+            <p><strong>Name:</strong> ${args.name}</p>
+            <p><strong>Email:</strong> ${args.email}</p>
+            ${args.businessName ? `<p><strong>Business:</strong> ${args.businessName}</p>` : ""}
+            <p><strong>Project Types:</strong> ${projectTypesList}</p>
+            <p><strong>Timeline:</strong> ${args.timeline}</p>
+            <p><strong>Budget:</strong> ${args.budget}</p>
+            <p><strong>Project Vision:</strong></p>
+            <p>${args.description.replace(/\n/g, "<br>")}</p>
+            <hr>
+            <p><small>This email was automatically sent from Media4U project request form</small></p>
+          `,
+        }),
+      });
+
+      if (!adminResponse.ok) {
+        console.error("Failed to send admin email:", adminResponse.statusText);
+        return { success: false, error: "Failed to send notification" };
+      }
+
+      // Send confirmation to user
+      const userResponse = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${RESEND_API_KEY}`,
+        },
+        body: JSON.stringify({
+          from: FROM_EMAIL,
+          to: args.email,
+          subject: "We received your project request - Media4U",
+          html: `
+            <h2>Thank You, ${args.name}!</h2>
+            <p>We&apos;ve received your project request and we&apos;re excited to learn more about your vision.</p>
+            <p><strong>What happens next?</strong></p>
+            <ul>
+              <li>We&apos;ll review your project details within 24 hours</li>
+              <li>A member of our team will reach out to discuss your needs</li>
+              <li>We&apos;ll provide a custom quote and timeline for your project</li>
+            </ul>
+            <p><strong>Your project details:</strong></p>
+            <p><strong>Project Types:</strong> ${projectTypesList}</p>
+            <p><strong>Timeline:</strong> ${args.timeline}</p>
+            <p><strong>Budget Range:</strong> ${args.budget}</p>
+            <p>If you have any questions in the meantime, feel free to reply to this email.</p>
+            <p>Best regards,<br>The Media4U Team</p>
+            <hr>
+            <p><small>This email was automatically sent from Media4U</small></p>
+          `,
+        }),
+      });
+
+      if (!userResponse.ok) {
+        console.error("Failed to send user email:", userResponse.statusText);
+        return { success: true, warning: "Request saved but confirmation email failed" };
+      }
+
+      return { success: true };
+    } catch (error) {
+      console.error("Email sending error:", error);
+      return { success: false, error: "Failed to send email" };
+    }
+  },
+});

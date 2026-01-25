@@ -15,6 +15,7 @@ import type * as contactSubmissions from "../contactSubmissions.js";
 import type * as emails from "../emails.js";
 import type * as newsletter from "../newsletter.js";
 import type * as portfolio from "../portfolio.js";
+import type * as projectRequests from "../projectRequests.js";
 import type * as seed from "../seed.js";
 import type * as settings from "../settings.js";
 import type * as vr from "../vr.js";
@@ -33,6 +34,7 @@ declare const fullApi: ApiFromModules<{
   emails: typeof emails;
   newsletter: typeof newsletter;
   portfolio: typeof portfolio;
+  projectRequests: typeof projectRequests;
   seed: typeof seed;
   settings: typeof settings;
   vr: typeof vr;

@@ -26,6 +26,23 @@ export default defineSchema({
     .index("by_status", ["status"])
     .index("by_created", ["createdAt"]),
 
+  // Project request submissions
+  projectRequests: defineTable({
+    name: v.string(),
+    email: v.string(),
+    businessName: v.optional(v.string()),
+    projectTypes: v.array(v.string()),
+    description: v.string(),
+    timeline: v.string(),
+    budget: v.string(),
+    status: v.union(v.literal("new"), v.literal("contacted"), v.literal("quoted"), v.literal("accepted"), v.literal("declined")),
+    createdAt: v.number(),
+    notes: v.optional(v.string()),
+  })
+    .index("by_status", ["status"])
+    .index("by_created", ["createdAt"])
+    .index("by_email", ["email"]),
+
   // Newsletter subscribers
   newsletterSubscribers: defineTable({
     email: v.string(),

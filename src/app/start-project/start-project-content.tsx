@@ -3,6 +3,8 @@
 import { type ReactElement, useState } from "react";
 import { motion } from "motion/react";
 import Link from "next/link";
+import { useMutation, useAction } from "convex/react";
+import { api } from "../../../convex/_generated/api";
 import { Section, SectionHeader } from "@/components/ui/section";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -81,6 +83,9 @@ const ADD_ONS = [
 ];
 
 export function StartProjectContent(): ReactElement {
+  const submitProjectRequest = useMutation(api.projectRequests.submitProjectRequest);
+  const sendProjectEmail = useAction(api.emails.sendProjectRequestEmail);
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -91,6 +96,10 @@ export function StartProjectContent(): ReactElement {
     budget: "",
   });
 
+  const [submitting, setSubmitting] = useState(false);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
   const handleCheckboxChange = (value: string) => {
     setFormData((prev) => ({
       ...prev,
@@ -100,11 +109,69 @@ export function StartProjectContent(): ReactElement {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Add form submission logic
-    console.log("Form submitted:", formData);
-    alert("Thank you! We'll be in touch within 1–2 business days.");
+    setSubmitting(true);
+    setSubmitError(null);
+
+    try {
+      // Validate required fields
+      if (!formData.name || !formData.email || !formData.description) {
+        setSubmitError("Please fill in all required fields");
+        setSubmitting(false);
+        return;
+      }
+
+      if (formData.projectTypes.length === 0) {
+        setSubmitError("Please select at least one project type");
+        setSubmitting(false);
+        return;
+      }
+
+      // Submit to database
+      await submitProjectRequest({
+        name: formData.name,
+        email: formData.email,
+        businessName: formData.businessName || undefined,
+        projectTypes: formData.projectTypes,
+        description: formData.description,
+        timeline: formData.timeline || "Not specified",
+        budget: formData.budget || "Not specified",
+      });
+
+      // Send email notifications
+      await sendProjectEmail({
+        name: formData.name,
+        email: formData.email,
+        businessName: formData.businessName || undefined,
+        projectTypes: formData.projectTypes,
+        description: formData.description,
+        timeline: formData.timeline || "Not specified",
+        budget: formData.budget || "Not specified",
+      });
+
+      // Success!
+      setSubmitSuccess(true);
+
+      // Reset form
+      setFormData({
+        name: "",
+        email: "",
+        businessName: "",
+        projectTypes: [],
+        description: "",
+        timeline: "",
+        budget: "",
+      });
+
+      // Scroll to top to show success message
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      setSubmitError("Something went wrong. Please try again or email us directly at hello@media4u.fun");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const scrollToForm = () => {
@@ -281,6 +348,36 @@ export function StartProjectContent(): ReactElement {
           className="max-w-3xl mx-auto mt-12"
         >
           <Card className="p-8">
+            {/* Success Message */}
+            {submitSuccess && (
+              <div className="mb-6 p-4 rounded-lg bg-gradient-to-r from-green-500/20 to-cyan-500/20 border border-green-500/30">
+                <h3 className="text-green-400 font-semibold mb-2">Thank You! 🎉</h3>
+                <p className="text-gray-300 text-sm">
+                  We&apos;ve received your project request and will review it within 24 hours. Check your email for a confirmation message.
+                </p>
+                <button
+                  onClick={() => setSubmitSuccess(false)}
+                  className="mt-3 text-cyan-400 text-sm hover:text-cyan-300 transition-colors"
+                >
+                  Submit another request →
+                </button>
+              </div>
+            )}
+
+            {/* Error Message */}
+            {submitError && (
+              <div className="mb-6 p-4 rounded-lg bg-red-500/10 border border-red-500/30">
+                <h3 className="text-red-400 font-semibold mb-2">Oops!</h3>
+                <p className="text-gray-300 text-sm">{submitError}</p>
+                <button
+                  onClick={() => setSubmitError(null)}
+                  className="mt-3 text-red-400 text-sm hover:text-red-300 transition-colors"
+                >
+                  Try again
+                </button>
+              </div>
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Name */}
               <div>
@@ -442,8 +539,14 @@ export function StartProjectContent(): ReactElement {
 
               {/* Submit Button */}
               <div className="pt-4">
-                <Button type="submit" variant="primary" size="lg" className="w-full">
-                  Start the Conversation
+                <Button
+                  type="submit"
+                  variant="primary"
+                  size="lg"
+                  className="w-full"
+                  disabled={submitting || submitSuccess}
+                >
+                  {submitting ? "Sending..." : submitSuccess ? "Request Submitted ✓" : "Start the Conversation"}
                 </Button>
                 <p className="text-center text-sm text-gray-500 mt-4">
                   No pressure. We&apos;ll review your request and follow up personally. If we&apos;re not the right fit, we&apos;ll let you know honestly.
