@@ -10,8 +10,8 @@ const contactMethods = [
       </svg>
     ),
     label: "Email",
-    value: "hello@media4u.fun",
-    href: "mailto:hello@media4u.fun",
+    value: "devland0831@gmail.com",
+    href: "mailto:devland0831@gmail.com",
   },
   {
     icon: (
