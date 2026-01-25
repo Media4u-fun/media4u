@@ -10,7 +10,7 @@ const services = [
     id: "web-design",
     title: "Professional Websites",
     description:
-      "Clean, fast, conversion-focused websites that represent your brand and connect with your audience. From small business sites to custom landing pages.",
+      "Modern, mobile-responsive websites built for businesses, creators, and brands who want to grow their online presence. From landing pages to full eCommerce—we build sites that convert.",
     features: [
       "Responsive mobile-first design",
       "SEO optimization built-in",
@@ -69,18 +69,18 @@ const services = [
     ),
   },
   {
-    id: "vr-environments",
-    title: "VR Storefronts & Environments",
+    id: "branding",
+    title: "Branding & Design Assets",
     description:
-      "Immersive virtual spaces where your brand comes to life. Build interactive VR storefronts, showrooms, and community spaces that engage customers worldwide.",
+      "Visual identity and promotional materials that make your brand memorable. Logos, social graphics, video assets, and multi-format designs that work seamlessly across your website, social channels, and VR spaces.",
     features: [
-      "Custom 3D design & branding",
-      "Interactive displays & portals",
-      "Connect to web with hotlinks",
-      "Multi-platform deployment",
+      "Logo & brand identity design",
+      "Social media graphics (1x1, 16x9, 9x16)",
+      "Video & podcast promo assets",
+      "Print-ready & digital-optimized",
     ],
-    gradient: "from-cyber-cyan to-cyber-purple",
-    glowColor: "cyan",
+    gradient: "from-cyber-purple to-cyber-magenta",
+    glowColor: "purple",
     icon: (
       <svg
         viewBox="0 0 100 100"
@@ -128,18 +128,18 @@ const services = [
     ),
   },
   {
-    id: "branding",
-    title: "Branding & Design Assets",
+    id: "vr-environments",
+    title: "VR Storefronts & Environments",
     description:
-      "Visual identity and promotional materials that make your brand stand out. Logos, social graphics, video assets, and multi-format designs for every platform.",
+      "For brands ready to differentiate and innovate—we create immersive virtual spaces where your brand comes to life. Custom VR storefronts, showrooms, and interactive environments that engage customers in entirely new ways.",
     features: [
-      "Logo & brand identity design",
-      "Social media graphics (1x1, 16x9, 9x16)",
-      "Video & podcast promo assets",
-      "Print-ready & digital-optimized",
+      "Custom 3D design & branding",
+      "Interactive displays & portals",
+      "Connect to web with hotlinks",
+      "Multi-platform deployment",
     ],
-    gradient: "from-cyber-purple to-cyber-magenta",
-    glowColor: "purple",
+    gradient: "from-cyber-cyan to-cyber-purple",
+    glowColor: "cyan",
     icon: (
       <svg
         viewBox="0 0 100 100"
@@ -173,7 +173,7 @@ const services = [
     id: "multiverse",
     title: "Integrated Web + VR Experiences",
     description:
-      "Connect your website to VR storefronts with interactive portals and linked experiences. Your web presence and VR world working as one unified brand.",
+      "The best of both worlds: professional websites that connect seamlessly to VR storefronts. Create a unified brand presence where customers can explore your business online and step into immersive virtual spaces—all from one integrated experience.",
     features: [
       "Website ↔ VR portal integration",
       "Branded spaces across platforms",
@@ -326,10 +326,10 @@ export default function ServicesPage(): React.ReactNode {
     <main className="min-h-screen bg-void-950">
       <Section className="pt-32 md:pt-40">
         <SectionHeader
-          tag="Our Services"
-          title="Web + VR + "
-          highlight="Branding"
-          description="We're a hybrid creative studio. Build your web presence, create immersive VR experiences, and develop visual branding—all designed to work together."
+          tag="What We Do"
+          title="Websites First. VR When You're "
+          highlight="Ready to Innovate"
+          description="We're a full-service creative studio. Start with a professional website, add branding and media assets, and when you're ready—extend your presence into immersive VR environments."
         />
       </Section>
 
@@ -364,12 +364,11 @@ export default function ServicesPage(): React.ReactNode {
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(0,212,255,0.08),transparent_70%)]" />
             <div className="relative z-10">
               <h2 className="text-3xl md:text-4xl lg:text-5xl font-display font-bold mb-4">
-                All Services Work{" "}
-                <span className="text-gradient-cyber">Together</span>
+                Start With a Website. Expand Into{" "}
+                <span className="text-gradient-cyber">VR</span>
               </h2>
               <p className="text-gray-400 text-lg max-w-2xl mx-auto mb-8">
-                Whether you need a website, VR storefront, branding, or all three—we create
-                cohesive solutions where every piece strengthens your overall presence.
+                Most clients start with a professional website and branding. When they&apos;re ready to innovate, we extend their presence into VR. Every service works together to create a cohesive, powerful digital identity.
               </p>
               <Link href="/contact">
                 <Button variant="primary" size="lg">

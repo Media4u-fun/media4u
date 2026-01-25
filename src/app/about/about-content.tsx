@@ -85,21 +85,21 @@ const SERVICES = [
   },
   {
     number: "02",
-    title: "Immersive VR Environments",
+    title: "Visual Media & Branding",
     description:
-      "Custom virtual storefronts, apartments, event spaces, and interactive experiences in the Multiverse and beyond.",
+      "Logos, promo assets, social content, video, and creative direction that help your brand stand out online and in VR. Consistent visual identity across every platform.",
   },
   {
     number: "03",
-    title: "Visual Media & Branding",
+    title: "Web Hosting & Ongoing Support",
     description:
-      "Promo assets, social content, video, and creative direction that help you stand out and stay consistent.",
+      "Reliable hosting, regular updates, SEO optimization, and technical support. We keep your website fast, secure, and performing at its best.",
   },
   {
     number: "04",
-    title: "Digital Presence",
+    title: "Immersive VR Environments",
     description:
-      "We help you create presence, not just content. Connection, not just clicks. Spaces where people feel welcomed.",
+      "Custom virtual storefronts, event spaces, and interactive experiences for brands ready to innovate. From the Multiverse to standalone VR—we build spaces that engage and inspire.",
   },
 ];
 
@@ -161,9 +161,7 @@ export function AboutContent(): ReactElement {
             <span className="text-gradient-cyber">Connect People</span>
           </h1>
           <p className="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto">
-            Media4U is a creative and technology studio where web design, immersive VR,
-            and visual storytelling come together. We help businesses, creators, and communities
-            show up clearly and confidently—online and in virtual spaces.
+            Media4U is a web design and creative studio where professional websites, visual branding, and immersive VR come together. We help businesses, creators, and communities build their digital presence with clarity and confidence—online and in virtual spaces.
           </p>
         </motion.div>
       </Section>
@@ -192,10 +190,7 @@ export function AboutContent(): ReactElement {
                 people closer, not just fill screens.
               </p>
               <p>
-                We use technology as a bridge. We create with integrity, excellence,
-                and intention. And we believe the best work happens when creativity,
-                faith, and innovation meet. Media4U is purpose-driven and faith-informed,
-                but we&apos;re here to serve everyone.
+                We build websites that work. We create branding that resonates. And for those ready to push boundaries, we design VR experiences that set you apart. Media4U is purpose-driven and faith-informed, but we&apos;re here to serve everyone with excellence.
               </p>
             </div>
             {/* Decorative Element */}
@@ -371,9 +366,7 @@ export function AboutContent(): ReactElement {
               transition={{ delay: 0.3, duration: 0.6 }}
               className="text-gray-400 text-lg max-w-xl mx-auto mb-8"
             >
-              We&apos;re not here to sell you a service. We&apos;re here to partner with you on something meaningful.
-              Whether you need a website that converts, a VR space that draws people in, or creative media
-              that tells your story—we&apos;re ready to help you show up with clarity and confidence.
+              Whether you need a website that converts, branding that connects, or a VR space that sets you apart—we&apos;re ready to help you show up with clarity and confidence. Let&apos;s build your digital presence together.
             </motion.p>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -384,12 +377,12 @@ export function AboutContent(): ReactElement {
             >
               <Link href="/contact" className="w-full sm:w-auto">
                 <Button size="lg" className="w-full sm:w-auto">
-                  Start a Project
+                  Start a Website Project
                 </Button>
               </Link>
-              <Link href="/#services" className="w-full sm:w-auto">
+              <Link href="/services" className="w-full sm:w-auto">
                 <Button variant="secondary" size="lg" className="w-full sm:w-auto">
-                  View Services
+                  View All Services
                 </Button>
               </Link>
             </motion.div>
