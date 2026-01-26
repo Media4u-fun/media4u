@@ -49,33 +49,6 @@ function MorphingBlob() {
   );
 }
 
-function FloatingOrbs() {
-  return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      <div
-        className="absolute top-20 right-20 w-2 h-2 bg-cyber-cyan rounded-full shadow-glow-cyan animate-float"
-        style={{ animationDelay: "0s" }}
-      />
-      <div
-        className="absolute top-40 left-32 w-3 h-3 bg-cyber-purple rounded-full shadow-glow-purple animate-float"
-        style={{ animationDelay: "-2s" }}
-      />
-      <div
-        className="absolute bottom-32 right-40 w-2 h-2 bg-cyber-magenta rounded-full shadow-glow-magenta animate-float"
-        style={{ animationDelay: "-4s" }}
-      />
-      <div
-        className="absolute bottom-48 left-20 w-1.5 h-1.5 bg-cyber-cyan rounded-full shadow-glow-cyan animate-float"
-        style={{ animationDelay: "-1s" }}
-      />
-      <div
-        className="absolute top-1/3 right-1/4 w-1 h-1 bg-white/60 rounded-full animate-float"
-        style={{ animationDelay: "-3s" }}
-      />
-    </div>
-  );
-}
-
 function HeroSection() {
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">

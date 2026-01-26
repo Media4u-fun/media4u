@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { WhatsAppButton } from "@/components/layout/whatsapp-button";
 import { ConvexClientProvider } from "@/components/ConvexClientProvider";
 import { ToastProvider } from "@/components/ui/toast-provider";
 import { AuthProvider } from "@/components/AuthContext";
@@ -81,7 +80,6 @@ export default function RootLayout({
           <AuthProvider>
             <ToastProvider />
             <LayoutWrapper>{children}</LayoutWrapper>
-            <WhatsAppButton />
           </AuthProvider>
         </ConvexClientProvider>
       </body>

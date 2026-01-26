@@ -1,18 +1,32 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
+import { useAuth } from "@/components/AuthContext";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [loginSuccess, setLoginSuccess] = useState(false);
   const router = useRouter();
+  const { isAuthenticated, isAdmin, isLoading: authLoading } = useAuth();
+
+  // Redirect based on role after login
+  useEffect(() => {
+    if (loginSuccess && isAuthenticated && !authLoading) {
+      if (isAdmin) {
+        router.push("/admin");
+      } else {
+        router.push("/portal");
+      }
+    }
+  }, [loginSuccess, isAuthenticated, isAdmin, authLoading, router]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -23,7 +37,7 @@ export default function LoginPage() {
       { email, password },
       {
         onSuccess: () => {
-          router.push("/");
+          setLoginSuccess(true);
         },
         onError: (ctx: { error: { message?: string } }) => {
           setError(ctx.error.message ?? "Invalid email or password");

@@ -247,11 +247,10 @@ const itemVariants = {
 
 interface ServiceCardProps {
   service: (typeof services)[number];
-  index: number;
   isReversed: boolean;
 }
 
-function ServiceCard({ service, index, isReversed }: ServiceCardProps): React.ReactNode {
+function ServiceCard({ service, isReversed }: ServiceCardProps): React.ReactNode {
   const glowShadows: Record<string, string> = {
     cyan: "shadow-[0_0_80px_rgba(0,212,255,0.2)]",
     magenta: "shadow-[0_0_80px_rgba(255,45,146,0.2)]",
@@ -336,7 +335,6 @@ export default function ServicesPage(): React.ReactNode {
             <ServiceCard
               key={service.id}
               service={service}
-              index={index}
               isReversed={index % 2 === 1}
             />
           ))}

@@ -1,9 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-12-15.clover",
-});
+function getStripeClient(): Stripe {
+  const secretKey = process.env.STRIPE_SECRET_KEY;
+  if (!secretKey) {
+    throw new Error("STRIPE_SECRET_KEY is not configured");
+  }
+  return new Stripe(secretKey, {
+    apiVersion: "2025-12-15.clover",
+  });
+}
 
 interface PortalRequest {
   customerEmail: string;
@@ -12,6 +18,7 @@ interface PortalRequest {
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
+    const stripe = getStripeClient();
     const body = (await request.json()) as PortalRequest;
     const { customerEmail, returnUrl } = body;
 

@@ -3,11 +3,23 @@ import Stripe from "stripe";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../../../../convex/_generated/api";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-12-15.clover",
-});
+function getStripeClient(): Stripe {
+  const secretKey = process.env.STRIPE_SECRET_KEY;
+  if (!secretKey) {
+    throw new Error("STRIPE_SECRET_KEY is not configured");
+  }
+  return new Stripe(secretKey, {
+    apiVersion: "2025-12-15.clover",
+  });
+}
 
-const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
+function getConvexClient(): ConvexHttpClient {
+  const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
+  if (!convexUrl) {
+    throw new Error("NEXT_PUBLIC_CONVEX_URL is not configured");
+  }
+  return new ConvexHttpClient(convexUrl);
+}
 
 type ProductType = "starter" | "professional" | "webcare";
 type CheckoutMode = "payment" | "subscription";
@@ -21,26 +33,43 @@ interface CheckoutRequest {
   cancelUrl?: string;
 }
 
-const PRICE_MAP: Record<ProductType, { priceId: string; mode: CheckoutMode; amount: number }> = {
-  starter: {
-    priceId: process.env.STRIPE_PRICE_STARTER!,
-    mode: "payment",
-    amount: 89900, // $899 in cents
-  },
-  professional: {
-    priceId: process.env.STRIPE_PRICE_PROFESSIONAL!,
-    mode: "payment",
-    amount: 139900, // $1,399 in cents
-  },
-  webcare: {
-    priceId: process.env.STRIPE_PRICE_WEBCARE!,
-    mode: "subscription",
-    amount: 14900, // $149 in cents (monthly)
-  },
-};
+function getPriceConfig(productType: ProductType): { priceId: string; mode: CheckoutMode; amount: number } | null {
+  const configs: Record<ProductType, { priceIdEnv: string; mode: CheckoutMode; amount: number }> = {
+    starter: {
+      priceIdEnv: "STRIPE_PRICE_STARTER",
+      mode: "payment",
+      amount: 89900, // $899 in cents
+    },
+    professional: {
+      priceIdEnv: "STRIPE_PRICE_PROFESSIONAL",
+      mode: "payment",
+      amount: 139900, // $1,399 in cents
+    },
+    webcare: {
+      priceIdEnv: "STRIPE_PRICE_WEBCARE",
+      mode: "subscription",
+      amount: 14900, // $149 in cents (monthly)
+    },
+  };
+
+  const config = configs[productType];
+  if (!config) return null;
+
+  const priceId = process.env[config.priceIdEnv];
+  if (!priceId) return null;
+
+  return {
+    priceId,
+    mode: config.mode,
+    amount: config.amount,
+  };
+}
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
+    const stripe = getStripeClient();
+    const convex = getConvexClient();
+
     const body = (await request.json()) as CheckoutRequest;
     const { productType, userId, customerEmail, customerName, successUrl, cancelUrl } = body;
 
@@ -51,14 +80,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    const priceConfig = PRICE_MAP[productType];
+    const priceConfig = getPriceConfig(productType);
     if (!priceConfig) {
-      return NextResponse.json({ error: "Invalid product type" }, { status: 400 });
-    }
-
-    if (!priceConfig.priceId) {
       return NextResponse.json(
-        { error: `Price ID not configured for ${productType}` },
+        { error: `Price not configured for ${productType}` },
         { status: 500 }
       );
     }
