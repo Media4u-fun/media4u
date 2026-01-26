@@ -37,7 +37,7 @@ const PACKAGES = [
       "60-day post-launch support",
       "Optional VR storefront integration",
     ],
-    bestFor: "Growing businesses ready to invest in a strong digital presence—with room to expand into VR.",
+    bestFor: "Growing businesses ready to invest in a strong digital presence-with room to expand into VR.",
     gradient: "from-cyan-500 to-blue-500",
     popular: true,
   },
@@ -77,7 +77,7 @@ const ADD_ONS = [
   },
   {
     title: "VR Environments",
-    description: "Custom virtual storefronts, showrooms, and immersive experiences. A powerful extension—not required to get started.",
+    description: "Custom virtual storefronts, showrooms, and immersive experiences. A powerful extension-not required to get started.",
     highlight: true,
   },
 ];
@@ -184,7 +184,7 @@ export function StartProjectContent(): ReactElement {
 
   return (
     <div className="mesh-bg">
-      {/* SECTION 1 — HERO / INTRO */}
+      {/* SECTION 1 - HERO / INTRO */}
       <Section className="pt-32 md:pt-40">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
@@ -193,14 +193,14 @@ export function StartProjectContent(): ReactElement {
           className="text-center max-w-4xl mx-auto"
         >
           <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-display font-bold mb-6">
-            Let&apos;s Build Your Website—and{" "}
+            Let&apos;s Build Your Website-and{" "}
             <span className="text-gradient-cyber">Anything Beyond It</span>
           </h1>
           <p className="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mb-6">
             We start with professional, conversion-focused websites. When you&apos;re ready to go further, we create immersive VR experiences and visual branding that set you apart.
           </p>
           <p className="text-gray-400 max-w-2xl mx-auto mb-10">
-            Whether you&apos;re launching your first business site, redesigning your online presence, or exploring what&apos;s possible with VR—we&apos;re here to help you show up with clarity and confidence.
+            Whether you&apos;re launching your first business site, redesigning your online presence, or exploring what&apos;s possible with VR-we&apos;re here to help you show up with clarity and confidence.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" onClick={scrollToForm}>
@@ -213,13 +213,13 @@ export function StartProjectContent(): ReactElement {
         </motion.div>
       </Section>
 
-      {/* SECTION 2 — PACKAGES / STARTING POINTS */}
+      {/* SECTION 2 - PACKAGES / STARTING POINTS */}
       <Section id="packages">
         <SectionHeader
           tag="Pricing"
           title="Starting "
           highlight="Points"
-          description="Every project is different. These packages give you a starting point—final pricing depends on your specific needs, features, and timeline."
+          description="Every project is different. These packages give you a starting point-final pricing depends on your specific needs, features, and timeline."
         />
 
         <div className="grid md:grid-cols-3 gap-8 mt-12">
@@ -290,7 +290,7 @@ export function StartProjectContent(): ReactElement {
         </motion.p>
       </Section>
 
-      {/* SECTION 3 — WHAT'S INCLUDED / ADD-ONS */}
+      {/* SECTION 3 - WHAT'S INCLUDED / ADD-ONS */}
       <Section className="border-t border-white/10">
         <SectionHeader
           tag="Extend Your Project"
@@ -331,7 +331,7 @@ export function StartProjectContent(): ReactElement {
         </motion.p>
       </Section>
 
-      {/* SECTION 4 — PROJECT INTAKE FORM */}
+      {/* SECTION 4 - PROJECT INTAKE FORM */}
       <Section id="project-form" className="border-t border-white/10">
         <SectionHeader
           tag="Let's Talk"
@@ -439,7 +439,7 @@ export function StartProjectContent(): ReactElement {
                     "eCommerce site",
                     "Branding & visual media",
                     "VR / immersive experience",
-                    "Not sure yet—help me figure it out",
+                    "Not sure yet-help me figure it out",
                   ].map((option) => (
                     <label key={option} className="flex items-center gap-3 cursor-pointer group">
                       <input
@@ -470,7 +470,7 @@ export function StartProjectContent(): ReactElement {
                   className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 resize-none"
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  The more you share, the better we can help—but don&apos;t worry about being perfect.
+                  The more you share, the better we can help-but don&apos;t worry about being perfect.
                 </p>
               </div>
 
@@ -533,7 +533,7 @@ export function StartProjectContent(): ReactElement {
                   ))}
                 </div>
                 <p className="text-xs text-gray-500 mt-2">
-                  This helps us recommend the right package. It&apos;s okay if you&apos;re not sure—we&apos;ll work it out together.
+                  This helps us recommend the right package. It&apos;s okay if you&apos;re not sure-we&apos;ll work it out together.
                 </p>
               </div>
 
@@ -557,7 +557,7 @@ export function StartProjectContent(): ReactElement {
         </motion.div>
       </Section>
 
-      {/* SECTION 5 — TRUST & CLOSE */}
+      {/* SECTION 5 - TRUST & CLOSE */}
       <Section className="border-t border-white/10">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
@@ -570,7 +570,7 @@ export function StartProjectContent(): ReactElement {
             We Meet You <span className="text-gradient-cyber">Where You Are</span>
           </h2>
           <p className="text-gray-400 text-lg leading-relaxed mb-6">
-            Starting a project can feel overwhelming—especially if you&apos;re not sure exactly what you need. That&apos;s where we come in.
+            Starting a project can feel overwhelming-especially if you&apos;re not sure exactly what you need. That&apos;s where we come in.
           </p>
           <p className="text-gray-400 leading-relaxed mb-8">
             Media4U works collaboratively. We help clarify your ideas, set realistic timelines, and build solutions that actually work for your goals and budget. Whether you&apos;re launching your first website or ready to explore immersive VR, we&apos;re here to guide you through it.

@@ -5,7 +5,7 @@
 Hi Claude! I'm the owner of **Media4U**, and here's what you need to know about me:
 
 - **I am NOT a coder.** I don't have a traditional software development background.
-- **I'm "vibe coding"** — building this with AI assistants like you helping me every step of the way.
+- **I'm "vibe coding"** - building this with AI assistants like you helping me every step of the way.
 - **I don't understand most jargon.** If you say "transpile," "bundler," "SSR," or similar terms, explain them simply.
 - **I learn by doing.** Show me, don't just tell me.
 - **I need safety rails.** I want to build with confidence, knowing I won't accidentally break everything.
@@ -33,9 +33,9 @@ This is what Media4U is built with:
 - **Animations:** Motion (formerly Framer Motion)
 
 **Key Files:**
-- `package.json` — defines all dependencies and scripts
-- `tsconfig.json` — TypeScript configuration
-- `package-lock.json` — locks exact dependency versions
+- `package.json` - defines all dependencies and scripts
+- `tsconfig.json` - TypeScript configuration
+- `package-lock.json` - locks exact dependency versions
 
 ## 📋 How You Should Work With Me
 
@@ -44,6 +44,12 @@ This is what Media4U is built with:
 - Don't assume I know what "hydration," "middleware," or "SSG" means
 - If you use a technical term, follow it with a one-sentence explanation in plain English
 - Example: "I'll update the middleware (code that runs before each page loads) to..."
+
+**CRITICAL WRITING RULE:**
+- **NEVER use em dashes (—) anywhere in code, content, or documentation**
+- Always use regular hyphens (-) instead
+- This applies to all files: code, markdown, documentation, content, etc.
+- Em dashes are forbidden - always use a regular hyphen with spaces around it
 
 ### 2. Give Me Copy/Paste Commands
 
@@ -61,9 +67,34 @@ Before making changes:
 - Read the relevant files to understand current code
 - Check `package.json` scripts to see what commands exist
 - Look at the project structure to see where files belong
-- **Never guess** — if you're unsure, read the file first
+- **Never guess** - if you're unsure, read the file first
 
-### 4. Propose Small, Safe Changes
+### 4. Keep It Simple - Avoid Over-Engineering
+
+**CRITICAL: Stop and ask before adding complexity**
+
+Before implementing any solution:
+- **STOP if you sense we're over-complicating something**
+- Ask yourself: "Is there a simpler, industry-standard way to do this?"
+- If the solution requires multiple new files, database changes, or complex logic, **pause and ask me first**
+
+**Examples of unnecessary complexity to avoid:**
+- Adding approval workflows when simple role-based access is enough
+- Creating custom solutions when built-in features exist
+- Adding status fields when existing fields can handle the logic
+- Building features "for the future" that aren't needed now
+
+**What to do instead:**
+1. Suggest the **simplest solution** that solves the immediate problem
+2. If I ask for something complex, offer a **simpler alternative** with explanation
+3. Use **industry-standard patterns** over custom implementations
+4. Only add complexity when there's a clear, immediate need
+
+**Example approach:**
+- ❌ BAD: "I'll add a user approval system with status fields, email notifications, and an admin panel"
+- ✅ GOOD: "For user management, role-based access (user/admin) is the industry standard and keeps it simple. Do you need anything beyond that?"
+
+### 5. Propose Small, Safe Changes
 
 - Make the smallest change that solves the problem
 - Don't refactor unrelated code
@@ -71,18 +102,24 @@ Before making changes:
 - Don't "improve" code that's already working
 - Focus on the specific task at hand
 
-### 5. Always Run Checks Before Committing
+### 6. Always Run Checks Before Committing
 
-Before you suggest I commit anything, **always** run these in order:
+Before you suggest I commit anything, **always** run lint:
 
 ```bash
 npm run lint
-npm run build
 ```
 
-If either fails, **stop and fix it** before committing.
+**IMPORTANT:** Do NOT run `npm run build` unless I specifically ask for it - it breaks the dev server.
 
-### 6. Use This Commit Workflow
+Only run build when:
+- I explicitly request it
+- We're preparing for deployment
+- We're troubleshooting build issues
+
+If lint fails, **stop and fix it** before committing.
+
+### 7. Use This Commit Workflow
 
 **Every time we're ready to commit:**
 
@@ -91,12 +128,12 @@ If either fails, **stop and fix it** before committing.
 git status
 ```
 
-2. Run the safety checks:
+2. Run lint to check for code problems:
 ```bash
-npm run lint && npm run build
+npm run lint
 ```
 
-3. If checks pass, stage the files:
+3. If lint passes, stage the files:
 ```bash
 git add [specific-files]
 ```
@@ -123,8 +160,9 @@ npm run dev
 ### Before Any Commit
 
 ✅ **Must pass:** `npm run lint`
-✅ **Must pass:** `npm run build`
 ✅ **Must test:** `npm run dev` (and manually check it works)
+
+**Note:** Only run `npm run build` if specifically requested - it breaks the dev server.
 
 ### Never Commit These Files
 
@@ -211,10 +249,10 @@ git push
 
 ## ⚠️ Common Mistakes to Prevent
 
-### Mistake 1: Changing Files Without Testing Build
+### Mistake 1: Changing Files Without Testing Lint
 
 **Prevention:**
-After every file change, run `npm run build` before committing.
+After file changes, run `npm run lint` before committing. Only run `npm run build` if specifically requested.
 
 ### Mistake 2: Breaking Imports
 
@@ -253,11 +291,12 @@ git push origin feature/new-thing
 A change is **not ready** to commit until:
 
 - ✅ `npm run lint` passes with no errors
-- ✅ `npm run build` completes successfully
 - ✅ `npm run dev` works and I've tested the feature manually
 - ✅ No `.env` files or secrets in the commit
 - ✅ All TypeScript errors resolved
 - ✅ Only the files related to this change are included
+
+**Note:** `npm run build` is only required when specifically requested or preparing for deployment.
 
 ## 🆘 Emergency Rollback
 
@@ -343,5 +382,5 @@ When something works, acknowledge it! Building with AI is a journey.
 
 ---
 
-**Last Updated:** 2026-01-24
+**Last Updated:** 2026-01-25
 **Claude Model:** Sonnet 4.5

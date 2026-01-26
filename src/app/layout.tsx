@@ -36,6 +36,47 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="min-h-screen flex flex-col">
+        {/* Organization Schema */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'Organization',
+              name: 'Media4U',
+              url: 'https://media4u.com',
+              logo: 'https://media4u.com/media4u-logo.png',
+              description: 'Custom VR environments, stunning websites, and innovative multiverse experiences that connect people and inspire creativity.',
+              sameAs: [
+                // Add social media URLs when available
+              ],
+              contactPoint: {
+                '@type': 'ContactPoint',
+                contactType: 'Customer Service',
+                availableLanguage: 'English',
+              },
+            }),
+          }}
+        />
+
+        {/* WebSite Schema */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'WebSite',
+              name: 'Media4U',
+              url: 'https://media4u.com',
+              potentialAction: {
+                '@type': 'SearchAction',
+                target: 'https://media4u.com/vr?search={search_term_string}',
+                'query-input': 'required name=search_term_string',
+              },
+            }),
+          }}
+        />
+
         <ConvexClientProvider>
           <AuthProvider>
             <ToastProvider />

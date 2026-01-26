@@ -3,8 +3,24 @@ import type { ReactNode } from "react";
 
 export const metadata: Metadata = {
   title: "VR & Multiverse",
-  description: "Custom VR environments and multiverse experiences. Interactive virtual events, showrooms, training simulations, and immersive digital worlds.",
-  keywords: ["VR", "virtual reality", "multiverse", "immersive experiences", "virtual events", "3D environments"],
+  description: "Explore immersive VR environments and multiverse experiences. Custom virtual reality properties, destinations, event spaces, showrooms, and art galleries built by Media4U.",
+  keywords: [
+    "VR",
+    "virtual reality",
+    "VR environments",
+    "VR experiences",
+    "metaverse",
+    "VR properties",
+    "virtual showrooms",
+    "VR destinations",
+    "immersive experiences",
+    "custom VR development",
+    "virtual reality development",
+  ],
+  openGraph: {
+    title: "VR Environments & Multiverse Experiences | Media4U",
+    description: "Explore immersive VR environments and custom multiverse experiences.",
+  },
 };
 
 export default function VRLayout({ children }: { children: ReactNode }) {

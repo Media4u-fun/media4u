@@ -80,7 +80,6 @@ function HeroSection() {
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       <MorphingBlob />
-      <FloatingOrbs />
 
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-void-950" />
 
@@ -101,7 +100,7 @@ function HeroSection() {
           transition={{ duration: 0.8, delay: 0.1, ease: "easeOut" }}
           className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-display font-bold mb-6 leading-tight"
         >
-          Professional Websites That Convert—and{" "}
+          Professional Websites That Convert and{" "}
           <span className="text-gradient-cyber">VR Experiences</span>
           <br />
           That Wow
@@ -142,7 +141,7 @@ const services = [
       </svg>
     ),
     title: "Website Design & Development",
-    description: "Modern, mobile-responsive websites built for businesses, creators, and brands who want to grow their online presence. From landing pages to full eCommerce—we build sites that convert.",
+    description: "Modern, mobile-responsive websites built for businesses, creators, and brands who want to grow their online presence. From landing pages to full eCommerce-we build sites that convert.",
     glow: "magenta" as const,
   },
   {
@@ -152,7 +151,7 @@ const services = [
       </svg>
     ),
     title: "Branding & Design Assets",
-    description: "Logos, social graphics, video assets, and promotional content that make your brand stand out. Consistent visual identity across every platform—web, social, and VR.",
+    description: "Logos, social graphics, video assets, and promotional content that make your brand stand out. Consistent visual identity across every platform-web, social, and VR.",
     glow: "purple" as const,
   },
   {
@@ -175,7 +174,7 @@ function ServicesSection() {
           tag="Our Core Services"
           title="Web Design, Branding, & Immersive "
           highlight="Experiences"
-          description="From professional websites to VR storefronts—we build digital solutions that work together to strengthen your brand."
+          description="From professional websites to VR storefronts-we build digital solutions that work together to strengthen your brand."
         />
       </AnimatedSection>
 
@@ -210,10 +209,10 @@ function AboutSection() {
             <span className="text-gradient-cyber">Digital Era</span>
           </h2>
           <p className="text-gray-400 text-lg leading-relaxed mb-6">
-            Media4U is a web design and creative studio that helps businesses, creators, and communities build their online presence—and go beyond it. We specialize in professional websites, visual branding, and for those ready to innovate, immersive VR experiences.
+            Media4U is a web design and creative studio that helps businesses, creators, and communities build their online presence-and go beyond it. We specialize in professional websites, visual branding, and for those ready to innovate, immersive VR experiences.
           </p>
           <p className="text-gray-400 leading-relaxed">
-            Whether you need a website that converts, branding that connects, or a VR storefront that sets you apart—we create cohesive digital solutions where every piece strengthens your overall presence.
+            Whether you need a website that converts, branding that connects, or a VR storefront that sets you apart-we create cohesive digital solutions where every piece strengthens your overall presence.
           </p>
         </AnimatedSection>
 
@@ -272,7 +271,7 @@ function CTASection() {
             <span className="text-gradient-cyber">Digital Presence</span>?
           </h2>
           <p className="text-gray-400 text-lg max-w-xl mx-auto mb-10">
-            Whether you&apos;re starting with a professional website, elevating your brand with custom design, or creating an immersive VR experience—we&apos;re here to help you show up with clarity and confidence.
+            Whether you&apos;re starting with a professional website, elevating your brand with custom design, or creating an immersive VR experience-we&apos;re here to help you show up with clarity and confidence.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/contact">

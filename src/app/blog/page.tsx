@@ -226,6 +226,10 @@ export default function BlogPage() {
   // Fetch blog posts from Convex
   const convexPosts = useQuery(api.blog.getAllPosts, { publishedOnly: true });
 
+  // Wait for Convex to load before rendering posts
+  // This prevents hydration mismatch between server fallback and client data
+  const isLoading = convexPosts === undefined;
+
   // Transform Convex data when available, otherwise use fallback
   const BLOG_POSTS = convexPosts
     ? convexPosts.map((p: DbBlogPost) => ({
@@ -266,7 +270,16 @@ export default function BlogPage() {
           </p>
         </motion.div>
 
-        {BLOG_POSTS.length === 0 ? (
+        {isLoading ? (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center py-20"
+          >
+            <div className="text-6xl mb-4">⏳</div>
+            <h2 className="text-2xl font-display font-bold text-white mb-2">Loading posts...</h2>
+          </motion.div>
+        ) : BLOG_POSTS.length === 0 ? (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}

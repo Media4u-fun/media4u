@@ -203,16 +203,36 @@ function ProjectGrid({ projects, isLoading }: ProjectGridProps) {
   // Show 6 skeleton cards while loading
   const skeletonCount = 6;
 
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {Array.from({ length: skeletonCount }).map((_, index) => (
+          <ProjectCardSkeleton key={`skeleton-${index}`} index={index} />
+        ))}
+      </div>
+    );
+  }
+
+  if (projects.length === 0) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="text-center py-20"
+      >
+        <div className="text-6xl mb-4">🎨</div>
+        <h3 className="text-2xl font-display font-bold text-white mb-2">No Projects Found</h3>
+        <p className="text-gray-400">Try selecting a different category or check back soon!</p>
+      </motion.div>
+    );
+  }
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      <AnimatePresence>
-        {isLoading
-          ? Array.from({ length: skeletonCount }).map((_, index) => (
-              <ProjectCardSkeleton key={`skeleton-${index}`} index={index} />
-            ))
-          : projects.map((project, index) => (
-              <ProjectCard key={project.id} project={project} index={index} />
-            ))}
+      <AnimatePresence mode="wait">
+        {projects.map((project, index) => (
+          <ProjectCard key={project.id} project={project} index={index} />
+        ))}
       </AnimatePresence>
     </div>
   );
@@ -225,22 +245,30 @@ interface ProjectCardSkeletonProps {
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function ProjectCardSkeleton({ index: _index }: ProjectCardSkeletonProps) {
   return (
-    <div className="group relative rounded-2xl bg-white/[0.02] border border-white/[0.06] overflow-hidden">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="relative rounded-2xl bg-white/[0.02] border border-white/[0.06] overflow-hidden"
+    >
       {/* Image skeleton */}
-      <div className="relative h-48 overflow-hidden bg-white/5">
-        <div className="absolute inset-0 bg-gradient-to-r from-white/5 via-white/10 to-white/5 animate-shimmer" />
+      <div className="relative h-48 overflow-hidden bg-gradient-to-br from-gray-900/50 to-gray-800/50">
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-pulse" />
       </div>
 
       {/* Content skeleton */}
       <div className="p-6 space-y-3">
+        {/* Category badge skeleton */}
+        <div className="h-6 bg-white/5 rounded-full w-24 mb-2 animate-pulse" />
         {/* Title skeleton */}
-        <div className="h-6 bg-white/5 rounded w-3/4 animate-shimmer" />
-        {/* Description skeleton line 1 */}
-        <div className="h-4 bg-white/5 rounded w-full animate-shimmer" />
-        {/* Description skeleton line 2 */}
-        <div className="h-4 bg-white/5 rounded w-5/6 animate-shimmer" />
+        <div className="h-6 bg-white/5 rounded w-3/4 animate-pulse" />
+        {/* Description skeleton */}
+        <div className="space-y-2">
+          <div className="h-4 bg-white/5 rounded w-full animate-pulse" />
+          <div className="h-4 bg-white/5 rounded w-5/6 animate-pulse" />
+        </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -319,7 +347,7 @@ function CTASection() {
           <span className="text-gradient-cyber">Amazing</span>
         </h2>
         <p className="text-gray-400 text-lg max-w-2xl mx-auto mb-8">
-          Whether you need a professional website, an immersive VR experience, or both working together—
+          Whether you need a professional website, an immersive VR experience, or both working together-
           we&apos;re here to help your brand grow.
         </p>
         <div className="flex flex-wrap justify-center gap-4">

@@ -5,7 +5,7 @@ import { StartProjectContent } from "./start-project-content";
 export const metadata: Metadata = {
   title: "Start a Project",
   description:
-    "Start your Media4U project. View web design packages starting at $899, explore VR options, and submit a project request. No pressure—just a conversation.",
+    "Start your Media4U project. View web design packages starting at $899, explore VR options, and submit a project request. No pressure-just a conversation.",
   openGraph: {
     title: "Start a Project | Media4U",
     description:

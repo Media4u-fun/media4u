@@ -10,7 +10,7 @@ const services = [
     id: "web-design",
     title: "Professional Websites",
     description:
-      "Modern, mobile-responsive websites built for businesses, creators, and brands who want to grow their online presence. From landing pages to full eCommerce—we build sites that convert.",
+      "Modern, mobile-responsive websites built for businesses, creators, and brands who want to grow their online presence. From landing pages to full eCommerce-we build sites that convert.",
     features: [
       "Responsive mobile-first design",
       "SEO optimization built-in",
@@ -131,7 +131,7 @@ const services = [
     id: "vr-environments",
     title: "VR Storefronts & Environments",
     description:
-      "For brands ready to differentiate and innovate—we create immersive virtual spaces where your brand comes to life. Custom VR storefronts, showrooms, and interactive environments that engage customers in entirely new ways.",
+      "For brands ready to differentiate and innovate-we create immersive virtual spaces where your brand comes to life. Custom VR storefronts, showrooms, and interactive environments that engage customers in entirely new ways.",
     features: [
       "Custom 3D design & branding",
       "Interactive displays & portals",
@@ -173,7 +173,7 @@ const services = [
     id: "multiverse",
     title: "Integrated Web + VR Experiences",
     description:
-      "The best of both worlds: professional websites that connect seamlessly to VR storefronts. Create a unified brand presence where customers can explore your business online and step into immersive virtual spaces—all from one integrated experience.",
+      "The best of both worlds: professional websites that connect seamlessly to VR storefronts. Create a unified brand presence where customers can explore your business online and step into immersive virtual spaces-all from one integrated experience.",
     features: [
       "Website ↔ VR portal integration",
       "Branded spaces across platforms",
@@ -277,15 +277,6 @@ function ServiceCard({ service, index, isReversed }: ServiceCardProps): React.Re
       </motion.div>
 
       <div className="flex-1 text-center lg:text-left">
-        <motion.span
-          initial={{ opacity: 0, x: isReversed ? 20 : -20 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.2, duration: 0.5 }}
-          viewport={{ once: true }}
-          className="inline-block mb-3 text-xs font-semibold tracking-[0.2em] uppercase text-cyan-400"
-        >
-          0{index + 1}
-        </motion.span>
         <h3 className="text-2xl md:text-3xl lg:text-4xl font-display font-bold mb-4 text-white">
           {service.title}
         </h3>
@@ -329,7 +320,7 @@ export default function ServicesPage(): React.ReactNode {
           tag="What We Do"
           title="Websites First. VR When You're "
           highlight="Ready to Innovate"
-          description="We're a full-service creative studio. Start with a professional website, add branding and media assets, and when you're ready—extend your presence into immersive VR environments."
+          description="We're a full-service creative studio. Start with a professional website, add branding and media assets, and when you're ready-extend your presence into immersive VR environments."
         />
       </Section>
 

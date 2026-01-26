@@ -99,7 +99,7 @@ const SERVICES = [
     number: "04",
     title: "Immersive VR Environments",
     description:
-      "Custom virtual storefronts, event spaces, and interactive experiences for brands ready to innovate. From the Multiverse to standalone VR—we build spaces that engage and inspire.",
+      "Custom virtual storefronts, event spaces, and interactive experiences for brands ready to innovate. From the Multiverse to standalone VR-we build spaces that engage and inspire.",
   },
 ];
 
@@ -108,14 +108,14 @@ const TEAM_MEMBERS = [
     name: "Mr. Harmony",
     realName: "Devland Lister",
     role: "Founder & Visionary",
-    bio: "Devland brings years of IT and tech experience into every project, but his real gift is seeing possibilities others miss. He's a builder at heart—whether it's a VR apartment complex, a digital community space, or a website that feels alive. He believes technology should foster harmony and connection, and that belief shapes everything Media4U creates. Devland leads with vision, purpose, and a deep commitment to doing work that matters.",
+    bio: "Devland brings years of IT and tech experience into every project, but his real gift is seeing possibilities others miss. He's a builder at heart-whether it's a VR apartment complex, a digital community space, or a website that feels alive. He believes technology should foster harmony and connection, and that belief shapes everything Media4U creates. Devland leads with vision, purpose, and a deep commitment to doing work that matters.",
     gradient: "from-cyan-500 to-blue-600",
   },
   {
     name: "Mike",
     realName: "Iceman",
     role: "Visual Media Specialist",
-    bio: "Mike turns ideas into visuals you can feel. From websites and branding to VR assets and promotional content, he brings the creative precision that makes every project polished and professional. He's the bridge between concept and execution—taking vision and turning it into something people can see, touch, and experience. His work supports both the technical and creative sides of every project we take on.",
+    bio: "Mike turns ideas into visuals you can feel. From websites and branding to VR assets and promotional content, he brings the creative precision that makes every project polished and professional. He's the bridge between concept and execution-taking vision and turning it into something people can see, touch, and experience. His work supports both the technical and creative sides of every project we take on.",
     gradient: "from-purple-500 to-pink-600",
   },
 ];
@@ -161,7 +161,7 @@ export function AboutContent(): ReactElement {
             <span className="text-gradient-cyber">Connect People</span>
           </h1>
           <p className="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto">
-            Media4U is a web design and creative studio where professional websites, visual branding, and immersive VR come together. We help businesses, creators, and communities build their digital presence with clarity and confidence—online and in virtual spaces.
+            Media4U is a web design and creative studio where professional websites, visual branding, and immersive VR come together. We help businesses, creators, and communities build their digital presence with clarity and confidence-online and in virtual spaces.
           </p>
         </motion.div>
       </Section>
@@ -185,7 +185,7 @@ export function AboutContent(): ReactElement {
             </h2>
             <div className="space-y-4 text-gray-400">
               <p>
-                We exist to build meaningful digital experiences—spaces where people
+                We exist to build meaningful digital experiences-spaces where people
                 feel seen, heard, and welcomed. We believe technology should bring
                 people closer, not just fill screens.
               </p>
@@ -366,7 +366,7 @@ export function AboutContent(): ReactElement {
               transition={{ delay: 0.3, duration: 0.6 }}
               className="text-gray-400 text-lg max-w-xl mx-auto mb-8"
             >
-              Whether you need a website that converts, branding that connects, or a VR space that sets you apart—we&apos;re ready to help you show up with clarity and confidence. Let&apos;s build your digital presence together.
+              Whether you need a website that converts, branding that connects, or a VR space that sets you apart-we&apos;re ready to help you show up with clarity and confidence. Let&apos;s build your digital presence together.
             </motion.p>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
