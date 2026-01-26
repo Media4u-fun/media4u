@@ -5,3 +5,4 @@ const app = defineApp();
 app.use(betterAuth);
 
 export default app;
+// Force redeploy
