@@ -16,7 +16,7 @@ My main goals are:
 
 1. **Prevent breaking the project** when I make changes
 2. **Catch errors BEFORE I commit** to GitHub
-3. **Ensure builds succeed locally** before they hit GitHub Actions or Hostinger
+3. **Ensure builds succeed locally** before they hit GitHub Actions or Vercel
 4. **Build with confidence** even though I'm not a professional developer
 5. **Learn incrementally** without getting overwhelmed
 
@@ -334,7 +334,7 @@ Before deploying Media4U to production:
 
 ### 1. Environment Variables
 - ✅ All `.env.local` variables copied to Convex dashboard
-- ✅ All `.env.local` variables copied to hosting platform (Hostinger/Vercel)
+- ✅ All `.env.local` variables copied to Vercel
 - ✅ `CONVEX_URL` is set correctly
 - ✅ No secrets in the codebase
 
