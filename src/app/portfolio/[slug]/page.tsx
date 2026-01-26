@@ -30,13 +30,13 @@ export async function generateMetadata({
     description,
     keywords,
     alternates: {
-      canonical: `https://media4u.com/portfolio/${slug}`,
+      canonical: `https://media4u.fun/portfolio/${slug}`,
     },
     openGraph: {
       title: project.title,
       description,
       type: 'article',
-      url: `https://media4u.com/portfolio/${slug}`,
+      url: `https://media4u.fun/portfolio/${slug}`,
       images: project.images && project.images.length > 0 ? [
         {
           url: project.images[0],
@@ -88,9 +88,9 @@ export default async function PortfolioDetailPage({
       {/* Breadcrumbs Schema */}
       <Breadcrumbs
         items={[
-          { name: 'Home', url: 'https://media4u.com' },
-          { name: 'Portfolio', url: 'https://media4u.com/portfolio' },
-          { name: project.title, url: `https://media4u.com/portfolio/${project.slug}` },
+          { name: 'Home', url: 'https://media4u.fun' },
+          { name: 'Portfolio', url: 'https://media4u.fun/portfolio' },
+          { name: project.title, url: `https://media4u.fun/portfolio/${project.slug}` },
         ]}
       />
 

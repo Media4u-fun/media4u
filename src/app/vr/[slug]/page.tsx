@@ -38,13 +38,13 @@ export async function generateMetadata({
     description,
     keywords,
     alternates: {
-      canonical: `https://media4u.com/vr/${slug}`,
+      canonical: `https://media4u.fun/vr/${slug}`,
     },
     openGraph: {
       title: experience.title,
       description,
       type: 'website',
-      url: `https://media4u.com/vr/${slug}`,
+      url: `https://media4u.fun/vr/${slug}`,
       images: [
         {
           url: experience.thumbnailImage,
@@ -96,9 +96,9 @@ export default async function VRDetailPage({
       {/* Breadcrumbs Schema */}
       <Breadcrumbs
         items={[
-          { name: 'Home', url: 'https://media4u.com' },
-          { name: 'VR Experiences', url: 'https://media4u.com/vr' },
-          { name: experience.title, url: `https://media4u.com/vr/${experience.slug}` },
+          { name: 'Home', url: 'https://media4u.fun' },
+          { name: 'VR Experiences', url: 'https://media4u.fun/vr' },
+          { name: experience.title, url: `https://media4u.fun/vr/${experience.slug}` },
         ]}
       />
 
@@ -118,7 +118,7 @@ export default async function VRDetailPage({
               price: experience.price || 0,
               priceCurrency: 'USD',
               availability: 'https://schema.org/InStock',
-              url: `https://media4u.com/vr/${experience.slug}`,
+              url: `https://media4u.fun/vr/${experience.slug}`,
             },
             brand: {
               '@type': 'Brand',

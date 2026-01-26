@@ -22,7 +22,7 @@ export default function ContactPage() {
             '@type': 'LocalBusiness',
             name: 'Media4U',
             description: 'VR Development and Digital Solutions Agency',
-            url: 'https://media4u.com',
+            url: 'https://media4u.fun',
             priceRange: '$$',
           }),
         }}

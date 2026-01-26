@@ -14,49 +14,49 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   return [
     // Static pages with priority
     {
-      url: 'https://media4u.com',
+      url: 'https://media4u.fun',
       lastModified: new Date(),
       changeFrequency: 'weekly',
       priority: 1.0,
     },
     {
-      url: 'https://media4u.com/vr',
+      url: 'https://media4u.fun/vr',
       lastModified: new Date(),
       changeFrequency: 'daily',
       priority: 0.9,
     },
     {
-      url: 'https://media4u.com/services',
+      url: 'https://media4u.fun/services',
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.8,
     },
     {
-      url: 'https://media4u.com/portfolio',
+      url: 'https://media4u.fun/portfolio',
       lastModified: new Date(),
       changeFrequency: 'weekly',
       priority: 0.8,
     },
     {
-      url: 'https://media4u.com/blog',
+      url: 'https://media4u.fun/blog',
       lastModified: new Date(),
       changeFrequency: 'daily',
       priority: 0.7,
     },
     {
-      url: 'https://media4u.com/about',
+      url: 'https://media4u.fun/about',
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.7,
     },
     {
-      url: 'https://media4u.com/contact',
+      url: 'https://media4u.fun/contact',
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.6,
     },
     {
-      url: 'https://media4u.com/start-project',
+      url: 'https://media4u.fun/start-project',
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.8,
@@ -64,7 +64,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     // VR experiences (HIGH PRIORITY for VR SEO)
     ...vrExperiences.map((exp) => ({
-      url: `https://media4u.com/vr/${exp.slug}`,
+      url: `https://media4u.fun/vr/${exp.slug}`,
       lastModified: new Date(exp.updatedAt),
       changeFrequency: 'weekly' as const,
       priority: 0.85,
@@ -72,7 +72,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     // Blog posts
     ...blogPosts.map((post) => ({
-      url: `https://media4u.com/blog/${post.slug}`,
+      url: `https://media4u.fun/blog/${post.slug}`,
       lastModified: new Date(post.updatedAt),
       changeFrequency: 'monthly' as const,
       priority: 0.6,
@@ -80,7 +80,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     // Portfolio projects
     ...portfolioProjects.map((project) => ({
-      url: `https://media4u.com/portfolio/${project.slug}`,
+      url: `https://media4u.fun/portfolio/${project.slug}`,
       lastModified: new Date(project.updatedAt),
       changeFrequency: 'monthly' as const,
       priority: 0.7,

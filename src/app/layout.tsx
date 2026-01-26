@@ -44,8 +44,8 @@ export default function RootLayout({
               '@context': 'https://schema.org',
               '@type': 'Organization',
               name: 'Media4U',
-              url: 'https://media4u.com',
-              logo: 'https://media4u.com/media4u-logo.png',
+              url: 'https://media4u.fun',
+              logo: 'https://media4u.fun/media4u-logo.png',
               description: 'Custom VR environments, stunning websites, and innovative multiverse experiences that connect people and inspire creativity.',
               sameAs: [
                 // Add social media URLs when available
@@ -67,10 +67,10 @@ export default function RootLayout({
               '@context': 'https://schema.org',
               '@type': 'WebSite',
               name: 'Media4U',
-              url: 'https://media4u.com',
+              url: 'https://media4u.fun',
               potentialAction: {
                 '@type': 'SearchAction',
-                target: 'https://media4u.com/vr?search={search_term_string}',
+                target: 'https://media4u.fun/vr?search={search_term_string}',
                 'query-input': 'required name=search_term_string',
               },
             }),

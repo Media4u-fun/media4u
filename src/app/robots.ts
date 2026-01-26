@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: '/',
       disallow: ['/admin/', '/api/', '/login', '/signup'],
     },
-    sitemap: 'https://media4u.com/sitemap.xml',
+    sitemap: 'https://media4u.fun/sitemap.xml',
   }
 }

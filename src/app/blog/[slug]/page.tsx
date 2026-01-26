@@ -29,13 +29,13 @@ export async function generateMetadata({
     description,
     keywords: [post.category, 'VR', 'technology', 'digital solutions'],
     alternates: {
-      canonical: `https://media4u.com/blog/${slug}`,
+      canonical: `https://media4u.fun/blog/${slug}`,
     },
     openGraph: {
       title: post.title,
       description,
       type: 'article',
-      url: `https://media4u.com/blog/${slug}`,
+      url: `https://media4u.fun/blog/${slug}`,
       publishedTime: new Date(post.date).toISOString(),
     },
     twitter: {
@@ -97,9 +97,9 @@ export default async function BlogDetailPage({
       {/* Breadcrumbs Schema */}
       <Breadcrumbs
         items={[
-          { name: 'Home', url: 'https://media4u.com' },
-          { name: 'Blog', url: 'https://media4u.com/blog' },
-          { name: post.title, url: `https://media4u.com/blog/${post.slug}` },
+          { name: 'Home', url: 'https://media4u.fun' },
+          { name: 'Blog', url: 'https://media4u.fun/blog' },
+          { name: post.title, url: `https://media4u.fun/blog/${post.slug}` },
         ]}
       />
 
@@ -122,7 +122,7 @@ export default async function BlogDetailPage({
               name: 'Media4U',
               logo: {
                 '@type': 'ImageObject',
-                url: 'https://media4u.com/media4u-logo.png',
+                url: 'https://media4u.fun/media4u-logo.png',
               },
             },
             articleSection: post.category,
