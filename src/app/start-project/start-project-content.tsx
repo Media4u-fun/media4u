@@ -87,8 +87,7 @@ interface AddOn {
 const ADD_ONS: AddOn[] = [
   {
     title: "Ongoing Web Care",
-    description: "Keep your site updated, secure, and performing. Monthly maintenance at $149/month.",
-    hasCheckout: true,
+    description: "Keep your site updated, secure, and performing. Monthly maintenance plans custom-priced based on your package.",
   },
   {
     title: "SEO & Optimization",

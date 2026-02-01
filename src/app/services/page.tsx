@@ -313,7 +313,7 @@ function ServiceCard({ service, isReversed }: ServiceCardProps): React.ReactNode
 
 export default function ServicesPage(): React.ReactNode {
   return (
-    <main className="min-h-screen bg-void-950">
+    <main className="min-h-screen mesh-bg">
       <Section className="pt-32 md:pt-40">
         <SectionHeader
           tag="What We Do"

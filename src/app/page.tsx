@@ -71,12 +71,9 @@ function HeroSection() {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.1, ease: "easeOut" }}
-          className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-display font-bold mb-6 leading-tight"
+          className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-display font-bold mb-6 leading-tight text-white"
         >
-          Professional Websites That Convert and{" "}
-          <span className="text-gradient-cyber">VR Experiences</span>
-          <br />
-          That Wow
+          Professional Websites That Convert and VR Experiences That Wow
         </motion.h1>
 
         <motion.p
@@ -193,34 +190,39 @@ function AboutSection() {
           <div className="relative">
             <div className="absolute -inset-4 bg-gradient-to-r from-cyber-cyan/20 via-cyber-purple/20 to-cyber-magenta/20 rounded-3xl blur-2xl" />
             <div className="relative glass-elevated rounded-2xl p-8">
-              <div className="grid grid-cols-2 gap-8">
-                <div className="text-center">
-                  <div className="text-4xl md:text-5xl font-display font-bold text-gradient-cyber mb-2">
-                    Global
-                  </div>
-                  <div className="text-gray-400 text-sm">Worldwide Client Reach</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-4xl md:text-5xl font-display font-bold text-gradient-cyber mb-2">
-                    24/7
-                  </div>
-                  <div className="text-gray-400 text-sm">Always-On Presence</div>
-                </div>
+              <div className="text-center mb-8">
+                <h3 className="text-2xl font-display font-bold text-gradient-cyber mb-3">
+                  What We Do
+                </h3>
+                <p className="text-gray-400 text-sm">
+                  Three core services that work together
+                </p>
               </div>
-              <div className="mt-8 pt-8 border-t border-white/10">
-                <div className="flex items-center gap-4">
-                  <div className="flex -space-x-3">
-                    {[1, 2, 3, 4].map((i) => (
-                      <div
-                        key={i}
-                        className="w-10 h-10 rounded-full bg-gradient-to-br from-cyber-cyan to-cyber-purple border-2 border-void-950"
-                      />
-                    ))}
+
+              <div className="grid grid-cols-3 gap-6">
+                <Link href="/portfolio" className="text-center group cursor-pointer transition-transform hover:scale-105">
+                  <div className="w-12 h-12 mx-auto mb-3 rounded-lg bg-gradient-to-br from-cyber-magenta/20 to-cyber-magenta/10 border border-cyber-magenta/30 flex items-center justify-center group-hover:border-cyber-magenta group-hover:shadow-[0_0_20px_rgba(255,45,146,0.4)] transition-all">
+                    <div className="w-3 h-3 rounded-full bg-cyber-magenta group-hover:w-4 group-hover:h-4 transition-all"></div>
                   </div>
-                  <div className="text-sm text-gray-400">
-                    Trusted by industry leaders worldwide
+                  <div className="text-sm font-semibold text-white mb-1 group-hover:text-cyber-magenta transition-colors">Web</div>
+                  <div className="text-xs text-gray-500 group-hover:text-gray-400 transition-colors">Professional sites that convert</div>
+                </Link>
+
+                <Link href="/start-project" className="text-center group cursor-pointer transition-transform hover:scale-105">
+                  <div className="w-12 h-12 mx-auto mb-3 rounded-lg bg-gradient-to-br from-cyber-purple/20 to-cyber-purple/10 border border-cyber-purple/30 flex items-center justify-center group-hover:border-cyber-purple group-hover:shadow-[0_0_20px_rgba(139,92,246,0.4)] transition-all">
+                    <div className="w-3 h-3 rounded-full bg-cyber-purple group-hover:w-4 group-hover:h-4 transition-all"></div>
                   </div>
-                </div>
+                  <div className="text-sm font-semibold text-white mb-1 group-hover:text-cyber-purple transition-colors">Branding</div>
+                  <div className="text-xs text-gray-500 group-hover:text-gray-400 transition-colors">Visual identity that stands out</div>
+                </Link>
+
+                <Link href="/vr" className="text-center group cursor-pointer transition-transform hover:scale-105">
+                  <div className="w-12 h-12 mx-auto mb-3 rounded-lg bg-gradient-to-br from-cyber-cyan/20 to-cyber-cyan/10 border border-cyber-cyan/30 flex items-center justify-center group-hover:border-cyber-cyan group-hover:shadow-[0_0_20px_rgba(0,212,255,0.4)] transition-all">
+                    <div className="w-3 h-3 rounded-full bg-cyber-cyan group-hover:w-4 group-hover:h-4 transition-all"></div>
+                  </div>
+                  <div className="text-sm font-semibold text-white mb-1 group-hover:text-cyber-cyan transition-colors">VR</div>
+                  <div className="text-xs text-gray-500 group-hover:text-gray-400 transition-colors">Immersive experiences</div>
+                </Link>
               </div>
             </div>
           </div>
@@ -262,7 +264,7 @@ function CTASection() {
 
 export default function HomePage() {
   return (
-    <main className="relative">
+    <main className="relative mesh-bg">
       <HeroSection />
       <ServicesSection />
       <AboutSection />
