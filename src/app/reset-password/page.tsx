@@ -6,7 +6,7 @@ import { motion } from "motion/react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { api } from "@convex/_generated/api";
-import { useMutation } from "convex/react";
+import { useMutation, useAction } from "convex/react";
 
 export default function ResetPasswordPage() {
   const [password, setPassword] = useState("");
@@ -19,10 +19,10 @@ export default function ResetPasswordPage() {
 
   const router = useRouter();
   const searchParams = useSearchParams();
-  const token = searchParams.get("token");
+  const token = searchParams?.get("token") || null;
 
   const verifyToken = useMutation(api.passwordReset.verifyResetToken);
-  const resetPassword = useMutation(api.passwordReset.resetPassword);
+  const resetPassword = useAction(api.passwordReset.resetPassword);
 
   useEffect(() => {
     async function checkToken() {

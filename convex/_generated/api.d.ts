@@ -16,6 +16,7 @@ import type * as emails from "../emails.js";
 import type * as http from "../http.js";
 import type * as lib_emailTemplates from "../lib/emailTemplates.js";
 import type * as newsletter from "../newsletter.js";
+import type * as passwordReset from "../passwordReset.js";
 import type * as portfolio from "../portfolio.js";
 import type * as projectRequests from "../projectRequests.js";
 import type * as seed from "../seed.js";
@@ -38,6 +39,7 @@ declare const fullApi: ApiFromModules<{
   http: typeof http;
   "lib/emailTemplates": typeof lib_emailTemplates;
   newsletter: typeof newsletter;
+  passwordReset: typeof passwordReset;
   portfolio: typeof portfolio;
   projectRequests: typeof projectRequests;
   seed: typeof seed;
