@@ -1,5 +1,15 @@
 import { action } from "./_generated/server";
 import { v } from "convex/values";
+import {
+  emailBaseTemplate,
+  emailHeading,
+  emailParagraph,
+  emailInfoBox,
+  emailDivider,
+  emailButton,
+  emailList,
+  emailSuccessIcon,
+} from "./lib/emailTemplates";
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const FROM_EMAIL = process.env.FROM_EMAIL || "hello@media4u.fun";
@@ -19,6 +29,18 @@ export const sendContactFormEmail = action({
 
     try {
       // Send to admin
+      const adminHtml = emailBaseTemplate(`
+        ${emailHeading("New Contact Form Submission")}
+        ${emailParagraph("You have received a new message from your website contact form.")}
+        ${emailDivider()}
+        ${emailInfoBox("Name", args.name)}
+        ${emailInfoBox("Email", args.email)}
+        ${emailInfoBox("Service Interested", args.service)}
+        ${emailInfoBox("Message", args.message.replace(/\n/g, "<br>"))}
+        ${emailDivider()}
+        ${emailButton("View in Admin Panel", "https://media4u.fun/admin/contacts")}
+      `);
+
       const adminResponse = await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: {
@@ -29,16 +51,7 @@ export const sendContactFormEmail = action({
           from: FROM_EMAIL,
           to: "devland@media4u.fun",
           subject: `New Contact Form Submission from ${args.name}`,
-          html: `
-            <h2>New Contact Form Submission</h2>
-            <p><strong>Name:</strong> ${args.name}</p>
-            <p><strong>Email:</strong> ${args.email}</p>
-            <p><strong>Service Interested:</strong> ${args.service}</p>
-            <p><strong>Message:</strong></p>
-            <p>${args.message.replace(/\n/g, "<br>")}</p>
-            <hr>
-            <p><small>This email was automatically sent from Media4U contact form</small></p>
-          `,
+          html: adminHtml,
         }),
       });
 
@@ -48,6 +61,19 @@ export const sendContactFormEmail = action({
       }
 
       // Send confirmation to user
+      const userHtml = emailBaseTemplate(`
+        ${emailSuccessIcon()}
+        ${emailHeading(`Thank You, ${args.name}!`)}
+        ${emailParagraph("We've received your message and will get back to you shortly. Our team typically responds within 24 hours.")}
+        ${emailDivider()}
+        ${emailHeading("Your Message", "small")}
+        ${emailInfoBox("Service", args.service)}
+        ${emailParagraph(args.message.replace(/\n/g, "<br>"))}
+        ${emailDivider()}
+        ${emailParagraph("If you have any additional questions, feel free to reply to this email.")}
+        ${emailParagraph("<strong>Best regards,</strong><br>The Media4U Team")}
+      `);
+
       const userResponse = await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: {
@@ -58,15 +84,7 @@ export const sendContactFormEmail = action({
           from: FROM_EMAIL,
           to: args.email,
           subject: "We received your message - Media4U",
-          html: `
-            <h2>Thank You, ${args.name}!</h2>
-            <p>We've received your message and will get back to you shortly.</p>
-            <p><strong>Your message:</strong></p>
-            <p>${args.message.replace(/\n/g, "<br>")}</p>
-            <p>Best regards,<br>The Media4U Team</p>
-            <hr>
-            <p><small>This email was automatically sent from Media4U</small></p>
-          `,
+          html: userHtml,
         }),
       });
 
@@ -94,6 +112,24 @@ export const sendNewsletterWelcomeEmail = action({
     }
 
     try {
+      const html = emailBaseTemplate(`
+        ${emailSuccessIcon()}
+        ${emailHeading("Welcome to Media4U!")}
+        ${emailParagraph("Thank you for subscribing to our newsletter. You're now part of our creative community!")}
+        ${emailDivider()}
+        ${emailHeading("What to Expect", "medium")}
+        ${emailList([
+          "<strong>Latest VR Trends:</strong> Cutting-edge virtual reality experiences and innovations",
+          "<strong>Web Design Tips:</strong> Modern design techniques and best practices",
+          "<strong>Digital Innovation:</strong> Insights into the future of digital experiences",
+          "<strong>Exclusive Content:</strong> Behind-the-scenes looks at our projects",
+        ])}
+        ${emailDivider()}
+        ${emailParagraph("We're excited to have you here and can't wait to share amazing content with you.")}
+        ${emailButton("Visit Our Website", "https://media4u.fun")}
+        ${emailParagraph("<strong>Best regards,</strong><br>The Media4U Team")}
+      `);
+
       const response = await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: {
@@ -104,14 +140,7 @@ export const sendNewsletterWelcomeEmail = action({
           from: FROM_EMAIL,
           to: args.email,
           subject: "Welcome to Media4U Newsletter",
-          html: `
-            <h2>Welcome to Media4U!</h2>
-            <p>Thank you for subscribing to our newsletter.</p>
-            <p>Stay updated with the latest trends in VR technology, web design, and digital innovation.</p>
-            <p>Best regards,<br>The Media4U Team</p>
-            <hr>
-            <p><small>You received this email because you subscribed to Media4U newsletter</small></p>
-          `,
+          html: html,
         }),
       });
 
@@ -149,6 +178,26 @@ export const sendProjectRequestEmail = action({
       const projectTypesList = args.projectTypes.join(", ");
 
       // Send to admin
+      const adminHtml = emailBaseTemplate(`
+        ${emailHeading("New Project Request")}
+        ${emailParagraph("You have received a new project request from your website.")}
+        ${emailDivider()}
+        ${emailHeading("Client Information", "medium")}
+        ${emailInfoBox("Name", args.name)}
+        ${emailInfoBox("Email", args.email)}
+        ${args.businessName ? emailInfoBox("Business", args.businessName) : ""}
+        ${emailDivider()}
+        ${emailHeading("Project Details", "medium")}
+        ${emailInfoBox("Project Types", projectTypesList)}
+        ${emailInfoBox("Timeline", args.timeline)}
+        ${emailInfoBox("Budget Range", args.budget)}
+        ${emailDivider()}
+        ${emailHeading("Project Vision", "small")}
+        ${emailParagraph(args.description.replace(/\n/g, "<br>"))}
+        ${emailDivider()}
+        ${emailButton("View All Requests", "https://media4u.fun/admin")}
+      `);
+
       const adminResponse = await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: {
@@ -159,19 +208,7 @@ export const sendProjectRequestEmail = action({
           from: FROM_EMAIL,
           to: "devland@media4u.fun",
           subject: `New Project Request from ${args.name}`,
-          html: `
-            <h2>New Project Request</h2>
-            <p><strong>Name:</strong> ${args.name}</p>
-            <p><strong>Email:</strong> ${args.email}</p>
-            ${args.businessName ? `<p><strong>Business:</strong> ${args.businessName}</p>` : ""}
-            <p><strong>Project Types:</strong> ${projectTypesList}</p>
-            <p><strong>Timeline:</strong> ${args.timeline}</p>
-            <p><strong>Budget:</strong> ${args.budget}</p>
-            <p><strong>Project Vision:</strong></p>
-            <p>${args.description.replace(/\n/g, "<br>")}</p>
-            <hr>
-            <p><small>This email was automatically sent from Media4U project request form</small></p>
-          `,
+          html: adminHtml,
         }),
       });
 
@@ -181,6 +218,29 @@ export const sendProjectRequestEmail = action({
       }
 
       // Send confirmation to user
+      const userHtml = emailBaseTemplate(`
+        ${emailSuccessIcon()}
+        ${emailHeading(`Thank You, ${args.name}!`)}
+        ${emailParagraph("We've received your project request and we're excited to learn more about your vision. Our team is reviewing your details and will be in touch soon.")}
+        ${emailDivider()}
+        ${emailHeading("What Happens Next?", "medium")}
+        ${emailList([
+          "We'll review your project details within 24 hours",
+          "A member of our team will reach out to discuss your needs",
+          "We'll provide a custom quote and timeline for your project",
+          "We'll schedule a consultation call to dive deeper into your vision",
+        ])}
+        ${emailDivider()}
+        ${emailHeading("Your Project Details", "medium")}
+        ${emailInfoBox("Project Types", projectTypesList)}
+        ${emailInfoBox("Timeline", args.timeline)}
+        ${emailInfoBox("Budget Range", args.budget)}
+        ${emailDivider()}
+        ${emailParagraph("If you have any questions in the meantime, feel free to reply to this email. We're here to help bring your vision to life!")}
+        ${emailButton("Explore Our Work", "https://media4u.fun/vr")}
+        ${emailParagraph("<strong>Best regards,</strong><br>The Media4U Team")}
+      `);
+
       const userResponse = await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: {
@@ -191,24 +251,7 @@ export const sendProjectRequestEmail = action({
           from: FROM_EMAIL,
           to: args.email,
           subject: "We received your project request - Media4U",
-          html: `
-            <h2>Thank You, ${args.name}!</h2>
-            <p>We&apos;ve received your project request and we&apos;re excited to learn more about your vision.</p>
-            <p><strong>What happens next?</strong></p>
-            <ul>
-              <li>We&apos;ll review your project details within 24 hours</li>
-              <li>A member of our team will reach out to discuss your needs</li>
-              <li>We&apos;ll provide a custom quote and timeline for your project</li>
-            </ul>
-            <p><strong>Your project details:</strong></p>
-            <p><strong>Project Types:</strong> ${projectTypesList}</p>
-            <p><strong>Timeline:</strong> ${args.timeline}</p>
-            <p><strong>Budget Range:</strong> ${args.budget}</p>
-            <p>If you have any questions in the meantime, feel free to reply to this email.</p>
-            <p>Best regards,<br>The Media4U Team</p>
-            <hr>
-            <p><small>This email was automatically sent from Media4U</small></p>
-          `,
+          html: userHtml,
         }),
       });
 

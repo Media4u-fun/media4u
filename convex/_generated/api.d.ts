@@ -14,6 +14,7 @@ import type * as contactSubmissions from "../contactSubmissions.js";
 import type * as devHelpers from "../devHelpers.js";
 import type * as emails from "../emails.js";
 import type * as http from "../http.js";
+import type * as lib_emailTemplates from "../lib/emailTemplates.js";
 import type * as newsletter from "../newsletter.js";
 import type * as portfolio from "../portfolio.js";
 import type * as projectRequests from "../projectRequests.js";
@@ -35,6 +36,7 @@ declare const fullApi: ApiFromModules<{
   devHelpers: typeof devHelpers;
   emails: typeof emails;
   http: typeof http;
+  "lib/emailTemplates": typeof lib_emailTemplates;
   newsletter: typeof newsletter;
   portfolio: typeof portfolio;
   projectRequests: typeof projectRequests;
