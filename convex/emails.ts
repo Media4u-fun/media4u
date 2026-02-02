@@ -27,7 +27,7 @@ export const sendContactFormEmail = action({
         },
         body: JSON.stringify({
           from: FROM_EMAIL,
-          to: "devland0831@gmail.com",
+          to: "devland@media4u.fun",
           subject: `New Contact Form Submission from ${args.name}`,
           html: `
             <h2>New Contact Form Submission</h2>
@@ -157,7 +157,7 @@ export const sendProjectRequestEmail = action({
         },
         body: JSON.stringify({
           from: FROM_EMAIL,
-          to: "devland0831@gmail.com",
+          to: "devland@media4u.fun",
           subject: `New Project Request from ${args.name}`,
           html: `
             <h2>New Project Request</h2>

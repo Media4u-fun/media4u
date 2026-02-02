@@ -11,7 +11,7 @@
 import type * as auth from "../auth.js";
 import type * as blog from "../blog.js";
 import type * as contactSubmissions from "../contactSubmissions.js";
-import type * as createTestAdmin from "../createTestAdmin.js";
+import type * as devHelpers from "../devHelpers.js";
 import type * as emails from "../emails.js";
 import type * as http from "../http.js";
 import type * as newsletter from "../newsletter.js";
@@ -19,7 +19,7 @@ import type * as portfolio from "../portfolio.js";
 import type * as projectRequests from "../projectRequests.js";
 import type * as seed from "../seed.js";
 import type * as settings from "../settings.js";
-import type * as users from "../users.js";
+import type * as stripe from "../stripe.js";
 import type * as vr from "../vr.js";
 
 import type {
@@ -32,7 +32,7 @@ declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   blog: typeof blog;
   contactSubmissions: typeof contactSubmissions;
-  createTestAdmin: typeof createTestAdmin;
+  devHelpers: typeof devHelpers;
   emails: typeof emails;
   http: typeof http;
   newsletter: typeof newsletter;
@@ -40,7 +40,7 @@ declare const fullApi: ApiFromModules<{
   projectRequests: typeof projectRequests;
   seed: typeof seed;
   settings: typeof settings;
-  users: typeof users;
+  stripe: typeof stripe;
   vr: typeof vr;
 }>;
 
