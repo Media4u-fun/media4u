@@ -121,6 +121,23 @@ export default defineSchema({
     .index("by_email", ["email"])
     .index("by_subscribed", ["unsubscribed"]),
 
+  // Newsletters
+  newsletters: defineTable({
+    subject: v.string(),
+    content: v.string(), // HTML from Tiptap
+    status: v.union(v.literal("draft"), v.literal("scheduled"), v.literal("sent")),
+    scheduledFor: v.optional(v.number()),
+    sentAt: v.optional(v.number()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+    recipientCount: v.optional(v.number()),
+    successCount: v.optional(v.number()),
+    errorCount: v.optional(v.number()),
+  })
+    .index("by_status", ["status"])
+    .index("by_scheduledFor", ["scheduledFor"])
+    .index("by_createdAt", ["createdAt"]),
+
   // Blog posts
   blogPosts: defineTable({
     title: v.string(),
