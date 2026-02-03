@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { motion } from "motion/react";
@@ -335,7 +336,7 @@ export default function VRAdminPage() {
             </div>
             {experiences && experiences.length > 0 ? (
               <div className="divide-y divide-white/10 overflow-y-auto max-h-[calc(100vh-300px)]">
-                {experiences.map((experience) => (
+                {experiences.map((experience: any) => (
                   <motion.button
                     key={experience._id}
                     onClick={() => handleSelectExperience(experience)}

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { motion } from "motion/react";
@@ -158,7 +159,7 @@ export default function BlogAdminPage() {
               <p className="text-sm font-semibold text-gray-300">{posts?.length || 0} Posts</p>
             </div>
             <div className="divide-y divide-white/10 max-h-96 overflow-y-auto">
-              {posts?.map((post) => (
+              {posts?.map((post: any) => (
                 <motion.button
                   key={post._id}
                   onClick={() => handleSelectPost(post)}

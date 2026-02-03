@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import type { ReactElement } from "react";
@@ -334,7 +335,7 @@ export default function VRPage() {
           {/* Experiences Grid */}
           {filteredExperiences.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredExperiences.map((experience, idx) => (
+              {filteredExperiences.map((experience: any, idx: any) => (
                 <motion.div
                   key={experience._id}
                   initial={{ opacity: 0, y: 20 }}
@@ -362,7 +363,7 @@ export default function VRPage() {
                       <div className="flex-1">
                         {/* Categories */}
                         <div className="flex flex-wrap gap-2 mb-3">
-                          {experience.categories.slice(0, 2).map((cat) => (
+                          {experience.categories.slice(0, 2).map((cat: any) => (
                             <span
                               key={cat}
                               className="text-xs px-2 py-1 rounded-full bg-cyan-500/20 text-cyan-400 border border-cyan-500/30"

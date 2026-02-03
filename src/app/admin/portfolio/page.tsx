@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { motion } from "motion/react";
@@ -234,7 +235,7 @@ export default function PortfolioAdminPage() {
               <p className="text-sm font-semibold text-gray-300">{projects?.length || 0} Projects</p>
             </div>
             <div className="divide-y divide-white/10 overflow-y-auto max-h-[calc(100vh-300px)]">
-              {projects?.map((project) => (
+              {projects?.map((project: any) => (
                 <motion.button
                   key={project._id}
                   onClick={() => handleSelectProject(project)}

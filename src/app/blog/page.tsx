@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState } from "react";
@@ -297,7 +298,7 @@ export default function BlogPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
             <BlogCard key={featuredPost.id} post={featuredPost} index={0} featured />
-            {regularPosts.map((post, index) => (
+            {regularPosts.map((post: any, index: any) => (
               <BlogCard key={post.id} post={post} index={index + 1} />
             ))}
           </div>

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Metadata } from 'next'
 import { api } from '@convex/_generated/api'
 import { ConvexHttpClient } from 'convex/browser'
@@ -51,7 +52,7 @@ export async function generateStaticParams() {
   if (!convex) return []
   const posts = await convex.query(api.blog.getAllPosts, { publishedOnly: true })
 
-  return posts.map((post) => ({
+  return posts.map((post: any) => ({
     slug: post.slug,
   }))
 }
@@ -86,7 +87,7 @@ export default async function BlogDetailPage({
   // Get related posts (same category, excluding current post)
   const relatedPosts = allPosts
     ? allPosts
-        .filter((p) => p.category === post.category && p.slug !== post.slug)
+        .filter((p: any) => p.category === post.category && p.slug !== post.slug)
         .slice(0, 3)
     : []
 

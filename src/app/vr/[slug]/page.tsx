@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Metadata } from 'next'
 import { api } from '@convex/_generated/api'
 import { ConvexHttpClient } from 'convex/browser'
@@ -66,7 +67,7 @@ export async function generateStaticParams() {
   if (!convex) return []
   const experiences = await convex.query(api.vr.getAllExperiences)
 
-  return experiences.map((exp) => ({
+  return experiences.map((exp: any) => ({
     slug: exp.slug,
   }))
 }

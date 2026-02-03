@@ -1,7 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { mutation, query, action, internalMutation } from "./_generated/server";
 import { v } from "convex/values";
 import { requireAdmin } from "./auth";
-import { internal } from "./_generated/api";
+import { internal, api } from "./_generated/api";
 
 // Queries
 
@@ -201,9 +202,9 @@ export const sendNewsletterNow = action({
   args: {
     newsletterId: v.id("newsletters"),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<any> => {
     // Get newsletter
-    const newsletter = await ctx.runQuery(internal.newsletters.getNewsletter, {
+    const newsletter = await ctx.runQuery(api.newsletters.getNewsletter, {
       id: args.newsletterId,
     });
 
@@ -216,7 +217,7 @@ export const sendNewsletterNow = action({
     }
 
     // Send the newsletter
-    const result = await ctx.runAction(internal.newsletters.sendNewsletterEmail, {
+    const result: any = await ctx.runAction(api.newsletters.sendNewsletterEmail, {
       newsletterId: args.newsletterId,
     });
 
@@ -231,7 +232,7 @@ export const sendScheduledNewsletter = internalMutation({
   },
   handler: async (ctx, args) => {
     // Trigger the send action
-    await ctx.scheduler.runAfter(0, internal.newsletters.sendNewsletterEmail, {
+    await ctx.scheduler.runAfter(0, api.newsletters.sendNewsletterEmail, {
       newsletterId: args.newsletterId,
     });
   },
@@ -242,7 +243,7 @@ export const sendNewsletterEmail = action({
   args: {
     newsletterId: v.id("newsletters"),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<any> => {
     const RESEND_API_KEY = process.env.RESEND_API_KEY;
     const FROM_EMAIL = process.env.FROM_EMAIL || "hello@media4u.fun";
 
@@ -252,7 +253,7 @@ export const sendNewsletterEmail = action({
     }
 
     // Get newsletter
-    const newsletter = await ctx.runQuery(internal.newsletters.getNewsletter, {
+    const newsletter = await ctx.runQuery(api.newsletters.getNewsletter, {
       id: args.newsletterId,
     });
 
@@ -261,8 +262,8 @@ export const sendNewsletterEmail = action({
     }
 
     // Get all active subscribers
-    const allSubscribers = await ctx.runQuery(internal.newsletters.getAllSubscribers);
-    const activeSubscribers = allSubscribers.filter((sub) => !sub.unsubscribed);
+    const allSubscribers: any = await ctx.runQuery(api.newsletters.getAllSubscribers);
+    const activeSubscribers: any = allSubscribers.filter((sub: any) => !sub.unsubscribed);
 
     if (activeSubscribers.length === 0) {
       throw new Error("No active subscribers to send to");
