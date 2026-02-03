@@ -138,7 +138,7 @@ export default function PortfolioPage() {
 
   return (
     <div className="min-h-screen mesh-bg">
-      <Section className="pt-32 md:pt-40">
+      <Section className="pt-32 md:pt-40 px-6 md:px-8 lg:px-12">
         <SectionHeader
           tag="Our Work"
           title="Client "

@@ -231,7 +231,7 @@ export default function VRPage() {
   return (
     <div className="mesh-bg min-h-screen pt-24">
       {/* Hero Section */}
-      <Section className="pt-12 md:pt-20">
+      <Section className="pt-12 md:pt-20 px-6 md:px-8 lg:px-12">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
