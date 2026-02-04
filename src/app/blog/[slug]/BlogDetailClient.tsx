@@ -191,18 +191,7 @@ export function BlogDetailClient({ post, relatedPosts, previousPost, nextPost }:
                 className="
                   prose prose-xl prose-invert max-w-none
 
-                  /* Drop cap on first paragraph */
-                  prose-p:first-of-type:first-letter:text-8xl
-                  prose-p:first-of-type:first-letter:font-black
-                  prose-p:first-of-type:first-letter:float-left
-                  prose-p:first-of-type:first-letter:mr-4
-                  prose-p:first-of-type:first-letter:mt-2
-                  prose-p:first-of-type:first-letter:leading-[0.7]
-                  prose-p:first-of-type:first-letter:bg-gradient-to-br
-                  prose-p:first-of-type:first-letter:from-cyan-400
-                  prose-p:first-of-type:first-letter:to-purple-400
-                  prose-p:first-of-type:first-letter:bg-clip-text
-                  prose-p:first-of-type:first-letter:text-transparent
+                  /* Drop cap removed - was applying to every paragraph */
 
                   /* Headings with dramatic styling */
                   prose-headings:font-black prose-headings:tracking-tight prose-headings:text-white
