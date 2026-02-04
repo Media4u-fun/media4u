@@ -2,6 +2,18 @@ import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { requireAdmin } from "./auth";
 
+export const generateUploadUrl = mutation(async (ctx) => {
+  await requireAdmin(ctx);
+  return await ctx.storage.generateUploadUrl();
+});
+
+export const getImageUrl = query({
+  args: { storageId: v.id("_storage") },
+  handler: async (ctx, args) => {
+    return await ctx.storage.getUrl(args.storageId);
+  },
+});
+
 export const createBlogPost = mutation({
   args: {
     title: v.string(),
@@ -12,6 +24,7 @@ export const createBlogPost = mutation({
     date: v.string(),
     readTime: v.string(),
     gradient: v.string(),
+    imageStorageId: v.optional(v.id("_storage")),
     featured: v.boolean(),
     published: v.boolean(),
   },
@@ -39,6 +52,7 @@ export const updateBlogPost = mutation({
     date: v.optional(v.string()),
     readTime: v.optional(v.string()),
     gradient: v.optional(v.string()),
+    imageStorageId: v.optional(v.id("_storage")),
     featured: v.optional(v.boolean()),
     published: v.optional(v.boolean()),
   },

@@ -17,6 +17,7 @@ interface BlogFormData {
   date: string;
   readTime: string;
   gradient: string;
+  imageStorageId?: string;
   featured: boolean;
   published: boolean;
 }
@@ -40,9 +41,12 @@ export default function BlogAdminPage() {
   const createPost = useMutation(api.blog.createBlogPost);
   const updatePost = useMutation(api.blog.updateBlogPost);
   const deletePost = useMutation(api.blog.deleteBlogPost);
+  const generateUploadUrl = useMutation(api.blog.generateUploadUrl);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
   const [formData, setFormData] = useState<BlogFormData>({
     title: "",
     slug: "",
@@ -59,6 +63,7 @@ export default function BlogAdminPage() {
   function handleNewPost() {
     setIsCreating(true);
     setSelectedId(null);
+    setImageFile(null);
     setFormData({
       title: "",
       slug: "",
@@ -73,9 +78,33 @@ export default function BlogAdminPage() {
     });
   }
 
+  async function handleImageUpload(): Promise<string | undefined> {
+    if (!imageFile) return undefined;
+
+    setIsUploading(true);
+    try {
+      const uploadUrl = await generateUploadUrl();
+      const result = await fetch(uploadUrl, {
+        method: "POST",
+        headers: { "Content-Type": imageFile.type },
+        body: imageFile,
+      });
+
+      const { storageId } = await result.json();
+      return storageId;
+    } catch (error) {
+      console.error("Image upload failed:", error);
+      alert("Failed to upload image");
+      return undefined;
+    } finally {
+      setIsUploading(false);
+    }
+  }
+
   function handleSelectPost(post: BlogPost) {
     setSelectedId(post._id);
     setIsCreating(false);
+    setImageFile(null);
     setFormData({
       title: post.title,
       slug: post.slug,
@@ -85,6 +114,7 @@ export default function BlogAdminPage() {
       date: post.date,
       readTime: post.readTime,
       gradient: post.gradient,
+      imageStorageId: (post as any).imageStorageId,
       featured: post.featured,
       published: post.published,
     });
@@ -97,13 +127,23 @@ export default function BlogAdminPage() {
     }
 
     try {
+      let imageStorageId = formData.imageStorageId;
+
+      if (imageFile) {
+        const uploadedId = await handleImageUpload();
+        if (uploadedId) {
+          imageStorageId = uploadedId;
+        }
+      }
+
       if (isCreating) {
-        await createPost(formData);
+        await createPost({ ...formData, imageStorageId });
         alert("Blog post created!");
       } else if (selectedId) {
         await updatePost({
           id: selectedId as Id<"blogPosts">,
           ...formData,
+          imageStorageId,
         });
         alert("Blog post updated!");
       }
@@ -271,6 +311,21 @@ export default function BlogAdminPage() {
             </div>
 
             <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Featured Image {formData.imageStorageId && "(Currently has image)"}
+              </label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+                className="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-cyan-500/20 file:text-cyan-400 hover:file:bg-cyan-500/30"
+              />
+              {imageFile && (
+                <p className="text-sm text-gray-400 mt-2">Selected: {imageFile.name}</p>
+              )}
+            </div>
+
+            <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">Content</label>
               <textarea
                 value={formData.content}
@@ -321,9 +376,10 @@ export default function BlogAdminPage() {
             <div className="flex gap-3 pt-4">
               <button
                 onClick={handleSave}
-                className="flex-1 px-6 py-3 rounded-lg bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/30 transition-all border border-cyan-500/50 font-medium"
+                disabled={isUploading}
+                className="flex-1 px-6 py-3 rounded-lg bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/30 transition-all border border-cyan-500/50 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isCreating ? "Create" : "Update"}
+                {isUploading ? "Uploading..." : isCreating ? "Create" : "Update"}
               </button>
               {!isCreating && (
                 <button

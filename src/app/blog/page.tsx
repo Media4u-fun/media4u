@@ -20,6 +20,8 @@ interface BlogPost {
   gradient: string;
   featured?: boolean;
   slug?: string;
+  imageStorageId?: string;
+  imageUrl?: string | null;
 }
 
 interface DbBlogPost {
@@ -33,6 +35,7 @@ interface DbBlogPost {
   featured: boolean;
   published: boolean;
   slug: string;
+  imageStorageId?: string;
 }
 
 // Fallback data in case Convex is not yet seeded
@@ -85,6 +88,15 @@ const FALLBACK_BLOG_POSTS: BlogPost[] = [
   },
 ];
 
+function BlogCardWithImage({ post, index, featured = false }: { post: BlogPost; index: number; featured?: boolean }) {
+  const imageUrl = useQuery(
+    post.imageStorageId ? api.blog.getImageUrl : undefined,
+    post.imageStorageId ? { storageId: post.imageStorageId as any } : "skip"
+  );
+
+  return <BlogCard post={{ ...post, imageUrl }} index={index} featured={featured} />;
+}
+
 function BlogCard({ post, index, featured = false }: { post: BlogPost; index: number; featured?: boolean }) {
   return (
     <Link href={`/blog/${post.slug}`}>
@@ -98,8 +110,21 @@ function BlogCard({ post, index, featured = false }: { post: BlogPost; index: nu
         }`}
       >
       <div className={`relative ${featured ? "h-64 md:h-80" : "h-48"} overflow-hidden`}>
-        <div className={`absolute inset-0 bg-gradient-to-br ${post.gradient} opacity-80`} />
-        <div className="absolute inset-0 bg-gradient-to-t from-void-950 via-transparent to-transparent" />
+        {post.imageUrl ? (
+          <>
+            <img
+              src={post.imageUrl}
+              alt={post.title}
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-void-950 via-transparent to-transparent" />
+          </>
+        ) : (
+          <>
+            <div className={`absolute inset-0 bg-gradient-to-br ${post.gradient} opacity-80`} />
+            <div className="absolute inset-0 bg-gradient-to-t from-void-950 via-transparent to-transparent" />
+          </>
+        )}
         <div className="absolute top-4 left-4">
           <span className="inline-block px-3 py-1 text-xs font-semibold tracking-wide uppercase bg-white/10 backdrop-blur-sm rounded-full text-white border border-white/20">
             {post.category}
@@ -244,6 +269,7 @@ export default function BlogPage() {
         gradient: p.gradient,
         featured: p.featured,
         slug: p.slug,
+        imageStorageId: p.imageStorageId,
       }))
     : FALLBACK_BLOG_POSTS;
 
@@ -297,9 +323,9 @@ export default function BlogPage() {
           </motion.div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-            <BlogCard key={featuredPost.id} post={featuredPost} index={0} featured />
+            <BlogCardWithImage key={featuredPost.id} post={featuredPost} index={0} featured />
             {regularPosts.map((post: any, index: any) => (
-              <BlogCard key={post.id} post={post} index={index + 1} />
+              <BlogCardWithImage key={post.id} post={post} index={index + 1} />
             ))}
           </div>
         )}

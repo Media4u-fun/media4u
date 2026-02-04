@@ -148,6 +148,7 @@ export default defineSchema({
     date: v.string(),
     readTime: v.string(),
     gradient: v.string(),
+    imageStorageId: v.optional(v.id("_storage")),
     featured: v.boolean(),
     published: v.boolean(),
     createdAt: v.number(),
