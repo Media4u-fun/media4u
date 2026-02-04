@@ -7,33 +7,27 @@ export const getAllUsers = query({
   handler: async (ctx) => {
     await requireAdmin(ctx);
 
-    // Get all user roles first
+    // Get all users from Better Auth (users table is managed by Better Auth component)
+    // We need to query all tables and find the users table
+    const allUsers = await ctx.db.query("users").collect();
+
+    // Get all user roles
     const userRoles = await ctx.db.query("userRoles").collect();
 
-    // Get user details from Better Auth for each user with a role
-    const usersWithDetails = await Promise.all(
-      userRoles.map(async (roleRecord) => {
-        try {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const user = await ctx.db.get(roleRecord.userId as any);
-          if (user) {
-            return {
-              _id: roleRecord.userId,
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              name: (user as any).name || "Unknown",
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              email: (user as any).email || "No email",
-              role: roleRecord.role,
-            };
-          }
-        } catch {
-          // User not found in auth tables
-        }
-        return null;
-      })
-    );
+    // Create a map of userId to role for quick lookup
+    const roleMap = new Map(userRoles.map(r => [r.userId, r.role]));
 
-    return usersWithDetails.filter((u) => u !== null);
+    // Combine user data with roles
+    return allUsers.map((user) => ({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      _id: (user as any)._id,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      name: (user as any).name || "Unknown",
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      email: (user as any).email || "No email",
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      role: roleMap.get((user as any)._id) || "user",
+    }));
   },
 });
 
