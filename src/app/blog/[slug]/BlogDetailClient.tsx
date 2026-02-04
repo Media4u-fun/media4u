@@ -5,7 +5,8 @@ import Link from "next/link";
 import { Section } from "@/components/ui/section";
 import { Button } from "@/components/ui/button";
 import { Clock, Calendar, ArrowLeft, ArrowRight, Share2 } from "lucide-react";
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { marked } from "marked";
 
 interface BlogPost {
   _id: string
@@ -33,6 +34,11 @@ interface BlogDetailClientProps {
 export function BlogDetailClient({ post, relatedPosts, previousPost, nextPost }: BlogDetailClientProps) {
   const { scrollYProgress } = useScroll();
   const [showShareMenu, setShowShareMenu] = useState(false);
+
+  // Parse markdown content to HTML
+  const htmlContent = useMemo(() => {
+    return marked(post.content, { breaks: true, gfm: true });
+  }, [post.content]);
 
   // Parallax effects
   const titleY = useTransform(scrollYProgress, [0, 0.3], [0, -100]);
@@ -265,7 +271,7 @@ export function BlogDetailClient({ post, relatedPosts, previousPost, nextPost }:
                   prose-td:border-white/5 prose-td:p-6
                   prose-tr:border-b prose-tr:border-white/5
                 "
-                dangerouslySetInnerHTML={{ __html: post.content }}
+                dangerouslySetInnerHTML={{ __html: htmlContent }}
               />
 
               {/* Article footer */}
