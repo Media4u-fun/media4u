@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { motion } from "motion/react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
-import { Users, Globe, Package, Settings as SettingsIcon, UserPlus, X } from "lucide-react";
+import { Users, Globe, Package, Settings as SettingsIcon } from "lucide-react";
+import Link from "next/link";
 
 type TabType = "users" | "site" | "orders" | "system";
 
@@ -71,18 +72,8 @@ function UserManagementTab() {
   const users = useQuery(api.admin.getAllUsers);
   const userRoles = useQuery(api.admin.getAllUserRoles);
   const setUserRole = useMutation(api.auth.setUserRole);
-  const createUser = useMutation(api.admin.createUser);
 
   const [updatingUserId, setUpdatingUserId] = useState<string | null>(null);
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [isCreating, setIsCreating] = useState(false);
-  const [createError, setCreateError] = useState<string | null>(null);
-  const [newUser, setNewUser] = useState({
-    name: "",
-    email: "",
-    password: "",
-    role: "user" as "admin" | "user" | "client",
-  });
 
   const getUserRole = (userId: string) => {
     const roleRecord = userRoles?.find((r: { userId: string }) => r.userId === userId);
@@ -100,39 +91,20 @@ function UserManagementTab() {
     }
   };
 
-  const handleCreateUser = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsCreating(true);
-    setCreateError(null);
-
-    try {
-      await createUser(newUser);
-      setShowCreateModal(false);
-      setNewUser({ name: "", email: "", password: "", role: "user" });
-    } catch (error) {
-      setCreateError(error instanceof Error ? error.message : "Failed to create user");
-    } finally {
-      setIsCreating(false);
-    }
-  };
-
   if (!users || !userRoles) {
     return <div className="text-gray-400">Loading users...</div>;
   }
 
   return (
-    <>
+    <div className="space-y-4">
+      <div className="glass-elevated rounded-2xl p-4 bg-cyan-500/10 border border-cyan-500/30">
+        <p className="text-sm text-cyan-400">
+          <strong>How to add users:</strong> Have new users sign up at <Link href="/login" className="underline">/login</Link>, then you can assign their role using the dropdown below.
+        </p>
+      </div>
+
       <div className="glass-elevated rounded-2xl p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold text-white">All Users</h2>
-          <button
-            onClick={() => setShowCreateModal(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-cyan-500 to-purple-500 text-white font-medium hover:shadow-lg hover:shadow-cyan-500/25 transition-all"
-          >
-            <UserPlus className="w-4 h-4" />
-            Create User
-          </button>
-        </div>
+        <h2 className="text-xl font-semibold mb-4 text-white">All Users</h2>
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
@@ -185,107 +157,7 @@ function UserManagementTab() {
           Total Users: {users.length}
         </p>
       </div>
-
-      {/* Create User Modal */}
-      <AnimatePresence>
-        {showCreateModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="glass-elevated rounded-2xl p-6 max-w-md w-full"
-            >
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-semibold text-white">Create New User</h3>
-                <button
-                  onClick={() => setShowCreateModal(false)}
-                  className="p-2 rounded-lg hover:bg-white/10 transition-colors"
-                >
-                  <X className="w-5 h-5 text-gray-400" />
-                </button>
-              </div>
-
-              <form onSubmit={handleCreateUser} className="space-y-4">
-                <div>
-                  <label className="block text-sm text-gray-400 mb-2">Full Name</label>
-                  <input
-                    type="text"
-                    required
-                    value={newUser.name}
-                    onChange={(e) => setNewUser({ ...newUser, name: e.target.value })}
-                    className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50"
-                    placeholder="John Doe"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm text-gray-400 mb-2">Email Address</label>
-                  <input
-                    type="email"
-                    required
-                    value={newUser.email}
-                    onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
-                    className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50"
-                    placeholder="john@example.com"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm text-gray-400 mb-2">Password</label>
-                  <input
-                    type="password"
-                    required
-                    minLength={8}
-                    value={newUser.password}
-                    onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
-                    className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50"
-                    placeholder="Min 8 characters"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm text-gray-400 mb-2">Role</label>
-                  <select
-                    value={newUser.role}
-                    onChange={(e) => setNewUser({ ...newUser, role: e.target.value as "admin" | "user" | "client" })}
-                    className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50"
-                  >
-                    <option value="user">User</option>
-                    <option value="client">Client</option>
-                    <option value="admin">Admin</option>
-                  </select>
-                </div>
-
-                {createError && (
-                  <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm">
-                    {createError}
-                  </div>
-                )}
-
-                <div className="flex gap-3 pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setShowCreateModal(false)}
-                    disabled={isCreating}
-                    className="flex-1 px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white hover:bg-white/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={isCreating}
-                    className="flex-1 px-4 py-3 rounded-lg bg-gradient-to-r from-cyan-500 to-purple-500 text-white font-medium hover:shadow-lg hover:shadow-cyan-500/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isCreating ? "Creating..." : "Create User"}
-                  </button>
-                </div>
-              </form>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-    </>
+    </div>
   );
 }
 

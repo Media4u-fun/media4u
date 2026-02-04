@@ -1,4 +1,4 @@
-import { query, mutation, internalMutation } from "./_generated/server";
+import { query, internalMutation } from "./_generated/server";
 import { requireAdmin } from "./auth";
 import { v } from "convex/values";
 
@@ -76,53 +76,3 @@ export const setUserRoleInternal = internalMutation({
   },
 });
 
-export const createUser = mutation({
-  args: {
-    name: v.string(),
-    email: v.string(),
-    password: v.string(),
-    role: v.union(v.literal("admin"), v.literal("user"), v.literal("client")),
-  },
-  handler: async (ctx, args) => {
-    await requireAdmin(ctx);
-
-    // Check if user with this email already exists
-    const existingUser = await ctx.db
-      .query("users")
-      .filter((q) => q.eq(q.field("email"), args.email))
-      .first();
-
-    if (existingUser) {
-      throw new Error("A user with this email already exists");
-    }
-
-    // Hash the password using bcrypt (Better Auth style)
-    const bcrypt = await import("bcryptjs");
-    const hashedPassword = await bcrypt.hash(args.password, 10);
-
-    // Create the user in the Better Auth users table
-    const userId = await ctx.db.insert("users", {
-      email: args.email,
-      name: args.name,
-      emailVerified: false,
-      image: null,
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
-    });
-
-    // Create the password record
-    await ctx.db.insert("passwords", {
-      userId: userId as string,
-      password: hashedPassword,
-    });
-
-    // Set the user's role
-    await ctx.db.insert("userRoles", {
-      userId: userId as string,
-      role: args.role,
-      createdAt: Date.now(),
-    });
-
-    return { success: true, userId };
-  },
-});
