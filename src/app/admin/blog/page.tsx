@@ -137,13 +137,13 @@ export default function BlogAdminPage() {
       }
 
       if (isCreating) {
-        await createPost({ ...formData, imageStorageId });
+        await createPost({ ...formData, imageStorageId: imageStorageId as Id<"_storage"> | undefined });
         alert("Blog post created!");
       } else if (selectedId) {
         await updatePost({
           id: selectedId as Id<"blogPosts">,
           ...formData,
-          imageStorageId,
+          imageStorageId: imageStorageId as Id<"_storage"> | undefined,
         });
         alert("Blog post updated!");
       }

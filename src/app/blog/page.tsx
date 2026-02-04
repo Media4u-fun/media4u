@@ -90,7 +90,7 @@ const FALLBACK_BLOG_POSTS: BlogPost[] = [
 
 function BlogCardWithImage({ post, index, featured = false }: { post: BlogPost; index: number; featured?: boolean }) {
   const imageUrl = useQuery(
-    post.imageStorageId ? api.blog.getImageUrl : undefined,
+    api.blog.getImageUrl,
     post.imageStorageId ? { storageId: post.imageStorageId as any } : "skip"
   );
 
