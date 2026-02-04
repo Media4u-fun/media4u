@@ -35,24 +35,77 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="min-h-screen flex flex-col">
-        {/* Organization Schema */}
+        {/* LocalBusiness Schema */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify({
               '@context': 'https://schema.org',
-              '@type': 'Organization',
+              '@type': ['Organization', 'LocalBusiness'],
               name: 'Media4U',
+              alternateName: 'Media4U Digital Solutions',
               url: 'https://media4u.fun',
               logo: 'https://media4u.fun/media4u-logo.png',
               description: 'Custom VR environments, stunning websites, and innovative multiverse experiences that connect people and inspire creativity.',
+              email: 'info@media4u.fun',
+              priceRange: '$$',
+              address: {
+                '@type': 'PostalAddress',
+                addressLocality: 'Digital',
+                addressCountry: 'US',
+              },
+              geo: {
+                '@type': 'GeoCoordinates',
+                latitude: '0',
+                longitude: '0',
+              },
               sameAs: [
-                // Add social media URLs when available
+                // Social media URLs - update when available
               ],
               contactPoint: {
                 '@type': 'ContactPoint',
                 contactType: 'Customer Service',
-                availableLanguage: 'English',
+                availableLanguage: ['English'],
+                email: 'info@media4u.fun',
+              },
+              areaServed: {
+                '@type': 'GeoCircle',
+                geoMidpoint: {
+                  '@type': 'GeoCoordinates',
+                  latitude: '0',
+                  longitude: '0',
+                },
+                geoRadius: 'Global',
+              },
+              hasOfferCatalog: {
+                '@type': 'OfferCatalog',
+                name: 'Digital Services',
+                itemListElement: [
+                  {
+                    '@type': 'Offer',
+                    itemOffered: {
+                      '@type': 'Service',
+                      name: 'VR Environment Development',
+                      description: 'Custom virtual reality experiences and immersive environments',
+                    },
+                  },
+                  {
+                    '@type': 'Offer',
+                    itemOffered: {
+                      '@type': 'Service',
+                      name: 'Web Design & Development',
+                      description: 'Professional website design and development services',
+                    },
+                  },
+                  {
+                    '@type': 'Offer',
+                    itemOffered: {
+                      '@type': 'Service',
+                      name: 'Multiverse Experiences',
+                      description: 'Innovative multiverse and metaverse solutions',
+                    },
+                  },
+                ],
               },
             }),
           }}
