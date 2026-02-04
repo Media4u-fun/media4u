@@ -72,8 +72,13 @@ function UserManagementTab() {
   const users = useQuery(api.admin.getAllUsers);
   const userRoles = useQuery(api.admin.getAllUserRoles);
   const setUserRole = useMutation(api.auth.setUserRole);
+  const addUserByEmail = useMutation(api.admin.addUserByEmail);
 
   const [updatingUserId, setUpdatingUserId] = useState<string | null>(null);
+  const [newUserEmail, setNewUserEmail] = useState("");
+  const [newUserRole, setNewUserRole] = useState<"admin" | "user" | "client">("user");
+  const [isAdding, setIsAdding] = useState(false);
+  const [addMessage, setAddMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   const getUserRole = (userId: string) => {
     const roleRecord = userRoles?.find((r: { userId: string }) => r.userId === userId);
@@ -91,20 +96,89 @@ function UserManagementTab() {
     }
   };
 
+  const handleAddUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsAdding(true);
+    setAddMessage(null);
+
+    try {
+      const result = await addUserByEmail({ email: newUserEmail, role: newUserRole });
+      setAddMessage({ type: "success", text: result.message });
+      setNewUserEmail("");
+      setNewUserRole("user");
+    } catch (error) {
+      setAddMessage({
+        type: "error",
+        text: error instanceof Error ? error.message : "Failed to add user"
+      });
+    } finally {
+      setIsAdding(false);
+    }
+  };
+
   if (!users || !userRoles) {
     return <div className="text-gray-400">Loading users...</div>;
   }
 
   return (
-    <div className="space-y-4">
-      <div className="glass-elevated rounded-2xl p-4 bg-cyan-500/10 border border-cyan-500/30">
-        <p className="text-sm text-cyan-400">
-          <strong>How to add users:</strong> Have new users sign up at <Link href="/login" className="underline">/login</Link>, then you can assign their role using the dropdown below.
+    <div className="space-y-6">
+      {/* Add User Form */}
+      <div className="glass-elevated rounded-2xl p-6">
+        <h2 className="text-xl font-semibold mb-4 text-white">Add User to System</h2>
+        <p className="text-sm text-gray-400 mb-4">
+          Enter the email of someone who has already signed up at <Link href="/login" className="underline text-cyan-400">/login</Link>
         </p>
+
+        <form onSubmit={handleAddUser} className="space-y-4">
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm text-gray-400 mb-2">Email Address</label>
+              <input
+                type="email"
+                required
+                value={newUserEmail}
+                onChange={(e) => setNewUserEmail(e.target.value)}
+                placeholder="user@example.com"
+                className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50"
+              />
+            </div>
+            <div>
+              <label className="block text-sm text-gray-400 mb-2">Role</label>
+              <select
+                value={newUserRole}
+                onChange={(e) => setNewUserRole(e.target.value as "admin" | "user" | "client")}
+                className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50"
+              >
+                <option value="user">User</option>
+                <option value="client">Client</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
+          </div>
+
+          {addMessage && (
+            <div className={`p-3 rounded-lg text-sm ${
+              addMessage.type === "success"
+                ? "bg-green-500/10 border border-green-500/30 text-green-400"
+                : "bg-red-500/10 border border-red-500/30 text-red-400"
+            }`}>
+              {addMessage.text}
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={isAdding}
+            className="px-6 py-3 rounded-lg bg-gradient-to-r from-cyan-500 to-purple-500 text-white font-medium hover:shadow-lg hover:shadow-cyan-500/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isAdding ? "Adding..." : "Add User"}
+          </button>
+        </form>
       </div>
 
+      {/* User List */}
       <div className="glass-elevated rounded-2xl p-6">
-        <h2 className="text-xl font-semibold mb-4 text-white">All Users</h2>
+        <h2 className="text-xl font-semibold mb-4 text-white">Users with Roles</h2>
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
