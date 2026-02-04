@@ -25,7 +25,7 @@ export default function OrderDetailPage() {
   const { user } = useAuth();
   const params = useParams();
   const router = useRouter();
-  const orderId = params.orderId as string;
+  const orderId = params?.orderId as string;
 
   const orders = useQuery(
     api.stripe.getUserOrders,

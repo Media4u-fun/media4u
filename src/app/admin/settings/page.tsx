@@ -68,13 +68,15 @@ export default function AdminSettingsPage() {
 }
 
 function UserManagementTab() {
-  const users = useQuery(api.admin.getAllUsers);
-  const userRoles = useQuery(api.admin.getAllUserRoles);
+  // @ts-expect-error - admin functions will be available after Convex sync
+  const users = useQuery(api.admin?.getAllUsers);
+  // @ts-expect-error - admin functions will be available after Convex sync
+  const userRoles = useQuery(api.admin?.getAllUserRoles);
   const setUserRole = useMutation(api.auth.setUserRole);
   const [updatingUserId, setUpdatingUserId] = useState<string | null>(null);
 
   const getUserRole = (userId: string) => {
-    const roleRecord = userRoles?.find((r) => r.userId === userId);
+    const roleRecord = userRoles?.find((r: { userId: string }) => r.userId === userId);
     return roleRecord?.role || "user";
   };
 
@@ -107,8 +109,8 @@ function UserManagementTab() {
             </tr>
           </thead>
           <tbody>
-            {users.map((user) => {
-              const currentRole = getUserRole(user._id);
+            {users.map((user: { _id: string; name: string; email: string; role?: string }) => {
+              const currentRole = user.role || getUserRole(user._id);
               return (
                 <tr key={user._id} className="border-b border-white/5 hover:bg-white/5">
                   <td className="py-3 px-4 text-white">{user.name}</td>
