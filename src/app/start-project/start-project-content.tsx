@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { CheckoutButton } from "@/components/checkout/checkout-button";
 import { ProjectWizard } from "./project-wizard";
-import { RefreshCw, TrendingUp, FileText, Palette, Zap, Sparkles } from "lucide-react";
+import { RefreshCw, TrendingUp, FileText, Palette, Zap, Sparkles, Target, Building2, ShoppingCart, Cpu, Glasses, Rocket } from "lucide-react";
 
 type ProductType = "starter" | "professional" | null;
 
@@ -119,6 +119,54 @@ const ADD_ONS: AddOn[] = [
   },
 ];
 
+// What We Build - matching homepage style
+const PROJECT_TYPES = [
+  {
+    title: "Landing Pages",
+    description: "High-converting single pages for campaigns, launches, or lead generation.",
+    icon: Target,
+    gradient: "from-cyan-500/20 to-cyan-500/5",
+  },
+  {
+    title: "Business Websites",
+    description: "Professional multi-page sites that establish credibility and drive growth.",
+    icon: Building2,
+    gradient: "from-blue-500/20 to-blue-500/5",
+  },
+  {
+    title: "E-Commerce",
+    description: "Online stores with secure payments, inventory management, and smooth checkout.",
+    icon: ShoppingCart,
+    gradient: "from-green-500/20 to-green-500/5",
+  },
+  {
+    title: "Web Applications",
+    description: "Custom dashboards, portals, and interactive tools built for your workflow.",
+    icon: Cpu,
+    gradient: "from-purple-500/20 to-purple-500/5",
+  },
+  {
+    title: "VR Experiences",
+    description: "Immersive virtual environments, storefronts, and interactive 3D spaces.",
+    icon: Glasses,
+    gradient: "from-pink-500/20 to-pink-500/5",
+  },
+  {
+    title: "Full Stack Solutions",
+    description: "Complete systems with databases, user accounts, and backend integrations.",
+    icon: Rocket,
+    gradient: "from-orange-500/20 to-orange-500/5",
+  },
+];
+
+// Our Process - matching homepage style
+const PROCESS_STEPS = [
+  { number: "01", title: "Discovery", description: "We learn about your goals, audience, and vision" },
+  { number: "02", title: "Design", description: "We create mockups you can see, feel, and refine" },
+  { number: "03", title: "Build", description: "We develop your project with care and precision" },
+  { number: "04", title: "Launch", description: "We deploy, test, and celebrate together" },
+];
+
 export function StartProjectContent(): ReactElement {
   const scrollToForm = () => {
     document.getElementById("project-form")?.scrollIntoView({ behavior: "smooth" });
@@ -158,7 +206,72 @@ export function StartProjectContent(): ReactElement {
         </motion.div>
       </Section>
 
-      {/* SECTION 2 - PROJECT WIZARD */}
+      {/* SECTION 2 - WHAT WE BUILD */}
+      <Section className="border-t border-white/10">
+        <SectionHeader
+          tag="What We Build"
+          title="Your Vision,"
+          highlight="Any Scale"
+          description="From simple landing pages to complex web applications - we build what you need."
+        />
+
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-12">
+          {PROJECT_TYPES.map((type, index) => {
+            const Icon = type.icon;
+            return (
+              <motion.div
+                key={type.title}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, delay: index * 0.1 }}
+                className={`group relative p-6 rounded-2xl bg-gradient-to-br ${type.gradient} border border-white/10 hover:border-white/20 transition-all duration-300`}
+              >
+                <div className="flex items-start gap-4">
+                  <div className="p-3 rounded-xl bg-white/10 group-hover:bg-white/15 transition-colors">
+                    <Icon className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-white mb-1">{type.title}</h3>
+                    <p className="text-sm text-gray-400 leading-relaxed">{type.description}</p>
+                  </div>
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
+      </Section>
+
+      {/* SECTION 3 - OUR PROCESS */}
+      <Section className="border-t border-white/10">
+        <SectionHeader
+          tag="Our Process"
+          title="How We"
+          highlight="Work"
+          description="A clear, collaborative approach from start to finish."
+        />
+
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-12">
+          {PROCESS_STEPS.map((step, index) => (
+            <motion.div
+              key={step.number}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: index * 0.1 }}
+              className="text-center group"
+            >
+              <div className="text-5xl font-display font-bold text-white/10 group-hover:text-cyan-500/30 transition-colors duration-300 mb-3">
+                {step.number}
+              </div>
+              <h3 className="text-xl font-semibold text-white mb-2">{step.title}</h3>
+              <p className="text-sm text-gray-400">{step.description}</p>
+            </motion.div>
+          ))}
+        </div>
+      </Section>
+
+      {/* SECTION 4 - PROJECT WIZARD */}
       <Section id="project-form" className="border-t border-white/10">
         <SectionHeader
           tag="Build Your Blueprint"
@@ -178,7 +291,7 @@ export function StartProjectContent(): ReactElement {
         </motion.div>
       </Section>
 
-      {/* SECTION 3 - PACKAGES / STARTING POINTS */}
+      {/* SECTION 5 - PACKAGES / STARTING POINTS */}
       <Section id="packages" className="border-t border-white/10">
         <SectionHeader
           tag="Pricing"
@@ -263,7 +376,7 @@ export function StartProjectContent(): ReactElement {
         </motion.p>
       </Section>
 
-      {/* SECTION 4 - WHAT'S INCLUDED / ADD-ONS */}
+      {/* SECTION 6 - WHAT'S INCLUDED / ADD-ONS */}
       <Section className="border-t border-white/10">
         <SectionHeader
           tag="Extend Your Project"
@@ -335,7 +448,7 @@ export function StartProjectContent(): ReactElement {
         </motion.p>
       </Section>
 
-      {/* SECTION 5 - TRUST & CLOSE */}
+      {/* SECTION 7 - TRUST & CLOSE */}
       <Section className="border-t border-white/10">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
