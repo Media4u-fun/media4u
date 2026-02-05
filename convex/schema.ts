@@ -143,6 +143,37 @@ export default defineSchema({
     .index("by_email", ["email"])
     .index("by_created", ["createdAt"]),
 
+  // Client Projects - converted leads that become actual projects
+  projects: defineTable({
+    name: v.string(),
+    email: v.string(),
+    company: v.optional(v.string()),
+    phone: v.optional(v.string()),
+    projectType: v.string(), // e.g., "VR Website", "Standard Website", "E-commerce", etc.
+    description: v.string(),
+    requirements: v.optional(v.string()),
+    budget: v.optional(v.string()),
+    timeline: v.optional(v.string()),
+    status: v.union(
+      v.literal("new"),
+      v.literal("planning"),
+      v.literal("design"),
+      v.literal("development"),
+      v.literal("review"),
+      v.literal("completed"),
+      v.literal("launched")
+    ),
+    notes: v.string(),
+    liveUrl: v.optional(v.string()), // URL when site is launched
+    leadId: v.optional(v.id("leads")), // Link back to original lead
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_status", ["status"])
+    .index("by_email", ["email"])
+    .index("by_leadId", ["leadId"])
+    .index("by_created", ["createdAt"]),
+
   // Newsletter subscribers
   newsletterSubscribers: defineTable({
     email: v.string(),

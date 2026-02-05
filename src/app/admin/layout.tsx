@@ -18,6 +18,7 @@ import {
   Glasses,
   Settings,
   Users,
+  Briefcase,
 } from "lucide-react";
 
 const adminNavItems = [
@@ -27,6 +28,7 @@ const adminNavItems = [
   { href: "/admin/contacts", label: "Contact Forms", icon: Mail },
   { href: "/admin/project-requests", label: "Project Requests", icon: ClipboardList },
   { href: "/admin/leads", label: "Leads", icon: Users },
+  { href: "/admin/projects", label: "Projects", icon: Briefcase },
   { href: "/admin/newsletter", label: "Newsletter", icon: Inbox },
   { href: "/admin/blog", label: "Blog Posts", icon: FileText },
   { href: "/admin/portfolio", label: "Portfolio", icon: ImageIcon },

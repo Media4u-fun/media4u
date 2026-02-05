@@ -6,7 +6,7 @@ import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "@convex/_generated/api";
 import { useState } from "react";
 import { Id } from "@convex/_generated/dataModel";
-import { Mail, Send } from "lucide-react";
+import { Mail, Send, Briefcase } from "lucide-react";
 import { EmailReplyModal } from "@/components/admin/EmailReplyModal";
 
 type ProjectStatus = "new" | "contacted" | "quoted" | "accepted" | "declined";
@@ -33,11 +33,13 @@ export default function ProjectRequestsAdminPage() {
   const deleteRequest = useMutation(api.projectRequests.deleteProjectRequest);
   const subscribeToNewsletter = useMutation(api.newsletter.subscribeToNewsletter);
   const sendEmailReply = useAction(api.emailReplies.sendEmailReply);
+  const createProjectFromRequest = useMutation(api.projects.createProjectFromRequest);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<ProjectStatus | "all">("all");
   const [subscribing, setSubscribing] = useState<string | null>(null);
   const [isReplyModalOpen, setIsReplyModalOpen] = useState(false);
+  const [isConvertModalOpen, setIsConvertModalOpen] = useState(false);
 
   const filtered =
     requests && filterStatus !== "all"
@@ -90,6 +92,17 @@ export default function ProjectRequestsAdminPage() {
 
     // Mark as contacted
     await handleStatusChange(selected._id, "contacted");
+  }
+
+  async function handleConvertToProject() {
+    if (!selected) return;
+
+    await createProjectFromRequest({
+      requestId: selected._id,
+    });
+
+    setIsConvertModalOpen(false);
+    alert("Project request converted to project successfully!");
   }
 
   return (
@@ -207,6 +220,20 @@ export default function ProjectRequestsAdminPage() {
                     <Mail className="w-3 h-3" />
                     {subscribing === selected._id ? "Adding..." : "Add to Newsletter"}
                   </button>
+                  {selected.status !== "accepted" && (
+                    <button
+                      onClick={() => setIsConvertModalOpen(true)}
+                      className="px-3 py-1 rounded-lg bg-green-500/20 text-green-400 hover:bg-green-500/30 transition-colors border border-green-500/50 text-xs font-medium flex items-center gap-1"
+                    >
+                      <Briefcase className="w-3 h-3" />
+                      Convert to Project
+                    </button>
+                  )}
+                  {selected.status === "accepted" && (
+                    <span className="px-3 py-1 rounded-lg bg-green-500/20 text-green-400 border border-green-500/50 text-xs font-medium">
+                      ✓ Converted
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -297,6 +324,66 @@ export default function ProjectRequestsAdminPage() {
           subject={`Re: Your Project Request - ${selected.projectTypes.join(", ")}`}
           onSend={handleSendReply}
         />
+      )}
+
+      {/* Convert to Project Modal */}
+      {isConvertModalOpen && selected && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-gray-900 rounded-2xl p-6 max-w-xl w-full border border-white/10"
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-white">Convert to Project</h2>
+              <button
+                onClick={() => setIsConvertModalOpen(false)}
+                className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+              >
+                <span className="text-gray-400 text-2xl">&times;</span>
+              </button>
+            </div>
+
+            <div className="mb-6 p-4 rounded-lg bg-white/5 border border-white/10 space-y-2">
+              <div>
+                <p className="text-sm text-gray-400">Client:</p>
+                <p className="text-white font-semibold">{selected.name}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-400">Project Type:</p>
+                <p className="text-white">{selected.projectTypes.join(", ")}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-400">Budget:</p>
+                <p className="text-white">{selected.budget}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-400">Timeline:</p>
+                <p className="text-white">{selected.timeline}</p>
+              </div>
+            </div>
+
+            <p className="text-gray-300 mb-6">
+              This will create a new project with all the details from this request. The request status will be updated to &ldquo;Accepted&rdquo;.
+            </p>
+
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setIsConvertModalOpen(false)}
+                className="flex-1 px-4 py-3 rounded-lg bg-white/5 text-gray-400 hover:bg-white/10 transition-all border border-white/10 font-medium"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConvertToProject}
+                className="flex-1 px-4 py-3 rounded-lg bg-green-500 text-white hover:bg-green-600 transition-all font-medium"
+              >
+                Convert to Project
+              </button>
+            </div>
+          </motion.div>
+        </div>
       )}
     </div>
   );

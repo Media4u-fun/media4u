@@ -2,124 +2,108 @@
 "use client";
 
 import { motion } from "motion/react";
-import { useQuery, useMutation, useAction } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
 import { useState } from "react";
 import { Id } from "@convex/_generated/dataModel";
-import { Search, Mail, Plus, X, Briefcase } from "lucide-react";
-import { EmailReplyModal } from "@/components/admin/EmailReplyModal";
+import { Search, Plus, X, ExternalLink } from "lucide-react";
 
-type LeadStatus = "new" | "contacted" | "qualified" | "converted" | "lost";
+type ProjectStatus = "new" | "planning" | "design" | "development" | "review" | "completed" | "launched";
 
-const statusColors: Record<LeadStatus, string> = {
+const statusColors: Record<ProjectStatus, string> = {
   new: "bg-blue-500/20 text-blue-400 border-blue-500/30",
-  contacted: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
-  qualified: "bg-purple-500/20 text-purple-400 border-purple-500/30",
-  converted: "bg-green-500/20 text-green-400 border-green-500/30",
-  lost: "bg-red-500/20 text-red-400 border-red-500/30",
+  planning: "bg-purple-500/20 text-purple-400 border-purple-500/30",
+  design: "bg-pink-500/20 text-pink-400 border-pink-500/30",
+  development: "bg-orange-500/20 text-orange-400 border-orange-500/30",
+  review: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
+  completed: "bg-green-500/20 text-green-400 border-green-500/30",
+  launched: "bg-cyan-500/20 text-cyan-400 border-cyan-500/30",
 };
 
-const statusLabels: Record<LeadStatus, string> = {
+const statusLabels: Record<ProjectStatus, string> = {
   new: "New",
-  contacted: "Contacted",
-  qualified: "Qualified",
-  converted: "Converted",
-  lost: "Lost",
+  planning: "Planning",
+  design: "Design",
+  development: "Development",
+  review: "Review",
+  completed: "Completed",
+  launched: "Launched",
 };
 
-export default function LeadsAdminPage() {
-  const leads = useQuery(api.leads.getAllLeads);
-  const createLead = useMutation(api.leads.createLead);
-  const updateLead = useMutation(api.leads.updateLead);
-  const deleteLead = useMutation(api.leads.deleteLead);
-  const updateLastContacted = useMutation(api.leads.updateLastContacted);
-  const sendEmailReply = useAction(api.emailReplies.sendEmailReply);
-  const createProjectFromLead = useMutation(api.projects.createProjectFromLead);
+export default function ProjectsAdminPage() {
+  const projects = useQuery(api.projects.getAllProjects);
+  const createProject = useMutation(api.projects.createProject);
+  const updateProject = useMutation(api.projects.updateProject);
+  const deleteProject = useMutation(api.projects.deleteProject);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [filterStatus, setFilterStatus] = useState<LeadStatus | "all">("all");
+  const [filterStatus, setFilterStatus] = useState<ProjectStatus | "all">("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const [isReplyModalOpen, setIsReplyModalOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [isConvertModalOpen, setIsConvertModalOpen] = useState(false);
 
-  // Add Lead Form State
+  // Add Project Form State
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     company: "",
     phone: "",
-    source: "",
-    notes: "",
-  });
-
-  // Convert to Project Form State
-  const [convertData, setConvertData] = useState({
     projectType: "",
     description: "",
     requirements: "",
     budget: "",
     timeline: "",
+    notes: "",
   });
 
   // Filter by status first, then search
-  let filtered = leads;
+  let filtered = projects;
 
   if (filterStatus !== "all" && filtered) {
-    filtered = filtered.filter((l: any) => l.status === filterStatus);
+    filtered = filtered.filter((p: any) => p.status === filterStatus);
   }
 
   if (searchQuery.trim() && filtered) {
     const query = searchQuery.toLowerCase();
-    filtered = filtered.filter((l: any) =>
-      l.name.toLowerCase().includes(query) ||
-      l.email.toLowerCase().includes(query) ||
-      l.company?.toLowerCase().includes(query)
+    filtered = filtered.filter((p: any) =>
+      p.name.toLowerCase().includes(query) ||
+      p.email.toLowerCase().includes(query) ||
+      p.company?.toLowerCase().includes(query) ||
+      p.projectType.toLowerCase().includes(query)
     );
   }
 
-  const selected = leads?.find((l: any) => l._id === selectedId);
+  const selected = projects?.find((p: any) => p._id === selectedId);
 
-  async function handleStatusChange(id: Id<"leads">, newStatus: LeadStatus) {
-    await updateLead({ id, status: newStatus });
+  async function handleStatusChange(id: Id<"projects">, newStatus: ProjectStatus) {
+    await updateProject({ id, status: newStatus });
   }
 
-  async function handleDelete(id: Id<"leads">) {
-    if (confirm("Delete this lead?")) {
-      await deleteLead({ id });
+  async function handleDelete(id: Id<"projects">) {
+    if (confirm("Delete this project? This cannot be undone.")) {
+      await deleteProject({ id });
       setSelectedId(null);
     }
   }
 
-  async function handleSendReply(message: string) {
-    if (!selected) return;
-
-    await sendEmailReply({
-      to: selected.email,
-      subject: "Following up - Media4U",
-      message,
-      recipientName: selected.name,
-    });
-
-    // Mark as contacted and update timestamp
-    await updateLastContacted({ id: selected._id });
-  }
-
-  async function handleAddLead(e: React.FormEvent) {
+  async function handleAddProject(e: React.FormEvent) {
     e.preventDefault();
 
-    if (!formData.name || !formData.email || !formData.source) {
-      alert("Please fill in Name, Email, and Source");
+    if (!formData.name || !formData.email || !formData.projectType || !formData.description) {
+      alert("Please fill in Name, Email, Project Type, and Description");
       return;
     }
 
-    await createLead({
+    await createProject({
       name: formData.name,
       email: formData.email,
       company: formData.company || undefined,
       phone: formData.phone || undefined,
-      source: formData.source,
-      notes: formData.notes,
+      projectType: formData.projectType,
+      description: formData.description,
+      requirements: formData.requirements || undefined,
+      budget: formData.budget || undefined,
+      timeline: formData.timeline || undefined,
+      notes: formData.notes || undefined,
     });
 
     // Reset form
@@ -128,39 +112,22 @@ export default function LeadsAdminPage() {
       email: "",
       company: "",
       phone: "",
-      source: "",
-      notes: "",
-    });
-    setIsAddModalOpen(false);
-  }
-
-  async function handleConvertToProject(e: React.FormEvent) {
-    e.preventDefault();
-
-    if (!selected || !convertData.projectType || !convertData.description) {
-      alert("Please fill in Project Type and Description");
-      return;
-    }
-
-    await createProjectFromLead({
-      leadId: selected._id,
-      projectType: convertData.projectType,
-      description: convertData.description,
-      requirements: convertData.requirements || undefined,
-      budget: convertData.budget || undefined,
-      timeline: convertData.timeline || undefined,
-    });
-
-    // Reset form and close modal
-    setConvertData({
       projectType: "",
       description: "",
       requirements: "",
       budget: "",
       timeline: "",
+      notes: "",
     });
-    setIsConvertModalOpen(false);
-    alert("Lead converted to project successfully!");
+    setIsAddModalOpen(false);
+  }
+
+  async function handleUpdateField(field: string, value: string) {
+    if (!selected) return;
+    await updateProject({
+      id: selected._id,
+      [field]: value,
+    });
   }
 
   return (
@@ -171,15 +138,15 @@ export default function LeadsAdminPage() {
         className="mb-8 flex items-center justify-between"
       >
         <div>
-          <h1 className="text-4xl font-display font-bold mb-2">Lead Management</h1>
-          <p className="text-gray-400">Track and manage potential customers</p>
+          <h1 className="text-4xl font-display font-bold mb-2">Client Projects</h1>
+          <p className="text-gray-400">Manage your website and VR projects</p>
         </div>
         <button
           onClick={() => setIsAddModalOpen(true)}
           className="px-4 py-2 rounded-lg bg-cyan-500 text-white hover:bg-cyan-600 transition-colors flex items-center gap-2 font-medium"
         >
           <Plus className="w-5 h-5" />
-          Add Lead
+          Add Project
         </button>
       </motion.div>
 
@@ -191,15 +158,15 @@ export default function LeadsAdminPage() {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search by name, email, or company..."
+            placeholder="Search by name, email, company, or project type..."
             className="w-full pl-12 pr-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:bg-white/[0.08] transition-all"
           />
         </div>
       </div>
 
       {/* Filters */}
-      <div className="flex gap-3 mb-6 overflow-x-auto">
-        {(["all", "new", "contacted", "qualified", "converted", "lost"] as const).map((status) => (
+      <div className="flex gap-3 mb-6 overflow-x-auto pb-2">
+        {(["all", "new", "planning", "design", "development", "review", "completed", "launched"] as const).map((status) => (
           <button
             key={status}
             onClick={() => setFilterStatus(status)}
@@ -224,34 +191,34 @@ export default function LeadsAdminPage() {
           <div className="glass-elevated rounded-2xl overflow-hidden">
             <div className="p-4 border-b border-white/10 bg-white/5">
               <p className="text-sm font-semibold text-gray-300">
-                {filtered?.length || 0} Leads
+                {filtered?.length || 0} Projects
               </p>
             </div>
-            <div className="divide-y divide-white/10 max-h-96 overflow-y-auto">
-              {filtered?.map((lead: any) => (
+            <div className="divide-y divide-white/10 max-h-[600px] overflow-y-auto">
+              {filtered?.map((project: any) => (
                 <motion.button
-                  key={lead._id}
-                  onClick={() => setSelectedId(lead._id)}
+                  key={project._id}
+                  onClick={() => setSelectedId(project._id)}
                   whileHover={{ backgroundColor: "rgba(255,255,255,0.05)" }}
                   className={`w-full p-4 text-left transition-all border-l-4 ${
-                    selectedId === lead._id
+                    selectedId === project._id
                       ? "border-cyan-500 bg-white/10"
                       : "border-transparent hover:border-white/20"
                   }`}
                 >
-                  <p className="font-semibold text-white text-sm truncate">{lead.name}</p>
-                  <p className="text-xs text-gray-400 truncate">{lead.email}</p>
-                  {lead.company && (
-                    <p className="text-xs text-gray-500 truncate mt-1">{lead.company}</p>
+                  <p className="font-semibold text-white text-sm truncate">{project.name}</p>
+                  <p className="text-xs text-gray-400 truncate">{project.projectType}</p>
+                  {project.company && (
+                    <p className="text-xs text-gray-500 truncate mt-1">{project.company}</p>
                   )}
                   <div className="flex items-center justify-between mt-2">
                     <span
-                      className={`text-xs font-medium px-2 py-1 rounded border ${statusColors[lead.status as LeadStatus]}`}
+                      className={`text-xs font-medium px-2 py-1 rounded border ${statusColors[project.status as ProjectStatus]}`}
                     >
-                      {statusLabels[lead.status as LeadStatus]}
+                      {statusLabels[project.status as ProjectStatus]}
                     </span>
                     <span className="text-xs text-gray-500">
-                      {new Date(lead.createdAt).toLocaleDateString()}
+                      {new Date(project.createdAt).toLocaleDateString()}
                     </span>
                   </div>
                 </motion.button>
@@ -270,38 +237,26 @@ export default function LeadsAdminPage() {
           {selected ? (
             <div className="glass-elevated rounded-2xl p-6 space-y-6">
               <div>
-                <p className="text-xs uppercase tracking-wider text-gray-500 mb-1">Name</p>
+                <p className="text-xs uppercase tracking-wider text-gray-500 mb-1">Client Name</p>
                 <p className="text-xl font-semibold text-white">{selected.name}</p>
               </div>
 
-              <div>
-                <p className="text-xs uppercase tracking-wider text-gray-500 mb-1">Email</p>
-                <div className="flex items-center gap-3 flex-wrap">
+              <div className="grid md:grid-cols-2 gap-6">
+                <div>
+                  <p className="text-xs uppercase tracking-wider text-gray-500 mb-1">Email</p>
                   <a href={`mailto:${selected.email}`} className="text-cyan-400 hover:text-cyan-300">
                     {selected.email}
                   </a>
-                  <button
-                    onClick={() => setIsReplyModalOpen(true)}
-                    className="px-3 py-1 rounded-lg bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/30 transition-colors border border-cyan-500/50 text-xs font-medium flex items-center gap-1"
-                  >
-                    <Mail className="w-3 h-3" />
-                    Email
-                  </button>
-                  {selected.status !== "converted" && (
-                    <button
-                      onClick={() => setIsConvertModalOpen(true)}
-                      className="px-3 py-1 rounded-lg bg-green-500/20 text-green-400 hover:bg-green-500/30 transition-colors border border-green-500/50 text-xs font-medium flex items-center gap-1"
-                    >
-                      <Briefcase className="w-3 h-3" />
-                      Convert to Project
-                    </button>
-                  )}
-                  {selected.status === "converted" && (
-                    <span className="px-3 py-1 rounded-lg bg-green-500/20 text-green-400 border border-green-500/50 text-xs font-medium">
-                      ✓ Converted
-                    </span>
-                  )}
                 </div>
+
+                {selected.phone && (
+                  <div>
+                    <p className="text-xs uppercase tracking-wider text-gray-500 mb-1">Phone</p>
+                    <a href={`tel:${selected.phone}`} className="text-cyan-400 hover:text-cyan-300">
+                      {selected.phone}
+                    </a>
+                  </div>
+                )}
               </div>
 
               {selected.company && (
@@ -311,48 +266,95 @@ export default function LeadsAdminPage() {
                 </div>
               )}
 
-              {selected.phone && (
-                <div>
-                  <p className="text-xs uppercase tracking-wider text-gray-500 mb-1">Phone</p>
-                  <a href={`tel:${selected.phone}`} className="text-cyan-400 hover:text-cyan-300">
-                    {selected.phone}
-                  </a>
-                </div>
-              )}
-
               <div>
-                <p className="text-xs uppercase tracking-wider text-gray-500 mb-1">Source</p>
-                <p className="text-white">{selected.source}</p>
+                <p className="text-xs uppercase tracking-wider text-gray-500 mb-1">Project Type</p>
+                <p className="text-white">{selected.projectType}</p>
               </div>
 
-              {selected.notes && (
+              <div>
+                <p className="text-xs uppercase tracking-wider text-gray-500 mb-1">Description</p>
+                <p className="text-gray-300 whitespace-pre-wrap">{selected.description}</p>
+              </div>
+
+              {selected.requirements && (
                 <div>
-                  <p className="text-xs uppercase tracking-wider text-gray-500 mb-1">Notes</p>
-                  <p className="text-gray-300 whitespace-pre-wrap">{selected.notes}</p>
+                  <p className="text-xs uppercase tracking-wider text-gray-500 mb-1">Requirements</p>
+                  <p className="text-gray-300 whitespace-pre-wrap">{selected.requirements}</p>
                 </div>
               )}
 
-              <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/10">
-                <div>
-                  <p className="text-xs uppercase tracking-wider text-gray-500 mb-1">Added</p>
-                  <p className="text-sm text-gray-300">
-                    {new Date(selected.createdAt).toLocaleDateString()}
-                  </p>
-                </div>
-                {selected.lastContactedAt && (
+              <div className="grid md:grid-cols-2 gap-6">
+                {selected.budget && (
                   <div>
-                    <p className="text-xs uppercase tracking-wider text-gray-500 mb-1">Last Contacted</p>
-                    <p className="text-sm text-gray-300">
-                      {new Date(selected.lastContactedAt).toLocaleDateString()}
-                    </p>
+                    <p className="text-xs uppercase tracking-wider text-gray-500 mb-1">Budget</p>
+                    <p className="text-white">{selected.budget}</p>
+                  </div>
+                )}
+
+                {selected.timeline && (
+                  <div>
+                    <p className="text-xs uppercase tracking-wider text-gray-500 mb-1">Timeline</p>
+                    <p className="text-white">{selected.timeline}</p>
                   </div>
                 )}
               </div>
 
+              {/* Live URL (editable) */}
               <div>
-                <p className="text-xs uppercase tracking-wider text-gray-500 mb-3">Status</p>
+                <p className="text-xs uppercase tracking-wider text-gray-500 mb-2">Live Site URL</p>
+                <div className="flex gap-2">
+                  <input
+                    type="url"
+                    value={selected.liveUrl || ""}
+                    onChange={(e) => handleUpdateField("liveUrl", e.target.value)}
+                    placeholder="https://client-site.com"
+                    className="flex-1 px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50"
+                  />
+                  {selected.liveUrl && (
+                    <a
+                      href={selected.liveUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-4 py-2 rounded-lg bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/30 border border-cyan-500/50 flex items-center gap-2"
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                      Visit
+                    </a>
+                  )}
+                </div>
+              </div>
+
+              {/* Notes (editable) */}
+              <div>
+                <p className="text-xs uppercase tracking-wider text-gray-500 mb-2">Project Notes</p>
+                <textarea
+                  value={selected.notes}
+                  onChange={(e) => handleUpdateField("notes", e.target.value)}
+                  rows={4}
+                  className="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 resize-none"
+                  placeholder="Add notes about this project..."
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/10">
+                <div>
+                  <p className="text-xs uppercase tracking-wider text-gray-500 mb-1">Created</p>
+                  <p className="text-sm text-gray-300">
+                    {new Date(selected.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-wider text-gray-500 mb-1">Last Updated</p>
+                  <p className="text-sm text-gray-300">
+                    {new Date(selected.updatedAt).toLocaleDateString()}
+                  </p>
+                </div>
+              </div>
+
+              <div>
+                <p className="text-xs uppercase tracking-wider text-gray-500 mb-3">Project Status</p>
                 <div className="flex flex-wrap gap-2">
-                  {(["new", "contacted", "qualified", "converted", "lost"] as const).map((status) => (
+                  {(["new", "planning", "design", "development", "review", "completed", "launched"] as const).map((status) => (
                     <button
                       key={status}
                       onClick={() =>
@@ -374,39 +376,27 @@ export default function LeadsAdminPage() {
                 onClick={() => handleDelete(selected._id)}
                 className="w-full px-4 py-3 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-all border border-red-500/30 font-medium"
               >
-                Delete Lead
+                Delete Project
               </button>
             </div>
           ) : (
             <div className="glass-elevated rounded-2xl p-12 text-center">
-              <p className="text-gray-400">Select a lead to view details</p>
+              <p className="text-gray-400">Select a project to view details</p>
             </div>
           )}
         </motion.div>
       </div>
 
-      {/* Email Reply Modal */}
-      {selected && (
-        <EmailReplyModal
-          isOpen={isReplyModalOpen}
-          onClose={() => setIsReplyModalOpen(false)}
-          recipientEmail={selected.email}
-          recipientName={selected.name}
-          subject="Following up - Media4U"
-          onSend={handleSendReply}
-        />
-      )}
-
-      {/* Add Lead Modal */}
+      {/* Add Project Modal */}
       {isAddModalOpen && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-gray-900 rounded-2xl p-6 max-w-2xl w-full border border-white/10"
+            className="bg-gray-900 rounded-2xl p-6 max-w-3xl w-full border border-white/10 max-h-[90vh] overflow-y-auto"
           >
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-white">Add New Lead</h2>
+              <h2 className="text-2xl font-bold text-white">Add New Project</h2>
               <button
                 onClick={() => setIsAddModalOpen(false)}
                 className="p-2 hover:bg-white/10 rounded-lg transition-colors"
@@ -415,11 +405,11 @@ export default function LeadsAdminPage() {
               </button>
             </div>
 
-            <form onSubmit={handleAddLead} className="space-y-4">
+            <form onSubmit={handleAddProject} className="space-y-4">
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Name <span className="text-red-400">*</span>
+                    Client Name <span className="text-red-400">*</span>
                   </label>
                   <input
                     type="text"
@@ -466,87 +456,11 @@ export default function LeadsAdminPage() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Source <span className="text-red-400">*</span>
-                </label>
-                <select
-                  value={formData.source}
-                  onChange={(e) => setFormData({ ...formData, source: e.target.value })}
-                  className="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50 [&>option]:bg-gray-800 [&>option]:text-white"
-                  required
-                >
-                  <option value="">Select source...</option>
-                  <option value="Referral">Referral</option>
-                  <option value="Website">Website</option>
-                  <option value="Trade Show">Trade Show</option>
-                  <option value="Cold Outreach">Cold Outreach</option>
-                  <option value="Social Media">Social Media</option>
-                  <option value="Other">Other</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Notes</label>
-                <textarea
-                  value={formData.notes}
-                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  rows={4}
-                  className="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50 resize-none"
-                  placeholder="Any additional details about this lead..."
-                />
-              </div>
-
-              <div className="flex gap-3 pt-4">
-                <button
-                  type="button"
-                  onClick={() => setIsAddModalOpen(false)}
-                  className="flex-1 px-4 py-3 rounded-lg bg-white/5 text-gray-400 hover:bg-white/10 transition-all border border-white/10 font-medium"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="flex-1 px-4 py-3 rounded-lg bg-cyan-500 text-white hover:bg-cyan-600 transition-all font-medium"
-                >
-                  Add Lead
-                </button>
-              </div>
-            </form>
-          </motion.div>
-        </div>
-      )}
-
-      {/* Convert to Project Modal */}
-      {isConvertModalOpen && selected && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-gray-900 rounded-2xl p-6 max-w-2xl w-full border border-white/10"
-          >
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-white">Convert Lead to Project</h2>
-              <button
-                onClick={() => setIsConvertModalOpen(false)}
-                className="p-2 hover:bg-white/10 rounded-lg transition-colors"
-              >
-                <X className="w-5 h-5 text-gray-400" />
-              </button>
-            </div>
-
-            <div className="mb-6 p-4 rounded-lg bg-white/5 border border-white/10">
-              <p className="text-sm text-gray-400 mb-2">Converting lead:</p>
-              <p className="text-white font-semibold">{selected.name}</p>
-              <p className="text-gray-400 text-sm">{selected.email}</p>
-            </div>
-
-            <form onSubmit={handleConvertToProject} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
                   Project Type <span className="text-red-400">*</span>
                 </label>
                 <select
-                  value={convertData.projectType}
-                  onChange={(e) => setConvertData({ ...convertData, projectType: e.target.value })}
+                  value={formData.projectType}
+                  onChange={(e) => setFormData({ ...formData, projectType: e.target.value })}
                   className="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50 [&>option]:bg-gray-800 [&>option]:text-white"
                   required
                 >
@@ -566,8 +480,8 @@ export default function LeadsAdminPage() {
                   Description <span className="text-red-400">*</span>
                 </label>
                 <textarea
-                  value={convertData.description}
-                  onChange={(e) => setConvertData({ ...convertData, description: e.target.value })}
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   rows={3}
                   className="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50 resize-none"
                   placeholder="Brief description of the project..."
@@ -578,8 +492,8 @@ export default function LeadsAdminPage() {
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">Requirements</label>
                 <textarea
-                  value={convertData.requirements}
-                  onChange={(e) => setConvertData({ ...convertData, requirements: e.target.value })}
+                  value={formData.requirements}
+                  onChange={(e) => setFormData({ ...formData, requirements: e.target.value })}
                   rows={3}
                   className="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50 resize-none"
                   placeholder="Specific features, pages, functionality needed..."
@@ -591,8 +505,8 @@ export default function LeadsAdminPage() {
                   <label className="block text-sm font-medium text-gray-300 mb-2">Budget</label>
                   <input
                     type="text"
-                    value={convertData.budget}
-                    onChange={(e) => setConvertData({ ...convertData, budget: e.target.value })}
+                    value={formData.budget}
+                    onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
                     className="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50"
                     placeholder="e.g., $5,000 - $10,000"
                   />
@@ -602,27 +516,38 @@ export default function LeadsAdminPage() {
                   <label className="block text-sm font-medium text-gray-300 mb-2">Timeline</label>
                   <input
                     type="text"
-                    value={convertData.timeline}
-                    onChange={(e) => setConvertData({ ...convertData, timeline: e.target.value })}
+                    value={formData.timeline}
+                    onChange={(e) => setFormData({ ...formData, timeline: e.target.value })}
                     className="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50"
                     placeholder="e.g., 4-6 weeks"
                   />
                 </div>
               </div>
 
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Initial Notes</label>
+                <textarea
+                  value={formData.notes}
+                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                  rows={3}
+                  className="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50 resize-none"
+                  placeholder="Any additional notes..."
+                />
+              </div>
+
               <div className="flex gap-3 pt-4">
                 <button
                   type="button"
-                  onClick={() => setIsConvertModalOpen(false)}
+                  onClick={() => setIsAddModalOpen(false)}
                   className="flex-1 px-4 py-3 rounded-lg bg-white/5 text-gray-400 hover:bg-white/10 transition-all border border-white/10 font-medium"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-3 rounded-lg bg-green-500 text-white hover:bg-green-600 transition-all font-medium"
+                  className="flex-1 px-4 py-3 rounded-lg bg-cyan-500 text-white hover:bg-cyan-600 transition-all font-medium"
                 >
-                  Convert to Project
+                  Create Project
                 </button>
               </div>
             </form>
