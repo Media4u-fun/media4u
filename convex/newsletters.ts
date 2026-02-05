@@ -201,6 +201,7 @@ export const markNewsletterAsSent = internalMutation({
 export const sendNewsletterNow = action({
   args: {
     newsletterId: v.id("newsletters"),
+    selectedEmails: v.optional(v.array(v.string())), // Optional: send to specific emails only
   },
   handler: async (ctx, args): Promise<any> => {
     // Get newsletter
@@ -219,6 +220,7 @@ export const sendNewsletterNow = action({
     // Send the newsletter
     const result: any = await ctx.runAction(api.newsletters.sendNewsletterEmail, {
       newsletterId: args.newsletterId,
+      selectedEmails: args.selectedEmails,
     });
 
     return result;
@@ -238,10 +240,11 @@ export const sendScheduledNewsletter = internalMutation({
   },
 });
 
-// Send newsletter email to all active subscribers
+// Send newsletter email to selected subscribers (or all if none specified)
 export const sendNewsletterEmail = action({
   args: {
     newsletterId: v.id("newsletters"),
+    selectedEmails: v.optional(v.array(v.string())), // Optional: send to specific emails only
   },
   handler: async (ctx, args): Promise<any> => {
     const RESEND_API_KEY = process.env.RESEND_API_KEY;
@@ -263,10 +266,17 @@ export const sendNewsletterEmail = action({
 
     // Get all active subscribers
     const allSubscribers: any = await ctx.runQuery(api.newsletters.getAllSubscribers);
-    const activeSubscribers: any = allSubscribers.filter((sub: any) => !sub.unsubscribed);
+    let activeSubscribers: any = allSubscribers.filter((sub: any) => !sub.unsubscribed);
+
+    // If specific emails are selected, filter to only those
+    if (args.selectedEmails && args.selectedEmails.length > 0) {
+      activeSubscribers = activeSubscribers.filter((sub: any) =>
+        args.selectedEmails!.includes(sub.email)
+      );
+    }
 
     if (activeSubscribers.length === 0) {
-      throw new Error("No active subscribers to send to");
+      throw new Error("No subscribers to send to");
     }
 
     let successCount = 0;

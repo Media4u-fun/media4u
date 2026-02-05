@@ -52,6 +52,7 @@ export default function NewsletterAdminPage() {
   const [isSending, setIsSending] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [copiedEmail, setCopiedEmail] = useState<string | null>(null);
+  const [selectedEmails, setSelectedEmails] = useState<string[]>([]);
 
   const activeSubscribers = subscribers?.filter((s: any) => !s.unsubscribed) || [];
   const unsubscribedList = subscribers?.filter((s: any) => s.unsubscribed) || [];
@@ -187,6 +188,59 @@ export default function NewsletterAdminPage() {
     navigator.clipboard.writeText(email);
     setCopiedEmail(email);
     setTimeout(() => setCopiedEmail(null), 2000);
+  }
+
+  function toggleEmailSelection(email: string) {
+    setSelectedEmails((prev) =>
+      prev.includes(email)
+        ? prev.filter((e) => e !== email)
+        : [...prev, email]
+    );
+  }
+
+  function selectAllEmails() {
+    setSelectedEmails(activeSubscribers.map((s: any) => s.email));
+  }
+
+  function clearSelection() {
+    setSelectedEmails([]);
+  }
+
+  async function handleSendToSelected() {
+    if (!selectedId || isCreating) {
+      alert("Please save draft first");
+      return;
+    }
+
+    if (selectedEmails.length === 0) {
+      alert("Please select at least one subscriber");
+      return;
+    }
+
+    if (
+      !confirm(
+        `Send this newsletter to ${selectedEmails.length} selected subscriber${selectedEmails.length > 1 ? "s" : ""}?`
+      )
+    ) {
+      return;
+    }
+
+    setIsSending(true);
+    try {
+      const result = await sendNewsletterNow({
+        newsletterId: selectedId as Id<"newsletters">,
+        selectedEmails: selectedEmails,
+      });
+      alert(
+        `Newsletter sent! ${result.successCount} successful, ${result.errorCount} failed.`
+      );
+      setSelectedEmails([]); // Clear selection after sending
+    } catch (error) {
+      console.error("Failed to send:", error);
+      alert("Failed to send newsletter");
+    } finally {
+      setIsSending(false);
+    }
   }
 
   function exportCSV() {
@@ -503,15 +557,27 @@ export default function NewsletterAdminPage() {
         transition={{ delay: 0.2 }}
         className="mb-8"
       >
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
           <h2 className="text-2xl font-display font-bold">Subscribers</h2>
-          <button
-            onClick={exportCSV}
-            disabled={activeSubscribers.length === 0}
-            className="px-4 py-2 rounded-lg bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/30 transition-colors border border-cyan-500/50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-          >
-            <Download className="w-4 h-4" /> Export CSV
-          </button>
+          <div className="flex gap-2 flex-wrap">
+            {selectedEmails.length > 0 && (
+              <button
+                onClick={handleSendToSelected}
+                disabled={isSending || !selectedId}
+                className="px-4 py-2 rounded-lg bg-gradient-to-r from-cyan-500 to-purple-500 text-white hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                <Send className="w-4 h-4" />
+                {isSending ? "Sending..." : `Send to ${selectedEmails.length} Selected`}
+              </button>
+            )}
+            <button
+              onClick={exportCSV}
+              disabled={activeSubscribers.length === 0}
+              className="px-4 py-2 rounded-lg bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/30 transition-colors border border-cyan-500/50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              <Download className="w-4 h-4" /> Export CSV
+            </button>
+          </div>
         </div>
 
         {/* Stats */}
@@ -528,8 +594,24 @@ export default function NewsletterAdminPage() {
 
         {/* Active Subscribers List */}
         <div className="glass-elevated rounded-2xl overflow-hidden">
-          <div className="p-4 border-b border-white/10">
+          <div className="p-4 border-b border-white/10 flex items-center justify-between">
             <h3 className="font-semibold text-white">Active Subscribers</h3>
+            <div className="flex gap-2">
+              <button
+                onClick={selectAllEmails}
+                className="px-3 py-1 rounded text-sm bg-white/10 hover:bg-white/20 transition-colors text-gray-300"
+              >
+                Select All
+              </button>
+              {selectedEmails.length > 0 && (
+                <button
+                  onClick={clearSelection}
+                  className="px-3 py-1 rounded text-sm bg-white/10 hover:bg-white/20 transition-colors text-gray-300"
+                >
+                  Clear ({selectedEmails.length})
+                </button>
+              )}
+            </div>
           </div>
           {activeSubscribers.length === 0 ? (
             <div className="p-8 text-center text-gray-400">No active subscribers yet</div>
@@ -538,13 +620,23 @@ export default function NewsletterAdminPage() {
               {activeSubscribers.map((subscriber: any) => (
                 <div
                   key={subscriber._id}
-                  className="p-4 flex items-center justify-between hover:bg-white/5 transition-colors"
+                  className={`p-4 flex items-center justify-between hover:bg-white/5 transition-colors ${
+                    selectedEmails.includes(subscriber.email) ? "bg-cyan-500/10" : ""
+                  }`}
                 >
-                  <div className="flex-1">
-                    <p className="font-semibold text-white">{subscriber.email}</p>
-                    <p className="text-xs text-gray-400">
-                      Subscribed: {new Date(subscriber.subscribedAt).toLocaleDateString()}
-                    </p>
+                  <div className="flex items-center gap-3 flex-1">
+                    <input
+                      type="checkbox"
+                      checked={selectedEmails.includes(subscriber.email)}
+                      onChange={() => toggleEmailSelection(subscriber.email)}
+                      className="w-5 h-5 rounded border-white/20 bg-white/5 text-cyan-500 focus:ring-cyan-500 focus:ring-offset-0 cursor-pointer"
+                    />
+                    <div>
+                      <p className="font-semibold text-white">{subscriber.email}</p>
+                      <p className="text-xs text-gray-400">
+                        Subscribed: {new Date(subscriber.subscribedAt).toLocaleDateString()}
+                      </p>
+                    </div>
                   </div>
                   <div className="flex gap-2">
                     <button
