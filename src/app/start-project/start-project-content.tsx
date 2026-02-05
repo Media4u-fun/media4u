@@ -126,13 +126,13 @@ export function StartProjectContent(): ReactElement {
           className="text-center max-w-4xl mx-auto"
         >
           <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-display font-bold mb-6 text-white">
-            Let&apos;s Build Your Website-and Anything Beyond It
+            Let&apos;s Build Your Website - and Anything Beyond It
           </h1>
           <p className="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mb-6">
             We start with professional, conversion-focused websites. When you&apos;re ready to go further, we create immersive VR experiences and visual branding that set you apart.
           </p>
           <p className="text-gray-400 max-w-2xl mx-auto mb-10">
-            Whether you&apos;re launching your first business site, redesigning your online presence, or exploring what&apos;s possible with VR-we&apos;re here to help you show up with clarity and confidence.
+            Whether you&apos;re launching your first business site, redesigning your online presence, or exploring what&apos;s possible with VR - we&apos;re here to help you show up with clarity and confidence.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" onClick={scrollToForm}>
@@ -149,7 +149,7 @@ export function StartProjectContent(): ReactElement {
       <Section id="project-form" className="border-t border-white/10">
         <SectionHeader
           tag="Build Your Blueprint"
-          title="Design Your Website "
+          title="Design Your Website"
           highlight="Step by Step"
           description="A guided experience to capture your vision. No commitment - just a clear path forward. We'll review and follow up within 1-2 business days."
         />
@@ -169,9 +169,9 @@ export function StartProjectContent(): ReactElement {
       <Section id="packages" className="border-t border-white/10">
         <SectionHeader
           tag="Pricing"
-          title="Starting "
+          title="Starting"
           highlight="Points"
-          description="Every project is different. These packages give you a starting point-final pricing depends on your specific needs, features, and timeline."
+          description="Every project is different. These packages give you a starting point - final pricing depends on your specific needs, features, and timeline."
         />
 
         <div className="grid md:grid-cols-3 gap-8 mt-12">
@@ -254,7 +254,7 @@ export function StartProjectContent(): ReactElement {
       <Section className="border-t border-white/10">
         <SectionHeader
           tag="Extend Your Project"
-          title="Add-Ons & Extended "
+          title="Add-Ons & Extended"
           highlight="Services"
           description="Need more? We offer flexible add-ons to grow with you."
         />
@@ -311,7 +311,7 @@ export function StartProjectContent(): ReactElement {
             We Meet You Where You Are
           </h2>
           <p className="text-gray-400 text-lg leading-relaxed mb-6">
-            Starting a project can feel overwhelming-especially if you&apos;re not sure exactly what you need. That&apos;s where we come in.
+            Starting a project can feel overwhelming - especially if you&apos;re not sure exactly what you need. That&apos;s where we come in.
           </p>
           <p className="text-gray-400 leading-relaxed mb-8">
             Media4U works collaboratively. We help clarify your ideas, set realistic timelines, and build solutions that actually work for your goals and budget. Whether you&apos;re launching your first website or ready to explore immersive VR, we&apos;re here to guide you through it.

@@ -10,7 +10,7 @@ interface SectionProps {
 
 export function Section({ children, className, id, fullWidth = false }: SectionProps) {
   return (
-    <section id={id} className={clsx("py-20 md:py-28", className)}>
+    <section id={id} className={clsx("py-12 md:py-16", className)}>
       {fullWidth ? (
         children
       ) : (
@@ -34,7 +34,7 @@ export function SectionHeader({ tag, title, highlight, description, centered = t
   const titleParts = highlight ? title.split(highlight) : [title];
 
   return (
-    <div className={clsx("mb-12 md:mb-16 w-full", centered && "text-center")}>
+    <div className={clsx("mb-8 md:mb-12 w-full", centered && "text-center")}>
       {tag && (
         <span className="inline-block mb-4 text-xs font-semibold tracking-[0.2em] uppercase text-cyan-400">
           {tag}
