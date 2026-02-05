@@ -145,8 +145,28 @@ export function StartProjectContent(): ReactElement {
         </motion.div>
       </Section>
 
-      {/* SECTION 2 - PACKAGES / STARTING POINTS */}
-      <Section id="packages">
+      {/* SECTION 2 - PROJECT WIZARD */}
+      <Section id="project-form" className="border-t border-white/10">
+        <SectionHeader
+          tag="Build Your Blueprint"
+          title="Design Your Website "
+          highlight="Step by Step"
+          description="A guided experience to capture your vision. No commitment - just a clear path forward. We'll review and follow up within 1-2 business days."
+        />
+
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8 }}
+          className="mt-12"
+        >
+          <ProjectWizard />
+        </motion.div>
+      </Section>
+
+      {/* SECTION 3 - PACKAGES / STARTING POINTS */}
+      <Section id="packages" className="border-t border-white/10">
         <SectionHeader
           tag="Pricing"
           title="Starting "
@@ -230,7 +250,7 @@ export function StartProjectContent(): ReactElement {
         </motion.p>
       </Section>
 
-      {/* SECTION 3 - WHAT'S INCLUDED / ADD-ONS */}
+      {/* SECTION 4 - WHAT'S INCLUDED / ADD-ONS */}
       <Section className="border-t border-white/10">
         <SectionHeader
           tag="Extend Your Project"
@@ -276,26 +296,6 @@ export function StartProjectContent(): ReactElement {
         >
           Not sure what you need? That&apos;s okay. We&apos;ll help you figure it out together.
         </motion.p>
-      </Section>
-
-      {/* SECTION 4 - PROJECT WIZARD */}
-      <Section id="project-form" className="border-t border-white/10">
-        <SectionHeader
-          tag="Build Your Blueprint"
-          title="Design Your Website "
-          highlight="Step by Step"
-          description="A guided experience to capture your vision. No commitment - just a clear path forward. We'll review and follow up within 1-2 business days."
-        />
-
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8 }}
-          className="mt-12"
-        >
-          <ProjectWizard />
-        </motion.div>
       </Section>
 
       {/* SECTION 5 - TRUST & CLOSE */}

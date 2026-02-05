@@ -176,14 +176,12 @@ export function ProjectWizard(): ReactElement {
   const nextStep = () => {
     if (canProceed() && currentStep < TOTAL_STEPS) {
       setCurrentStep(prev => prev + 1);
-      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
 
   const prevStep = () => {
     if (currentStep > 1) {
       setCurrentStep(prev => prev - 1);
-      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
 
