@@ -254,11 +254,11 @@ export function ContactForm() {
                 backgroundSize: "1.5rem",
               }}
             >
-              <option value="" className="bg-gray-900">
+              <option value="" className="bg-gray-900 text-white">
                 Select a service
               </option>
               {SERVICES.map((service) => (
-                <option key={service} value={service} className="bg-gray-900">
+                <option key={service} value={service} className="bg-gray-900 text-white">
                   {service}
                 </option>
               ))}

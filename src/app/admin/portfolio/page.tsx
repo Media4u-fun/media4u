@@ -345,7 +345,7 @@ export default function PortfolioAdminPage() {
                 <select
                   value={formData.category}
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  className="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50"
+                  className="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50 [&>option]:bg-gray-800 [&>option]:text-white"
                 >
                   {categories.map((cat) => (
                     <option key={cat} value={cat}>
@@ -360,7 +360,7 @@ export default function PortfolioAdminPage() {
                 <select
                   value={formData.gradient}
                   onChange={(e) => setFormData({ ...formData, gradient: e.target.value })}
-                  className="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50"
+                  className="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50 [&>option]:bg-gray-800 [&>option]:text-white"
                 >
                   {gradients.map((g) => (
                     <option key={g} value={g}>

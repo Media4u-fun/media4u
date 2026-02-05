@@ -121,6 +121,28 @@ export default defineSchema({
     .index("by_email", ["email"])
     .index("by_userId", ["userId"]),
 
+  // Leads - potential customers for outbound sales
+  leads: defineTable({
+    name: v.string(),
+    email: v.string(),
+    company: v.optional(v.string()),
+    phone: v.optional(v.string()),
+    source: v.string(), // e.g., "referral", "website", "trade show", "cold outreach"
+    status: v.union(
+      v.literal("new"),
+      v.literal("contacted"),
+      v.literal("qualified"),
+      v.literal("converted"),
+      v.literal("lost")
+    ),
+    notes: v.string(),
+    createdAt: v.number(),
+    lastContactedAt: v.optional(v.number()),
+  })
+    .index("by_status", ["status"])
+    .index("by_email", ["email"])
+    .index("by_created", ["createdAt"]),
+
   // Newsletter subscribers
   newsletterSubscribers: defineTable({
     email: v.string(),

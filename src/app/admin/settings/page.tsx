@@ -147,7 +147,7 @@ function UserManagementTab() {
               <select
                 value={newUserRole}
                 onChange={(e) => setNewUserRole(e.target.value as "admin" | "user" | "client")}
-                className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50"
+                className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50 [&>option]:bg-gray-800 [&>option]:text-white"
               >
                 <option value="user">User</option>
                 <option value="client">Client</option>
@@ -214,7 +214,7 @@ function UserManagementTab() {
                       value={currentRole}
                       onChange={(e) => handleRoleChange(user._id, e.target.value as "admin" | "user" | "client")}
                       disabled={updatingUserId === user._id}
-                      className="px-3 py-1 rounded bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-cyan-500/50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-3 py-1 rounded bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-cyan-500/50 disabled:opacity-50 disabled:cursor-not-allowed [&>option]:bg-gray-800 [&>option]:text-white"
                     >
                       <option value="user">User</option>
                       <option value="client">Client</option>
