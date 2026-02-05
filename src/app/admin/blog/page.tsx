@@ -47,6 +47,7 @@ export default function BlogAdminPage() {
   const [isCreating, setIsCreating] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [filterPublished, setFilterPublished] = useState<"all" | "published" | "draft">("all");
   const [formData, setFormData] = useState<BlogFormData>({
     title: "",
     slug: "",
@@ -59,6 +60,13 @@ export default function BlogAdminPage() {
     featured: false,
     published: false,
   });
+
+  // Filter posts based on published status
+  const filteredPosts = posts && filterPublished !== "all"
+    ? posts.filter((p: any) =>
+        filterPublished === "published" ? p.published : !p.published
+      )
+    : posts;
 
   function handleNewPost() {
     setIsCreating(true);
@@ -187,6 +195,23 @@ export default function BlogAdminPage() {
         </button>
       </motion.div>
 
+      {/* Filter */}
+      <div className="mb-6 flex gap-3">
+        {(["all", "published", "draft"] as const).map((filter) => (
+          <button
+            key={filter}
+            onClick={() => setFilterPublished(filter)}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all capitalize ${
+              filterPublished === filter
+                ? "bg-cyan-500/30 text-cyan-400 border border-cyan-500/50"
+                : "bg-white/5 text-gray-400 hover:text-white border border-white/10"
+            }`}
+          >
+            {filter}
+          </button>
+        ))}
+      </div>
+
       <div className="grid lg:grid-cols-3 gap-6">
         {/* List */}
         <motion.div
@@ -196,10 +221,10 @@ export default function BlogAdminPage() {
         >
           <div className="glass-elevated rounded-2xl overflow-hidden">
             <div className="p-4 border-b border-white/10 bg-white/5">
-              <p className="text-sm font-semibold text-gray-300">{posts?.length || 0} Posts</p>
+              <p className="text-sm font-semibold text-gray-300">{filteredPosts?.length || 0} Posts</p>
             </div>
             <div className="divide-y divide-white/10 max-h-96 overflow-y-auto">
-              {posts?.map((post: any) => (
+              {filteredPosts?.map((post: any) => (
                 <motion.button
                   key={post._id}
                   onClick={() => handleSelectPost(post)}

@@ -57,6 +57,7 @@ export default function PortfolioAdminPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<string>("");
+  const [filterCategory, setFilterCategory] = useState<string>("all");
   const [formData, setFormData] = useState<ProjectFormData>({
     title: "",
     slug: "",
@@ -70,6 +71,11 @@ export default function PortfolioAdminPage() {
     testimonial: "",
     results: [],
   });
+
+  // Filter projects by category
+  const filteredProjects = projects && filterCategory !== "all"
+    ? projects.filter((p: any) => p.category === filterCategory)
+    : projects;
 
   async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const files = e.target.files;
@@ -223,6 +229,23 @@ export default function PortfolioAdminPage() {
         </button>
       </motion.div>
 
+      {/* Category Filter */}
+      <div className="mb-6 flex gap-3">
+        {(["all", ...categories] as const).map((category) => (
+          <button
+            key={category}
+            onClick={() => setFilterCategory(category)}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all capitalize ${
+              filterCategory === category
+                ? "bg-cyan-500/30 text-cyan-400 border border-cyan-500/50"
+                : "bg-white/5 text-gray-400 hover:text-white border border-white/10"
+            }`}
+          >
+            {category}
+          </button>
+        ))}
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Projects List Sidebar */}
         <motion.div
@@ -232,10 +255,10 @@ export default function PortfolioAdminPage() {
         >
           <div className="glass-elevated rounded-2xl overflow-hidden h-full">
             <div className="p-4 border-b border-white/10 bg-white/5 sticky top-0">
-              <p className="text-sm font-semibold text-gray-300">{projects?.length || 0} Projects</p>
+              <p className="text-sm font-semibold text-gray-300">{filteredProjects?.length || 0} Projects</p>
             </div>
             <div className="divide-y divide-white/10 overflow-y-auto max-h-[calc(100vh-300px)]">
-              {projects?.map((project: any) => (
+              {filteredProjects?.map((project: any) => (
                 <motion.button
                   key={project._id}
                   onClick={() => handleSelectProject(project)}

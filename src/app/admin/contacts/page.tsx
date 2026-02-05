@@ -6,6 +6,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
 import { useState } from "react";
 import { Id } from "@convex/_generated/dataModel";
+import { Search } from "lucide-react";
 
 type ContactStatus = "new" | "read" | "replied";
 
@@ -27,11 +28,22 @@ export default function ContactsAdminPage() {
   const deleteSubmission = useMutation(api.contactSubmissions.deleteContactSubmission);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<ContactStatus | "all">("all");
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const filtered =
-    submissions && filterStatus !== "all"
-      ? submissions.filter((s: any) => s.status === filterStatus)
-      : submissions;
+  // Filter by status first, then search
+  let filtered = submissions;
+
+  if (filterStatus !== "all" && filtered) {
+    filtered = filtered.filter((s: any) => s.status === filterStatus);
+  }
+
+  if (searchQuery.trim() && filtered) {
+    const query = searchQuery.toLowerCase();
+    filtered = filtered.filter((s: any) =>
+      s.name.toLowerCase().includes(query) ||
+      s.email.toLowerCase().includes(query)
+    );
+  }
 
   const selected = submissions?.find((s: any) => s._id === selectedId);
 
@@ -56,6 +68,20 @@ export default function ContactsAdminPage() {
         <h1 className="text-4xl font-display font-bold mb-2">Contact Submissions</h1>
         <p className="text-gray-400">Manage form submissions from your website</p>
       </motion.div>
+
+      {/* Search Bar */}
+      <div className="mb-4">
+        <div className="relative">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search by name or email..."
+            className="w-full pl-12 pr-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:bg-white/[0.08] transition-all"
+          />
+        </div>
+      </div>
 
       {/* Filters */}
       <div className="flex gap-3 mb-6">
