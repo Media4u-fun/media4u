@@ -79,7 +79,7 @@ function emailHeader(): string {
             Media4U
           </h1>
           <p style="margin: 8px 0 0 0; font-size: 14px; color: ${COLORS.textMuted};">
-            VR Environments & Digital Solutions
+            Professional Websites & Immersive VR Experiences
           </p>
         </td>
       </tr>
