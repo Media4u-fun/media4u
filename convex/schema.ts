@@ -276,6 +276,23 @@ export default defineSchema({
     .index("by_type", ["type"])
     .index("by_featured", ["featured"]),
 
+  // Quick Quote Requests (demo widget for pest control, etc.)
+  quoteRequests: defineTable({
+    name: v.string(),
+    phone: v.string(),
+    email: v.optional(v.string()),
+    serviceType: v.string(), // e.g., "pest-control", "web-design"
+    issueType: v.string(), // e.g., "Ants", "Rodents", "New Website"
+    propertyType: v.string(), // e.g., "Home", "Business"
+    zipCode: v.string(),
+    description: v.optional(v.string()),
+    status: v.union(v.literal("new"), v.literal("contacted"), v.literal("quoted"), v.literal("closed")),
+    createdAt: v.number(),
+  })
+    .index("by_status", ["status"])
+    .index("by_serviceType", ["serviceType"])
+    .index("by_created", ["createdAt"]),
+
   // Site Settings (global configuration)
   siteSettings: defineTable({
     key: v.string(), // e.g., "social_media", "contact_info"

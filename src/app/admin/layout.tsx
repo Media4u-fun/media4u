@@ -19,6 +19,7 @@ import {
   Settings,
   Users,
   Briefcase,
+  MessageSquare,
 } from "lucide-react";
 
 const adminNavItems = [
@@ -27,6 +28,7 @@ const adminNavItems = [
   { href: "/admin/subscriptions", label: "Subscriptions", icon: RefreshCw },
   { href: "/admin/contacts", label: "Contact Forms", icon: Mail },
   { href: "/admin/project-requests", label: "Project Requests", icon: ClipboardList },
+  { href: "/admin/quotes", label: "Quote Requests", icon: MessageSquare },
   { href: "/admin/leads", label: "Leads", icon: Users },
   { href: "/admin/projects", label: "Projects", icon: Briefcase },
   { href: "/admin/newsletter", label: "Newsletter", icon: Inbox },

@@ -25,6 +25,7 @@ import type * as passwordReset from "../passwordReset.js";
 import type * as portfolio from "../portfolio.js";
 import type * as projectRequests from "../projectRequests.js";
 import type * as projects from "../projects.js";
+import type * as quoteRequests from "../quoteRequests.js";
 import type * as seed from "../seed.js";
 import type * as settings from "../settings.js";
 import type * as stripe from "../stripe.js";
@@ -54,6 +55,7 @@ declare const fullApi: ApiFromModules<{
   portfolio: typeof portfolio;
   projectRequests: typeof projectRequests;
   projects: typeof projects;
+  quoteRequests: typeof quoteRequests;
   seed: typeof seed;
   settings: typeof settings;
   stripe: typeof stripe;

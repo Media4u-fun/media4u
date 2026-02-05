@@ -6,6 +6,7 @@ import { AuthProvider } from "@/components/AuthContext";
 import { LayoutWrapper } from "@/components/layout/layout-wrapper";
 import { AnimatedMesh } from "@/components/effects/animated-mesh";
 import { GoogleAnalytics } from "@/components/analytics/google-analytics";
+import { QuickQuoteWidget } from "@/components/widgets/QuickQuoteWidget";
 
 export const metadata: Metadata = {
   title: {
@@ -194,6 +195,7 @@ export default function RootLayout({
             <ToastProvider />
             <AnimatedMesh />
             <LayoutWrapper>{children}</LayoutWrapper>
+            <QuickQuoteWidget />
           </AuthProvider>
         </ConvexClientProvider>
       </body>
