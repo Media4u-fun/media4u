@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { CheckoutButton } from "@/components/checkout/checkout-button";
 import { ProjectWizard } from "./project-wizard";
+import { RefreshCw, TrendingUp, FileText, Palette, Zap, Sparkles } from "lucide-react";
 
 type ProductType = "starter" | "professional" | null;
 
@@ -80,29 +81,41 @@ interface AddOn {
   description: string;
   highlight?: boolean;
   hasCheckout?: boolean;
+  icon: typeof RefreshCw;
+  gradient: string;
 }
 
 const ADD_ONS: AddOn[] = [
   {
     title: "Ongoing Web Care",
     description: "Keep your site updated, secure, and performing. Monthly maintenance plans custom-priced based on your package.",
+    icon: RefreshCw,
+    gradient: "from-cyan-500/10 to-blue-500/10",
   },
   {
     title: "SEO & Optimization",
     description: "Improve your search rankings and site speed. One-time optimization or ongoing support available.",
+    icon: TrendingUp,
+    gradient: "from-green-500/10 to-emerald-500/10",
   },
   {
     title: "Content & Video",
     description: "Professional copywriting, photography, video editing, and social media assets.",
+    icon: FileText,
+    gradient: "from-orange-500/10 to-amber-500/10",
   },
   {
     title: "Branding & Visual Identity",
     description: "Logo design, brand guidelines, and marketing materials that keep your message consistent.",
+    icon: Palette,
+    gradient: "from-pink-500/10 to-rose-500/10",
   },
   {
     title: "VR Environments",
     description: "Custom virtual storefronts, showrooms, and immersive experiences. A powerful extension - not required to get started.",
     highlight: true,
+    icon: Zap,
+    gradient: "from-purple-500/20 to-fuchsia-500/20",
   },
 ];
 
@@ -259,33 +272,58 @@ export function StartProjectContent(): ReactElement {
           description="Need more? We offer flexible add-ons to grow with you."
         />
 
-        <div className="grid md:grid-cols-2 gap-6 mt-12">
-          {ADD_ONS.map((addon, index) => (
-            <motion.div
-              key={addon.title}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-            >
-              <Card className={addon.highlight ? "border-purple-500/30" : ""}>
-                <h3 className="text-xl font-display font-semibold mb-2">
-                  {addon.title}
-                  {addon.highlight && (
-                    <span className="ml-2 text-xs text-purple-400 font-normal">(Optional, Future-Forward)</span>
-                  )}
-                </h3>
-                <p className="text-gray-400 text-sm mb-4">{addon.description}</p>
-                {addon.hasCheckout && (
-                  <CheckoutButton
-                    productType="webcare"
-                    variant="secondary"
-                    size="sm"
-                  />
-                )}
-              </Card>
-            </motion.div>
-          ))}
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mt-12">
+          {ADD_ONS.map((addon, index) => {
+            const Icon = addon.icon;
+            return (
+              <motion.div
+                key={addon.title}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                whileHover={{ y: -4 }}
+                className={addon.highlight ? "md:col-span-2 lg:col-span-3" : ""}
+              >
+                <Card className={`relative overflow-hidden h-full group ${addon.highlight ? "border-purple-500/30" : ""}`}>
+                  {/* Background gradient */}
+                  <div className={`absolute inset-0 bg-gradient-to-br ${addon.gradient} opacity-50 group-hover:opacity-70 transition-opacity duration-300`} />
+
+                  {/* Content */}
+                  <div className="relative">
+                    {/* Icon */}
+                    <div className="mb-4 inline-flex p-3 rounded-xl bg-white/5 border border-white/10 group-hover:border-white/20 transition-colors">
+                      <Icon className="w-6 h-6 text-white" />
+                    </div>
+
+                    {/* Title */}
+                    <h3 className="text-xl font-display font-semibold mb-2 text-white flex items-center gap-2">
+                      {addon.title}
+                      {addon.highlight && (
+                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-purple-500/20 border border-purple-500/30 text-xs text-purple-300">
+                          <Sparkles className="w-3 h-3" />
+                          Optional
+                        </span>
+                      )}
+                    </h3>
+
+                    {/* Description */}
+                    <p className="text-gray-300 text-sm leading-relaxed mb-4">
+                      {addon.description}
+                    </p>
+
+                    {addon.hasCheckout && (
+                      <CheckoutButton
+                        productType="webcare"
+                        variant="secondary"
+                        size="sm"
+                      />
+                    )}
+                  </div>
+                </Card>
+              </motion.div>
+            );
+          })}
         </div>
 
         <motion.p
