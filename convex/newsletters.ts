@@ -304,7 +304,7 @@ export const sendNewsletterEmail = action({
                 Media4U
               </h1>
               <p style="margin: 8px 0 0 0; font-size: 14px; color: #94a3b8;">
-                VR Environments & Digital Solutions
+                Professional Websites & Immersive VR Experiences
               </p>
             </td>
           </tr>
