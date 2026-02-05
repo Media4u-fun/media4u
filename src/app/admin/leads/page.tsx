@@ -168,19 +168,21 @@ export default function LeadsAdminPage() {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="mb-8 flex items-center justify-between"
+        className="mb-8"
       >
-        <div>
-          <h1 className="text-4xl font-display font-bold mb-2">Lead Management</h1>
-          <p className="text-gray-400">Track and manage potential customers</p>
+        <h1 className="text-4xl font-display font-bold mb-2">Lead Management</h1>
+        <p className="text-gray-400 mb-6">Track and manage potential customers</p>
+
+        {/* Big centered Add Lead button */}
+        <div className="flex justify-center">
+          <button
+            onClick={() => setIsAddModalOpen(true)}
+            className="px-8 py-4 rounded-xl bg-cyan-500 text-white hover:bg-cyan-600 transition-all flex items-center gap-3 font-semibold text-lg shadow-lg shadow-cyan-500/25 hover:shadow-cyan-500/40 hover:scale-105"
+          >
+            <Plus className="w-7 h-7" />
+            Add Lead
+          </button>
         </div>
-        <button
-          onClick={() => setIsAddModalOpen(true)}
-          className="px-4 py-2 rounded-lg bg-cyan-500 text-white hover:bg-cyan-600 transition-colors flex items-center gap-2 font-medium"
-        >
-          <Plus className="w-5 h-5" />
-          Add Lead
-        </button>
       </motion.div>
 
       {/* Search Bar */}
