@@ -4,6 +4,8 @@ import { ConvexClientProvider } from "@/components/ConvexClientProvider";
 import { ToastProvider } from "@/components/ui/toast-provider";
 import { AuthProvider } from "@/components/AuthContext";
 import { LayoutWrapper } from "@/components/layout/layout-wrapper";
+import { CursorTrail } from "@/components/effects/cursor-trail";
+import { AnimatedMesh } from "@/components/effects/animated-mesh";
 
 export const metadata: Metadata = {
   title: {
@@ -132,6 +134,8 @@ export default function RootLayout({
         <ConvexClientProvider>
           <AuthProvider>
             <ToastProvider />
+            <AnimatedMesh />
+            <CursorTrail />
             <LayoutWrapper>{children}</LayoutWrapper>
           </AuthProvider>
         </ConvexClientProvider>

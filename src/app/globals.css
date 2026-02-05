@@ -272,3 +272,8 @@ h1, h2, h3, h4, h5, h6 {
   border-bottom-width: 0 !important;
   border-bottom-style: none !important;
 }
+
+/* 3D Perspective */
+.perspective-1000 {
+  perspective: 1000px;
+}

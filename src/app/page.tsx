@@ -4,6 +4,7 @@ import { useRef } from "react";
 import Link from "next/link";
 import { motion, useInView } from "motion/react";
 import { Button, Section, SectionHeader, Card, CardIcon } from "@/components/ui";
+import { VRHeadset3D } from "@/components/effects/vr-headset-3d";
 
 function AnimatedSection({
   children,
@@ -89,7 +90,7 @@ function HeroSection() {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
-          className="flex flex-col sm:flex-row gap-4 justify-center"
+          className="flex flex-col sm:flex-row gap-4 justify-center mb-16"
         >
           <Link href="/start-project">
             <Button size="lg">Start Your Project</Button>
@@ -97,6 +98,16 @@ function HeroSection() {
           <Link href="/vr">
             <Button variant="secondary" size="lg">Explore VR Experiences</Button>
           </Link>
+        </motion.div>
+
+        {/* 3D VR Headset */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 1, delay: 0.5, ease: "easeOut" }}
+          className="h-80 md:h-96"
+        >
+          <VRHeadset3D />
         </motion.div>
       </div>
     </section>
