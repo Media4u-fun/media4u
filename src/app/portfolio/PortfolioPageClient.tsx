@@ -302,7 +302,7 @@ function ProjectCard({ project, index: _index }: ProjectCardProps) {
             <img
               src={project.images![0]}
               alt={project.title}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-contain bg-gradient-to-br from-gray-900/80 to-gray-800/80"
             />
             <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors duration-300" />
           </>
