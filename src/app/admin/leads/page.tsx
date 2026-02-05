@@ -35,8 +35,10 @@ export default function LeadsAdminPage() {
   const updateLastContacted = useMutation(api.leads.updateLastContacted);
   const sendEmailReply = useAction(api.emailReplies.sendEmailReply);
   const createProjectFromLead = useMutation(api.projects.createProjectFromLead);
+  const subscribeToNewsletter = useMutation(api.newsletter.subscribeToNewsletter);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [subscribing, setSubscribing] = useState(false);
   const [filterStatus, setFilterStatus] = useState<LeadStatus | "all">("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [isReplyModalOpen, setIsReplyModalOpen] = useState(false);
@@ -132,6 +134,28 @@ export default function LeadsAdminPage() {
       notes: "",
     });
     setIsAddModalOpen(false);
+  }
+
+  async function handleAddToNewsletter() {
+    if (!selected) return;
+    setSubscribing(true);
+    try {
+      const result = await subscribeToNewsletter({ email: selected.email });
+      if (result.success) {
+        if (result.newSubscription) {
+          alert("Email added to newsletter subscribers!");
+        } else {
+          alert("Email was already subscribed to newsletter.");
+        }
+      } else {
+        alert(result.error || "Failed to subscribe email");
+      }
+    } catch (error) {
+      console.error("Error subscribing:", error);
+      alert("Failed to add email to newsletter");
+    } finally {
+      setSubscribing(false);
+    }
   }
 
   async function handleConvertToProject(e: React.FormEvent) {
@@ -288,6 +312,14 @@ export default function LeadsAdminPage() {
                   >
                     <Mail className="w-3 h-3" />
                     Email
+                  </button>
+                  <button
+                    onClick={handleAddToNewsletter}
+                    disabled={subscribing}
+                    className="px-3 py-1 rounded-lg bg-purple-500/20 text-purple-400 hover:bg-purple-500/30 transition-colors border border-purple-500/50 text-xs font-medium flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Mail className="w-3 h-3" />
+                    {subscribing ? "Adding..." : "Add to Newsletter"}
                   </button>
                   {selected.status !== "converted" && (
                     <button
