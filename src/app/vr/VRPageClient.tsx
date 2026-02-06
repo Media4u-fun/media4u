@@ -252,58 +252,7 @@ export default function VRPageClient() {
         </motion.div>
       </Section>
 
-      {/* VR Overview Section */}
-      <Section>
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-          {/* Content Left */}
-          <motion.div
-            initial={{ opacity: 0, x: -40 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-          >
-            <h2 className="text-3xl md:text-4xl font-display font-bold mb-6 text-white">
-              Crafting Immersive Experiences
-            </h2>
-            <p className="text-gray-400 text-lg mb-8 leading-relaxed">
-              We design and develop cutting-edge VR environments that transport users to extraordinary digital realms.
-              From virtual showrooms to expansive multiverse hubs, our solutions combine stunning visuals with intuitive
-              interactions to create unforgettable experiences.
-            </p>
-
-            {/* Feature Badges */}
-            <div className="flex flex-wrap gap-4">
-              {FEATURES.map((feature, index) => (
-                <motion.div
-                  key={feature.label}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.4, delay: index * 0.1 }}
-                  className="flex items-center gap-3 px-5 py-3 rounded-full glass border border-white/10 hover:border-cyan-400/30 transition-colors"
-                >
-                  <span className="text-cyan-400">
-                    <FeatureIcon type={feature.icon} />
-                  </span>
-                  <span className="text-sm font-medium text-white">{feature.label}</span>
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
-
-          {/* VR Visual Right */}
-          <motion.div
-            initial={{ opacity: 0, x: 40 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-          >
-            <VRHeadsetVisual />
-          </motion.div>
-        </div>
-      </Section>
-
-      {/* Featured Experiences Section */}
+      {/* Featured Experiences Section - MOVED TO TOP */}
       {experiences && experiences.length > 0 && (
         <Section>
           <SectionHeader
@@ -430,6 +379,57 @@ export default function VRPageClient() {
           )}
         </Section>
       )}
+
+      {/* VR Overview Section */}
+      <Section>
+        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+          {/* Content Left */}
+          <motion.div
+            initial={{ opacity: 0, x: -40 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
+            <h2 className="text-3xl md:text-4xl font-display font-bold mb-6 text-white">
+              Crafting Immersive Experiences
+            </h2>
+            <p className="text-gray-400 text-lg mb-8 leading-relaxed">
+              We design and develop cutting-edge VR environments that transport users to extraordinary digital realms.
+              From virtual showrooms to expansive multiverse hubs, our solutions combine stunning visuals with intuitive
+              interactions to create unforgettable experiences.
+            </p>
+
+            {/* Feature Badges */}
+            <div className="flex flex-wrap gap-4">
+              {FEATURES.map((feature, index) => (
+                <motion.div
+                  key={feature.label}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.4, delay: index * 0.1 }}
+                  className="flex items-center gap-3 px-5 py-3 rounded-full glass border border-white/10 hover:border-cyan-400/30 transition-colors"
+                >
+                  <span className="text-cyan-400">
+                    <FeatureIcon type={feature.icon} />
+                  </span>
+                  <span className="text-sm font-medium text-white">{feature.label}</span>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+
+          {/* VR Visual Right */}
+          <motion.div
+            initial={{ opacity: 0, x: 40 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+          >
+            <VRHeadsetVisual />
+          </motion.div>
+        </div>
+      </Section>
 
       {/* Use Cases Grid */}
       <Section>
