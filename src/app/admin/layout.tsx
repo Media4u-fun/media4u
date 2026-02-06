@@ -20,6 +20,7 @@ import {
   Users,
   Briefcase,
   MessageSquare,
+  Globe,
 } from "lucide-react";
 
 const adminNavItems = [
@@ -35,6 +36,7 @@ const adminNavItems = [
   { href: "/admin/blog", label: "Blog Posts", icon: FileText },
   { href: "/admin/portfolio", label: "Portfolio", icon: ImageIcon },
   { href: "/admin/vr", label: "VR Experiences", icon: Glasses },
+  { href: "/admin/community", label: "Community", icon: Globe },
   { href: "/admin/settings", label: "Settings", icon: Settings },
 ];
 
