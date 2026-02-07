@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, Suspense, useRef, useCallback } from "react";
 import { motion } from "motion/react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
@@ -10,13 +10,14 @@ import Link from "next/link";
 import {
   CheckCircle,
   AlertCircle,
-  Upload,
   Globe,
   ExternalLink,
   Instagram,
   Youtube,
   X,
   Send,
+  ImagePlus,
+  Loader2,
 } from "lucide-react";
 
 // Wrap the main content in Suspense for useSearchParams
@@ -54,17 +55,101 @@ function CommunitySubmitContent() {
     twitter: "",
   });
 
-  const [imageUrl, setImageUrl] = useState("");
+  const [isDragging, setIsDragging] = useState(false);
+  const [uploadingCount, setUploadingCount] = useState(0);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  function addImage() {
-    if (imageUrl.trim() && formData.images.length < 5) {
-      setFormData({
-        ...formData,
-        images: [...formData.images, imageUrl.trim()],
+  // Upload a single image file to Cloudflare
+  const uploadImage = useCallback(async (file: File): Promise<string | null> => {
+    const formDataUpload = new FormData();
+    formDataUpload.append("file", file);
+
+    try {
+      const response = await fetch("/api/upload-image", {
+        method: "POST",
+        body: formDataUpload,
       });
-      setImageUrl("");
+
+      if (!response.ok) {
+        throw new Error("Upload failed");
+      }
+
+      const data = await response.json();
+      return data.url;
+    } catch (error) {
+      console.error("Upload error:", error);
+      return null;
     }
-  }
+  }, []);
+
+  // Handle multiple file uploads
+  const handleFiles = useCallback(async (files: FileList | File[]) => {
+    const fileArray = Array.from(files);
+    const imageFiles = fileArray.filter(f => f.type.startsWith("image/"));
+
+    // Limit total images to 5
+    const availableSlots = 5 - formData.images.length;
+    const filesToUpload = imageFiles.slice(0, availableSlots);
+
+    if (filesToUpload.length === 0) return;
+
+    setUploadingCount(filesToUpload.length);
+
+    const uploadPromises = filesToUpload.map(file => uploadImage(file));
+    const results = await Promise.all(uploadPromises);
+    const successfulUrls = results.filter((url): url is string => url !== null);
+
+    if (successfulUrls.length > 0) {
+      setFormData(prev => ({
+        ...prev,
+        images: [...prev.images, ...successfulUrls],
+      }));
+    }
+
+    setUploadingCount(0);
+
+    if (successfulUrls.length < filesToUpload.length) {
+      alert("Some images failed to upload. Please try again.");
+    }
+  }, [formData.images.length, uploadImage]);
+
+  // Drag and drop handlers
+  const handleDragEnter = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  }, []);
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      handleFiles(files);
+    }
+  }, [handleFiles]);
+
+  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      handleFiles(files);
+    }
+    // Reset input so same file can be selected again
+    e.target.value = "";
+  }, [handleFiles]);
 
   function removeImage(index: number) {
     setFormData({
@@ -228,56 +313,98 @@ function CommunitySubmitContent() {
             />
           </div>
 
-          {/* Images */}
+          {/* Images - Drag and Drop */}
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
               Images <span className="text-red-400">*</span>
-              <span className="text-gray-500 font-normal"> (Add up to 5 image URLs)</span>
+              <span className="text-gray-500 font-normal"> (Upload up to 5 images)</span>
             </label>
 
-            {/* Added images */}
+            {/* Hidden file input */}
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileSelect}
+              accept="image/*"
+              multiple
+              className="hidden"
+            />
+
+            {/* Drag and drop zone */}
+            {formData.images.length < 5 && (
+              <div
+                onDragEnter={handleDragEnter}
+                onDragLeave={handleDragLeave}
+                onDragOver={handleDragOver}
+                onDrop={handleDrop}
+                onClick={() => fileInputRef.current?.click()}
+                className={`
+                  relative border-2 border-dashed rounded-xl p-6 text-center cursor-pointer
+                  transition-all duration-200
+                  ${isDragging
+                    ? "border-cyan-400 bg-cyan-500/10"
+                    : "border-white/20 hover:border-cyan-500/50 hover:bg-white/5"
+                  }
+                  ${uploadingCount > 0 ? "pointer-events-none opacity-60" : ""}
+                `}
+              >
+                {uploadingCount > 0 ? (
+                  <div className="flex flex-col items-center gap-2">
+                    <Loader2 className="w-8 h-8 text-cyan-400 animate-spin" />
+                    <p className="text-gray-400">
+                      Uploading {uploadingCount} image{uploadingCount > 1 ? "s" : ""}...
+                    </p>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center gap-2">
+                    <div className={`
+                      w-12 h-12 rounded-full flex items-center justify-center
+                      ${isDragging ? "bg-cyan-500/20" : "bg-white/5"}
+                    `}>
+                      <ImagePlus className={`w-6 h-6 ${isDragging ? "text-cyan-400" : "text-gray-400"}`} />
+                    </div>
+                    <div>
+                      <p className="text-white font-medium">
+                        {isDragging ? "Drop images here" : "Drag & drop images here"}
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        or click to browse - {5 - formData.images.length} slots remaining
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Uploaded images preview */}
             {formData.images.length > 0 && (
-              <div className="flex gap-2 mb-3 flex-wrap">
+              <div className="flex gap-3 mt-4 flex-wrap">
                 {formData.images.map((img, idx) => (
-                  <div key={idx} className="relative group">
+                  <motion.div
+                    key={img}
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="relative group"
+                  >
                     <img
                       src={img}
                       alt={`Preview ${idx + 1}`}
-                      className="w-20 h-20 object-cover rounded-lg border border-white/10"
+                      className="w-24 h-24 object-cover rounded-lg border border-white/10"
                     />
                     <button
                       type="button"
                       onClick={() => removeImage(idx)}
-                      className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
                     >
-                      <X className="w-3 h-3" />
+                      <X className="w-4 h-4" />
                     </button>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
             )}
 
-            {/* Add image input */}
-            {formData.images.length < 5 && (
-              <div className="flex gap-2">
-                <input
-                  type="url"
-                  value={imageUrl}
-                  onChange={(e) => setImageUrl(e.target.value)}
-                  placeholder="Paste image URL here..."
-                  className="flex-1 px-4 py-2.5 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50"
-                />
-                <button
-                  type="button"
-                  onClick={addImage}
-                  className="px-4 py-2.5 rounded-lg bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/30 transition-colors border border-cyan-500/30"
-                >
-                  <Upload className="w-5 h-5" />
-                </button>
-              </div>
-            )}
-            <p className="text-xs text-gray-500 mt-2">
-              Tip: Use image hosting services like Imgur or direct image links
+            <p className="text-xs text-gray-500 mt-3">
+              Supported: JPG, PNG, GIF, WebP - Max 5 images
             </p>
           </div>
 
