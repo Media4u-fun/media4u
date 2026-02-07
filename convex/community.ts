@@ -146,6 +146,7 @@ export const submitCommunityEntry = mutation({
     worldName: v.string(),
     description: v.string(),
     images: v.array(v.string()),
+    videoUrl: v.optional(v.string()),
     multiverseUrl: v.optional(v.string()),
     websiteUrl: v.optional(v.string()),
     socialLinks: v.optional(v.object({
@@ -177,6 +178,7 @@ export const submitCommunityEntry = mutation({
       worldName: args.worldName,
       description: args.description,
       images: args.images,
+      videoUrl: args.videoUrl,
       multiverseUrl: args.multiverseUrl,
       websiteUrl: args.websiteUrl,
       socialLinks: args.socialLinks,
@@ -305,6 +307,27 @@ export const deleteMember = mutation({
 // PUBLIC: Display
 // ============================================
 
+// Get community stats for public display
+export const getCommunityStats = query({
+  handler: async (ctx) => {
+    const allMembers = await ctx.db
+      .query("communityMembers")
+      .withIndex("by_approved", (q) => q.eq("approved", true))
+      .collect();
+
+    const featuredCount = allMembers.filter(m => m.featured).length;
+
+    // Count unique creators
+    const uniqueCreators = new Set(allMembers.map(m => m.name)).size;
+
+    return {
+      totalWorlds: allMembers.length,
+      totalCreators: uniqueCreators,
+      featuredCount,
+    };
+  },
+});
+
 // Get all approved community members (for public page)
 export const getApprovedMembers = query({
   handler: async (ctx) => {
@@ -342,6 +365,79 @@ export const getAllMembers = query({
     );
 
     return withInvites;
+  },
+});
+
+// ============================================
+// PUBLIC: Invite Requests
+// ============================================
+
+// Submit a request for an invite (public)
+export const requestInvite = mutation({
+  args: {
+    name: v.string(),
+    email: v.string(),
+    message: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const email = args.email.toLowerCase().trim();
+
+    // Check if already requested
+    const existing = await ctx.db
+      .query("communityInviteRequests")
+      .withIndex("by_email", (q) => q.eq("email", email))
+      .first();
+
+    if (existing) {
+      if (existing.status === "pending") {
+        throw new Error("You already have a pending invite request");
+      }
+      if (existing.status === "invited") {
+        throw new Error("You have already been invited - check your email!");
+      }
+    }
+
+    // Check if they already have an invite
+    const existingInvite = await ctx.db
+      .query("communityInvites")
+      .withIndex("by_email", (q) => q.eq("email", email))
+      .first();
+
+    if (existingInvite) {
+      throw new Error("You already have an invite - check your email!");
+    }
+
+    const requestId = await ctx.db.insert("communityInviteRequests", {
+      name: args.name.trim(),
+      email,
+      message: args.message?.trim(),
+      status: "pending",
+      createdAt: Date.now(),
+    });
+
+    return requestId;
+  },
+});
+
+// Get all invite requests (admin)
+export const getInviteRequests = query({
+  handler: async (ctx) => {
+    return await ctx.db
+      .query("communityInviteRequests")
+      .order("desc")
+      .collect();
+  },
+});
+
+// Update invite request status (admin)
+export const updateInviteRequestStatus = mutation({
+  args: {
+    id: v.id("communityInviteRequests"),
+    status: v.union(v.literal("invited"), v.literal("declined")),
+  },
+  handler: async (ctx, args) => {
+    await requireAdmin(ctx);
+    await ctx.db.patch(args.id, { status: args.status });
   },
 });
 
@@ -387,10 +483,8 @@ export const sendInviteEmail = action({
           <!-- Header -->
           <tr>
             <td align="center" style="padding: 40px 40px 20px 40px;">
-              <h1 style="margin: 0; font-size: 32px; font-weight: 700; background: linear-gradient(135deg, #00d4ff 0%, #8b5cf6 50%, #ff2d92 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
-                Media4U
-              </h1>
-              <p style="margin: 8px 0 0 0; font-size: 14px; color: #94a3b8;">
+              <img src="https://media4u.fun/media4u-logo.png" alt="Media4U" width="120" style="display: block; margin: 0 auto 12px auto;" />
+              <p style="margin: 0; font-size: 14px; color: #94a3b8;">
                 VR Multiverse Community
               </p>
             </td>
@@ -413,8 +507,41 @@ export const sendInviteEmail = action({
                 This is an invite-only community of people building meaningful spaces in the Multiverse. We think your work belongs here.
               </p>
 
+              <!-- What You'll Need -->
+              <div style="margin: 24px 0; padding: 20px; background: rgba(0, 212, 255, 0.05); border-radius: 12px; border: 1px solid rgba(0, 212, 255, 0.2);">
+                <h3 style="margin: 0 0 16px 0; font-size: 16px; font-weight: 600; color: #00d4ff;">
+                  What You'll Need
+                </h3>
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+                  <tr>
+                    <td style="padding: 8px 0; color: #e2e8f0; font-size: 14px;">
+                      <span style="color: #00d4ff; margin-right: 8px;">&#10003;</span>
+                      <strong>Screenshots</strong> - 1-5 images of your VR world
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 8px 0; color: #e2e8f0; font-size: 14px;">
+                      <span style="color: #a855f7; margin-right: 8px;">&#10003;</span>
+                      <strong>Video Tour</strong> - YouTube link (optional but recommended!)
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 8px 0; color: #e2e8f0; font-size: 14px;">
+                      <span style="color: #22c55e; margin-right: 8px;">&#10003;</span>
+                      <strong>Description</strong> - A few sentences about your world
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 8px 0; color: #e2e8f0; font-size: 14px;">
+                      <span style="color: #f97316; margin-right: 8px;">&#10003;</span>
+                      <strong>Links</strong> - Your VR world link + socials (optional)
+                    </td>
+                  </tr>
+                </table>
+              </div>
+
               <!-- CTA Button -->
-              <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin: 32px 0;">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin: 32px 0;" width="100%">
                 <tr>
                   <td align="center" style="border-radius: 8px; background: linear-gradient(135deg, #00d4ff 0%, #8b5cf6 100%);">
                     <a href="${submitUrl}" style="display: inline-block; padding: 16px 40px; font-size: 16px; font-weight: 600; color: #ffffff; text-decoration: none;">
@@ -425,7 +552,7 @@ export const sendInviteEmail = action({
               </table>
 
               <p style="margin: 24px 0 0 0; font-size: 14px; color: #94a3b8;">
-                This invite link is unique to you. Simply click the button above to share your VR world with our community.
+                This invite link is unique to you. Submissions are reviewed within 24-48 hours.
               </p>
             </td>
           </tr>
@@ -482,6 +609,146 @@ export const sendInviteEmail = action({
       return { success: true };
     } catch (error) {
       console.error("Error sending invite email:", error);
+      return { success: false, error: String(error) };
+    }
+  },
+});
+
+// ============================================
+// EMAIL: Admin Notifications
+// ============================================
+
+// Notify admin when someone requests an invite
+export const notifyAdminInviteRequest = action({
+  args: {
+    name: v.string(),
+    email: v.string(),
+    message: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const RESEND_API_KEY = process.env.RESEND_API_KEY;
+    const FROM_EMAIL = process.env.FROM_EMAIL || "devland@media4u.fun";
+    const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "devland@media4u.fun";
+
+    if (!RESEND_API_KEY) {
+      console.error("RESEND_API_KEY not configured");
+      return { success: false, error: "Email service not configured" };
+    }
+
+    const messageSection = args.message
+      ? `<p style="margin: 16px 0; padding: 16px; background: rgba(0, 212, 255, 0.1); border-radius: 8px; color: #e2e8f0;"><strong>Their message:</strong><br/>"${args.message}"</p>`
+      : "";
+
+    const emailHtml = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+</head>
+<body style="margin: 0; padding: 20px; background-color: #03030a; font-family: Arial, sans-serif;">
+  <div style="max-width: 500px; margin: 0 auto; background: #0a0a12; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); padding: 30px;">
+    <h2 style="margin: 0 0 20px 0; color: #00d4ff;">New Community Invite Request</h2>
+    <p style="margin: 0 0 8px 0; color: #e2e8f0;"><strong>Name:</strong> ${args.name}</p>
+    <p style="margin: 0 0 8px 0; color: #e2e8f0;"><strong>Email:</strong> ${args.email}</p>
+    ${messageSection}
+    <p style="margin: 24px 0 0 0; color: #94a3b8; font-size: 14px;">
+      Review this request in your <a href="https://media4u.fun/admin/community" style="color: #00d4ff;">Admin Dashboard</a>
+    </p>
+  </div>
+</body>
+</html>
+    `.trim();
+
+    try {
+      const response = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${RESEND_API_KEY}`,
+        },
+        body: JSON.stringify({
+          from: FROM_EMAIL,
+          to: ADMIN_EMAIL,
+          subject: `Community Invite Request: ${args.name}`,
+          html: emailHtml,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.text();
+        console.error("Failed to send admin notification:", error);
+        return { success: false, error: response.statusText };
+      }
+
+      return { success: true };
+    } catch (error) {
+      console.error("Error sending admin notification:", error);
+      return { success: false, error: String(error) };
+    }
+  },
+});
+
+// Notify admin when someone submits their community entry
+export const notifyAdminSubmission = action({
+  args: {
+    name: v.string(),
+    email: v.string(),
+    worldName: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const RESEND_API_KEY = process.env.RESEND_API_KEY;
+    const FROM_EMAIL = process.env.FROM_EMAIL || "devland@media4u.fun";
+    const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "devland@media4u.fun";
+
+    if (!RESEND_API_KEY) {
+      console.error("RESEND_API_KEY not configured");
+      return { success: false, error: "Email service not configured" };
+    }
+
+    const emailHtml = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+</head>
+<body style="margin: 0; padding: 20px; background-color: #03030a; font-family: Arial, sans-serif;">
+  <div style="max-width: 500px; margin: 0 auto; background: #0a0a12; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); padding: 30px;">
+    <h2 style="margin: 0 0 20px 0; color: #8b5cf6;">New Community Submission</h2>
+    <p style="margin: 0 0 8px 0; color: #e2e8f0;"><strong>Creator:</strong> ${args.name}</p>
+    <p style="margin: 0 0 8px 0; color: #e2e8f0;"><strong>Email:</strong> ${args.email}</p>
+    <p style="margin: 0 0 8px 0; color: #e2e8f0;"><strong>World Name:</strong> ${args.worldName}</p>
+    <p style="margin: 24px 0 0 0; color: #94a3b8; font-size: 14px;">
+      Review and approve in your <a href="https://media4u.fun/admin/community" style="color: #00d4ff;">Admin Dashboard</a>
+    </p>
+  </div>
+</body>
+</html>
+    `.trim();
+
+    try {
+      const response = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${RESEND_API_KEY}`,
+        },
+        body: JSON.stringify({
+          from: FROM_EMAIL,
+          to: ADMIN_EMAIL,
+          subject: `Community Submission: ${args.worldName} by ${args.name}`,
+          html: emailHtml,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.text();
+        console.error("Failed to send admin notification:", error);
+        return { success: false, error: response.statusText };
+      }
+
+      return { success: true };
+    } catch (error) {
+      console.error("Error sending admin notification:", error);
       return { success: false, error: String(error) };
     }
   },

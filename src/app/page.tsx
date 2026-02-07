@@ -5,6 +5,7 @@ import Link from "next/link";
 import { motion, useInView } from "motion/react";
 import { Button, Section, SectionHeader, Card, CardIcon } from "@/components/ui";
 import { VRSphere360 } from "@/components/effects/vr-sphere-360";
+import { Target, Building2, ShoppingCart, Cpu, Glasses, Rocket, type LucideIcon } from "lucide-react";
 
 function AnimatedSection({
   children,
@@ -243,11 +244,18 @@ function AboutSection() {
   );
 }
 
-const possibilities = [
+const possibilities: {
+  title: string;
+  description: string;
+  icon: LucideIcon;
+  color: string;
+  borderColor: string;
+  examples: string[];
+}[] = [
   {
     title: "Landing Pages",
     description: "High-converting single pages that capture leads and drive action",
-    icon: "🎯",
+    icon: Target,
     color: "from-cyan-500/20 to-cyan-500/5",
     borderColor: "hover:border-cyan-500/50",
     examples: ["Product launches", "Event pages", "Lead capture"],
@@ -255,7 +263,7 @@ const possibilities = [
   {
     title: "Business Websites",
     description: "Professional multi-page sites that establish credibility and trust",
-    icon: "🏢",
+    icon: Building2,
     color: "from-blue-500/20 to-blue-500/5",
     borderColor: "hover:border-blue-500/50",
     examples: ["Company sites", "Service businesses", "Portfolios"],
@@ -263,7 +271,7 @@ const possibilities = [
   {
     title: "E-Commerce",
     description: "Online stores with seamless checkout and inventory management",
-    icon: "🛒",
+    icon: ShoppingCart,
     color: "from-green-500/20 to-green-500/5",
     borderColor: "hover:border-green-500/50",
     examples: ["Product stores", "Digital downloads", "Subscriptions"],
@@ -271,7 +279,7 @@ const possibilities = [
   {
     title: "Web Applications",
     description: "Custom apps with user accounts, dashboards, and real-time features",
-    icon: "⚡",
+    icon: Cpu,
     color: "from-purple-500/20 to-purple-500/5",
     borderColor: "hover:border-purple-500/50",
     examples: ["Client portals", "Booking systems", "SaaS tools"],
@@ -279,7 +287,7 @@ const possibilities = [
   {
     title: "VR Experiences",
     description: "Immersive 360° environments and virtual storefronts",
-    icon: "🥽",
+    icon: Glasses,
     color: "from-pink-500/20 to-pink-500/5",
     borderColor: "hover:border-pink-500/50",
     examples: ["Virtual tours", "VR storefronts", "3D showcases"],
@@ -287,7 +295,7 @@ const possibilities = [
   {
     title: "Full Stack Solutions",
     description: "Complete systems with databases, APIs, and admin panels",
-    icon: "🚀",
+    icon: Rocket,
     color: "from-orange-500/20 to-orange-500/5",
     borderColor: "hover:border-orange-500/50",
     examples: ["Custom platforms", "Integrations", "Automation"],
@@ -312,10 +320,14 @@ function PossibilitiesSection() {
       </AnimatedSection>
 
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {possibilities.map((item, index) => (
+        {possibilities.map((item, index) => {
+          const Icon = item.icon;
+          return (
           <AnimatedSection key={item.title} delay={0.05 * (index + 1)}>
             <div className={`group relative h-full p-6 rounded-2xl bg-gradient-to-br ${item.color} border border-white/10 ${item.borderColor} transition-all duration-300 hover:scale-[1.02] cursor-pointer`}>
-              <div className="text-4xl mb-4">{item.icon}</div>
+              <div className="mb-4 p-3 rounded-xl bg-white/10 w-fit">
+                <Icon className="w-6 h-6 text-white" />
+              </div>
               <h3 className="text-xl font-display font-semibold text-white mb-2">
                 {item.title}
               </h3>
@@ -334,7 +346,8 @@ function PossibilitiesSection() {
               </div>
             </div>
           </AnimatedSection>
-        ))}
+        );
+        })}
       </div>
 
       <AnimatedSection delay={0.4}>

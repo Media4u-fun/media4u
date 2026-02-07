@@ -3,7 +3,7 @@
 
 import { useState, Suspense, useRef, useCallback } from "react";
 import { motion } from "motion/react";
-import { useQuery, useMutation } from "convex/react";
+import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "@convex/_generated/api";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -18,6 +18,11 @@ import {
   Send,
   ImagePlus,
   Loader2,
+  Video,
+  Camera,
+  FileText,
+  Link2,
+  Sparkles,
 } from "lucide-react";
 
 // Wrap the main content in Suspense for useSearchParams
@@ -39,6 +44,7 @@ function CommunitySubmitContent() {
 
   const validation = useQuery(api.community.validateInviteToken, { token });
   const submitEntry = useMutation(api.community.submitCommunityEntry);
+  const notifyAdmin = useAction(api.community.notifyAdminSubmission);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -47,6 +53,7 @@ function CommunitySubmitContent() {
     worldName: "",
     description: "",
     images: [] as string[],
+    videoUrl: "",
     multiverseUrl: "",
     websiteUrl: "",
     instagram: "",
@@ -178,6 +185,7 @@ function CommunitySubmitContent() {
         worldName: formData.worldName.trim(),
         description: formData.description.trim(),
         images: formData.images,
+        videoUrl: formData.videoUrl.trim() || undefined,
         multiverseUrl: formData.multiverseUrl.trim() || undefined,
         websiteUrl: formData.websiteUrl.trim() || undefined,
         socialLinks: {
@@ -187,6 +195,15 @@ function CommunitySubmitContent() {
           twitter: formData.twitter.trim() || undefined,
         },
       });
+
+      // Notify admin of new submission (don't wait for it)
+      if (validation?.invite) {
+        notifyAdmin({
+          name: validation.invite.name,
+          email: validation.invite.email,
+          worldName: formData.worldName.trim(),
+        }).catch(console.error);
+      }
 
       setIsSubmitted(true);
     } catch (error: any) {
@@ -268,12 +285,73 @@ function CommunitySubmitContent() {
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-8"
         >
+          <span className="inline-flex items-center gap-2 mb-4 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/30">
+            <Sparkles className="w-4 h-4 text-cyan-400" />
+            <span className="text-sm font-medium text-cyan-400">You&apos;re Invited!</span>
+          </span>
           <h1 className="text-3xl md:text-4xl font-display font-bold text-white mb-2">
-            Welcome to the Community
+            Welcome, {validation.invite?.name}!
           </h1>
-          <p className="text-gray-400">
-            Hi {validation.invite?.name}! Share your VR world with the Media4U Multiverse Community.
+          <p className="text-gray-400 max-w-lg mx-auto">
+            You&apos;ve been invited to showcase your VR world in the Media4U Multiverse Community. Let&apos;s make your submission shine.
           </p>
+        </motion.div>
+
+        {/* What You'll Need Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="glass rounded-2xl p-6 mb-8"
+        >
+          <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+            <CheckCircle className="w-5 h-5 text-cyan-400" />
+            What You&apos;ll Need
+          </h2>
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div className="flex items-start gap-3">
+              <div className="p-2 rounded-lg bg-cyan-500/10">
+                <Camera className="w-5 h-5 text-cyan-400" />
+              </div>
+              <div>
+                <h3 className="font-medium text-white text-sm">Screenshots</h3>
+                <p className="text-xs text-gray-400">1-5 images of your VR world (required)</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="p-2 rounded-lg bg-purple-500/10">
+                <Video className="w-5 h-5 text-purple-400" />
+              </div>
+              <div>
+                <h3 className="font-medium text-white text-sm">Video Tour</h3>
+                <p className="text-xs text-gray-400">YouTube link showing off your world (optional but recommended)</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="p-2 rounded-lg bg-green-500/10">
+                <FileText className="w-5 h-5 text-green-400" />
+              </div>
+              <div>
+                <h3 className="font-medium text-white text-sm">Description</h3>
+                <p className="text-xs text-gray-400">A few sentences about what makes your world special</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="p-2 rounded-lg bg-orange-500/10">
+                <Link2 className="w-5 h-5 text-orange-400" />
+              </div>
+              <div>
+                <h3 className="font-medium text-white text-sm">Links</h3>
+                <p className="text-xs text-gray-400">Link to your VR world + socials (optional)</p>
+              </div>
+            </div>
+          </div>
+          <div className="mt-4 pt-4 border-t border-white/10">
+            <p className="text-xs text-gray-500 flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-green-500"></span>
+              Submissions are reviewed within 24-48 hours
+            </p>
+          </div>
         </motion.div>
 
         <motion.form
@@ -405,6 +483,25 @@ function CommunitySubmitContent() {
 
             <p className="text-xs text-gray-500 mt-3">
               Supported: JPG, PNG, GIF, WebP - Max 5 images
+            </p>
+          </div>
+
+          {/* Video Tour */}
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2 flex items-center gap-2">
+              <Video className="w-4 h-4 text-purple-400" />
+              Video Tour
+              <span className="text-gray-500 font-normal">(optional)</span>
+            </label>
+            <input
+              type="url"
+              value={formData.videoUrl}
+              onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })}
+              placeholder="YouTube or video link to showcase your world"
+              className="w-full px-4 py-2.5 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-purple-500/50"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Add a video tour to make your showcase more engaging
             </p>
           </div>
 

@@ -18,9 +18,11 @@ import {
   RefreshCw,
   ExternalLink,
   Globe,
+  UserPlus,
+  X,
 } from "lucide-react";
 
-type TabType = "invites" | "pending" | "members";
+type TabType = "requests" | "invites" | "pending" | "members";
 
 const statusColors: Record<string, string> = {
   pending: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
@@ -31,8 +33,12 @@ const statusColors: Record<string, string> = {
 };
 
 export default function CommunityAdminPage() {
-  const [activeTab, setActiveTab] = useState<TabType>("invites");
+  const [activeTab, setActiveTab] = useState<TabType>("requests");
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+
+  // Get pending invite requests count for badge
+  const inviteRequests = useQuery(api.community.getInviteRequests);
+  const pendingRequestsCount = inviteRequests?.filter(r => r.status === "pending").length || 0;
 
   return (
     <div>
@@ -47,6 +53,22 @@ export default function CommunityAdminPage() {
 
       {/* Tabs */}
       <div className="flex gap-3 mb-6 border-b border-white/10 pb-4">
+        <button
+          onClick={() => setActiveTab("requests")}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
+            activeTab === "requests"
+              ? "bg-cyan-500/30 text-cyan-400 border border-cyan-500/50"
+              : "bg-white/5 text-gray-400 hover:text-white border border-white/10"
+          }`}
+        >
+          <UserPlus className="w-4 h-4" />
+          Requests
+          {pendingRequestsCount > 0 && (
+            <span className="ml-1 px-2 py-0.5 rounded-full bg-red-500 text-white text-xs">
+              {pendingRequestsCount}
+            </span>
+          )}
+        </button>
         <button
           onClick={() => setActiveTab("invites")}
           className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
@@ -83,12 +105,160 @@ export default function CommunityAdminPage() {
       </div>
 
       {/* Tab Content */}
+      {activeTab === "requests" && <RequestsTab />}
       {activeTab === "invites" && <InvitesTab onOpenInviteModal={() => setIsInviteModalOpen(true)} />}
       {activeTab === "pending" && <PendingTab />}
       {activeTab === "members" && <MembersTab />}
 
       {/* Invite Modal */}
       <InviteModal isOpen={isInviteModalOpen} onClose={() => setIsInviteModalOpen(false)} />
+    </div>
+  );
+}
+
+// ============================================
+// REQUESTS TAB (Public invite requests)
+// ============================================
+
+function RequestsTab() {
+  const requests = useQuery(api.community.getInviteRequests);
+  const updateStatus = useMutation(api.community.updateInviteRequestStatus);
+  const createInvite = useMutation(api.community.createInvite);
+  const sendInviteEmail = useAction(api.community.sendInviteEmail);
+  const [processing, setProcessing] = useState<string | null>(null);
+
+  const pendingRequests = requests?.filter(r => r.status === "pending") || [];
+  const processedRequests = requests?.filter(r => r.status !== "pending") || [];
+
+  async function handleApproveAndInvite(request: any) {
+    if (!confirm(`Send an invite to ${request.name} (${request.email})?`)) return;
+
+    setProcessing(request._id);
+    try {
+      // Create the invite
+      const result = await createInvite({
+        email: request.email,
+        name: request.name,
+        message: "Welcome! Your request to join the VR Multiverse Community has been approved.",
+      });
+
+      // Send the email
+      await sendInviteEmail({
+        email: request.email,
+        name: request.name,
+        token: result.token,
+        message: "Welcome! Your request to join the VR Multiverse Community has been approved.",
+      });
+
+      // Update request status
+      await updateStatus({ id: request._id, status: "invited" });
+
+      alert(`Invite sent to ${request.email}!`);
+    } catch (err: any) {
+      alert(err.message || "Failed to send invite");
+    }
+    setProcessing(null);
+  }
+
+  async function handleDecline(request: any) {
+    if (!confirm(`Decline request from ${request.name}?`)) return;
+    await updateStatus({ id: request._id, status: "declined" });
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Pending Requests */}
+      <div>
+        <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+          <UserPlus className="w-5 h-5 text-cyan-400" />
+          Pending Requests ({pendingRequests.length})
+        </h3>
+
+        {pendingRequests.length === 0 ? (
+          <div className="glass rounded-xl p-8 text-center">
+            <p className="text-gray-400">No pending requests</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {pendingRequests.map((request) => (
+              <motion.div
+                key={request._id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="glass rounded-xl p-4"
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-1">
+                      <h4 className="font-semibold text-white">{request.name}</h4>
+                      <span className="text-sm text-gray-500">
+                        {new Date(request.createdAt).toLocaleDateString()}
+                      </span>
+                    </div>
+                    <p className="text-sm text-cyan-400 mb-2">{request.email}</p>
+                    {request.message && (
+                      <p className="text-sm text-gray-400 bg-white/5 rounded-lg p-3 italic">
+                        &quot;{request.message}&quot;
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleApproveAndInvite(request)}
+                      disabled={processing === request._id}
+                      className="px-4 py-2 rounded-lg bg-green-500/20 text-green-400 hover:bg-green-500/30 transition-colors text-sm font-medium flex items-center gap-2 disabled:opacity-50"
+                    >
+                      {processing === request._id ? (
+                        <>Sending...</>
+                      ) : (
+                        <>
+                          <CheckCircle className="w-4 h-4" />
+                          Approve & Invite
+                        </>
+                      )}
+                    </button>
+                    <button
+                      onClick={() => handleDecline(request)}
+                      className="px-4 py-2 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors text-sm font-medium flex items-center gap-2"
+                    >
+                      <X className="w-4 h-4" />
+                      Decline
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Processed Requests */}
+      {processedRequests.length > 0 && (
+        <div>
+          <h3 className="text-lg font-semibold text-white mb-4">Previously Processed</h3>
+          <div className="space-y-2">
+            {processedRequests.map((request) => (
+              <div
+                key={request._id}
+                className="glass rounded-lg p-3 flex items-center justify-between opacity-60"
+              >
+                <div>
+                  <span className="text-white">{request.name}</span>
+                  <span className="text-gray-500 mx-2">-</span>
+                  <span className="text-gray-400 text-sm">{request.email}</span>
+                </div>
+                <span className={`px-2 py-1 rounded text-xs ${
+                  request.status === "invited"
+                    ? "bg-green-500/20 text-green-400"
+                    : "bg-red-500/20 text-red-400"
+                }`}>
+                  {request.status}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

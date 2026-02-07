@@ -33,10 +33,8 @@ export const sendEmailReply = action({
           <!-- Header -->
           <tr>
             <td align="center" style="padding: 40px 40px 20px 40px;">
-              <h1 style="margin: 0; font-size: 32px; font-weight: 700; background: linear-gradient(135deg, #00d4ff 0%, #8b5cf6 50%, #ff2d92 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
-                Media4U
-              </h1>
-              <p style="margin: 8px 0 0 0; font-size: 14px; color: #94a3b8;">
+              <img src="https://media4u.fun/media4u-logo.png" alt="Media4U" width="120" style="display: block; margin: 0 auto 12px auto;" />
+              <p style="margin: 0; font-size: 14px; color: #94a3b8;">
                 Professional Websites & Immersive VR Experiences
               </p>
             </td>

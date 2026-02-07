@@ -1,12 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
+import { useState } from "react";
 import { motion } from "motion/react";
-import { useQuery } from "convex/react";
+import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "@convex/_generated/api";
 import Link from "next/link";
 import { Section } from "@/components/ui/section";
-import { Star, Globe, ExternalLink, Instagram, Youtube } from "lucide-react";
+import { Star, Globe, ExternalLink, Instagram, Youtube, Send, CheckCircle, Loader2 } from "lucide-react";
 
 export default function CommunityPage() {
   const members = useQuery(api.community.getApprovedMembers);
@@ -27,7 +28,7 @@ export default function CommunityPage() {
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-display font-bold mb-6 text-white">
             VR Multiverse
             <br />
-            <span className="bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
+            <span className="text-white">
               Community
             </span>
           </h1>
@@ -72,7 +73,7 @@ export default function CommunityPage() {
         )}
       </Section>
 
-      {/* CTA Section */}
+      {/* Request Invite Section */}
       <Section className="pb-32">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
@@ -85,32 +86,169 @@ export default function CommunityPage() {
           <div className="absolute inset-0 glass" />
           <div className="absolute inset-0 rounded-3xl border border-white/10" />
 
-          <div className="relative text-center">
-            <h2 className="text-3xl md:text-4xl font-display font-bold mb-6 text-white">
-              Want to Build in the Multiverse?
-            </h2>
-            <p className="text-gray-400 text-lg max-w-2xl mx-auto mb-8">
-              Whether you&apos;re dreaming of a virtual storefront, an immersive experience,
-              or your own corner of the Multiverse - we can help bring your vision to life.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link
-                href="/contact"
-                className="inline-block px-8 py-4 rounded-lg bg-gradient-to-r from-cyan-500 to-purple-600 text-white font-semibold hover:opacity-90 transition-opacity"
-              >
-                Start Your Project
-              </Link>
-              <Link
-                href="/vr"
-                className="inline-block px-8 py-4 rounded-lg bg-white/5 text-white font-semibold hover:bg-white/10 transition-colors border border-white/10"
-              >
-                Explore VR Services
-              </Link>
+          <div className="relative">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl md:text-4xl font-display font-bold mb-4 text-white">
+                Want to Join the Community?
+              </h2>
+              <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+                Request an invite to showcase your VR world in our curated community.
+                We review each request personally.
+              </p>
             </div>
+            <InviteRequestForm />
+          </div>
+        </motion.div>
+      </Section>
+
+      {/* CTA Section */}
+      <Section className="pb-32">
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="text-center"
+        >
+          <h2 className="text-2xl md:text-3xl font-display font-bold mb-4 text-white">
+            Want to Build in the Multiverse?
+          </h2>
+          <p className="text-gray-400 max-w-xl mx-auto mb-6">
+            Whether you&apos;re dreaming of a virtual storefront or an immersive experience - we can help.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link
+              href="/contact"
+              className="inline-block px-6 py-3 rounded-lg bg-cyan-500 text-white font-semibold hover:bg-cyan-600 transition-colors"
+            >
+              Start Your Project
+            </Link>
+            <Link
+              href="/vr"
+              className="inline-block px-6 py-3 rounded-lg bg-white/5 text-white font-semibold hover:bg-white/10 transition-colors border border-white/10"
+            >
+              Explore VR Services
+            </Link>
           </div>
         </motion.div>
       </Section>
     </div>
+  );
+}
+
+// Invite Request Form
+function InviteRequestForm() {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [message, setMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [error, setError] = useState("");
+
+  const requestInvite = useMutation(api.community.requestInvite);
+  const notifyAdmin = useAction(api.community.notifyAdminInviteRequest);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError("");
+
+    if (!name.trim() || !email.trim()) {
+      setError("Please fill in your name and email");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await requestInvite({
+        name: name.trim(),
+        email: email.trim(),
+        message: message.trim() || undefined,
+      });
+
+      // Send admin notification (don't wait for it)
+      notifyAdmin({
+        name: name.trim(),
+        email: email.trim(),
+        message: message.trim() || undefined,
+      }).catch(console.error);
+
+      setIsSubmitted(true);
+    } catch (err: any) {
+      setError(err.message || "Something went wrong. Please try again.");
+    }
+    setIsSubmitting(false);
+  }
+
+  if (isSubmitted) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="text-center py-8"
+      >
+        <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+          <CheckCircle className="w-8 h-8 text-green-400" />
+        </div>
+        <h3 className="text-xl font-semibold text-white mb-2">Request Received!</h3>
+        <p className="text-gray-400">
+          We&apos;ll review your request and get back to you soon.
+        </p>
+      </motion.div>
+    );
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="max-w-md mx-auto space-y-4">
+      <div>
+        <input
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Your name"
+          className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50"
+          required
+        />
+      </div>
+      <div>
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="Your email"
+          className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50"
+          required
+        />
+      </div>
+      <div>
+        <textarea
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          placeholder="Tell us about your VR world (optional)"
+          rows={3}
+          className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 resize-none"
+        />
+      </div>
+      {error && (
+        <p className="text-red-400 text-sm">{error}</p>
+      )}
+      <button
+        type="submit"
+        disabled={isSubmitting}
+        className="w-full py-3 rounded-lg bg-cyan-500 text-white font-semibold hover:bg-cyan-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+      >
+        {isSubmitting ? (
+          <>
+            <Loader2 className="w-5 h-5 animate-spin" />
+            Sending...
+          </>
+        ) : (
+          <>
+            <Send className="w-5 h-5" />
+            Request Invite
+          </>
+        )}
+      </button>
+    </form>
   );
 }
 

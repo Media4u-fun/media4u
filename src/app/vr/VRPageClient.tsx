@@ -3,14 +3,14 @@
 
 import type { ReactElement } from "react";
 import { motion } from "motion/react";
-import { useQuery } from "convex/react";
+import { useQuery, useMutation, useAction } from "convex/react";
 import Link from "next/link";
 import { api } from "@convex/_generated/api";
 import { Section, SectionHeader } from "@/components/ui/section";
 import { Card, CardIcon } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
-import { Home, Globe, Star, Coins, ExternalLink, Instagram, Youtube } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Home, Globe, Star, Coins, ExternalLink, Instagram, Youtube, Send, CheckCircle, Loader2, Sparkles, Users, MapPin, Play } from "lucide-react";
 
 const FEATURES = [
   { label: "Interactive Elements", icon: "touch" },
@@ -112,15 +112,15 @@ function FeatureIcon({ type }: { type: string }): ReactElement | null {
 function VRHeadsetVisual() {
   const [particles, setParticles] = useState<Array<{ top: string; left: string }> | null>(null);
 
-  // Generate particle positions only on client
-  if (typeof window !== "undefined" && !particles) {
+  // Generate particle positions only on client after hydration
+  useEffect(() => {
     setParticles(
       [...Array(6)].map(() => ({
         top: `${20 + Math.random() * 60}%`,
         left: `${20 + Math.random() * 60}%`,
       }))
     );
-  }
+  }, []);
 
   return (
     <div className="relative w-full aspect-square max-w-lg mx-auto">
@@ -223,6 +223,7 @@ function VRHeadsetVisual() {
 export default function VRPageClient() {
   const experiences = useQuery(api.vr.getAllExperiences);
   const communityMembers = useQuery(api.community.getApprovedMembers);
+  const communityStats = useQuery(api.community.getCommunityStats);
   const [filterType, setFilterType] = useState<"all" | "property" | "destination">("all");
 
   const filteredExperiences = experiences
@@ -231,29 +232,84 @@ export default function VRPageClient() {
 
   return (
     <div className="mesh-bg min-h-screen pt-24">
-      {/* Hero Section */}
+      {/* Hero Section with Invite Request */}
       <Section className="pt-12 md:pt-20">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-16"
-        >
-          <span className="inline-block mb-4 text-xs font-semibold tracking-[0.2em] uppercase text-cyan-400">
-            Welcome to the
-          </span>
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-display font-bold mb-6 text-white">
-            VR Multiverse
-            <br />
-            <span className="bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
-              Community
+        <div className="grid lg:grid-cols-2 gap-12 items-center">
+          {/* Left: Welcome Message */}
+          <motion.div
+            initial={{ opacity: 0, x: -30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            <span className="inline-flex items-center gap-2 mb-4 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/30">
+              <Sparkles className="w-4 h-4 text-cyan-400" />
+              <span className="text-sm font-medium text-cyan-400">Invite-Only Community</span>
             </span>
-          </h1>
-          <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-            A curated community of trusted creators building meaningful spaces in the virtual world. Explore VR experiences and connect with the people shaping the Multiverse.
-          </p>
-        </motion.div>
+            <h1 className="text-4xl md:text-5xl font-display font-bold mb-6 text-white">
+              Join the VR Multiverse Community
+            </h1>
+            <p className="text-gray-400 text-lg mb-6">
+              Hey! I&apos;m Devland, and I&apos;m building something special here - a curated community of creators who are shaping the future of virtual experiences.
+            </p>
+            <p className="text-gray-400 mb-6">
+              This isn&apos;t just another directory. It&apos;s a hand-picked showcase of trusted builders, dreamers, and innovators. If you&apos;re creating meaningful spaces in the Multiverse, I&apos;d love to feature your work.
+            </p>
+            <div className="flex items-center gap-4 text-sm text-gray-500">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                <span>Personally reviewed</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-cyan-500"></div>
+                <span>Free to join</span>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Right: Invite Request Form */}
+          <motion.div
+            initial={{ opacity: 0, x: 30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+          >
+            <InviteRequestForm />
+          </motion.div>
+        </div>
       </Section>
+
+      {/* Community Stats Banner */}
+      {communityStats && (communityStats.totalWorlds > 0 || communityStats.totalCreators > 0) && (
+        <Section className="py-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            className="flex flex-wrap justify-center gap-8 md:gap-16"
+          >
+            <div className="text-center">
+              <div className="flex items-center justify-center gap-2 mb-1">
+                <MapPin className="w-5 h-5 text-cyan-400" />
+                <span className="text-3xl font-display font-bold text-white">{communityStats.totalWorlds}</span>
+              </div>
+              <p className="text-sm text-gray-400">Virtual Worlds</p>
+            </div>
+            <div className="text-center">
+              <div className="flex items-center justify-center gap-2 mb-1">
+                <Users className="w-5 h-5 text-purple-400" />
+                <span className="text-3xl font-display font-bold text-white">{communityStats.totalCreators}</span>
+              </div>
+              <p className="text-sm text-gray-400">Creators</p>
+            </div>
+            <div className="text-center">
+              <div className="flex items-center justify-center gap-2 mb-1">
+                <Star className="w-5 h-5 text-yellow-400" />
+                <span className="text-3xl font-display font-bold text-white">{communityStats.featuredCount}</span>
+              </div>
+              <p className="text-sm text-gray-400">Featured</p>
+            </div>
+          </motion.div>
+        </Section>
+      )}
 
       {/* Featured Experiences Section - MOVED TO TOP */}
       {experiences && experiences.length > 0 && (
@@ -520,6 +576,17 @@ export default function VRPageClient() {
 
                     {/* Links */}
                     <div className="flex items-center gap-3 flex-wrap">
+                      {member.videoUrl && (
+                        <a
+                          href={member.videoUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-purple-500/20 text-purple-400 text-sm font-medium hover:bg-purple-500/30 transition-colors border border-purple-500/30"
+                        >
+                          <Play className="w-4 h-4" />
+                          Video Tour
+                        </a>
+                      )}
                       {member.multiverseUrl && (
                         <a
                           href={member.multiverseUrl}
@@ -628,6 +695,130 @@ export default function VRPageClient() {
           </div>
         </motion.div>
       </Section>
+    </div>
+  );
+}
+
+// Invite Request Form Component
+function InviteRequestForm() {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [message, setMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [error, setError] = useState("");
+
+  const requestInvite = useMutation(api.community.requestInvite);
+  const notifyAdmin = useAction(api.community.notifyAdminInviteRequest);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError("");
+
+    if (!name.trim() || !email.trim()) {
+      setError("Please fill in your name and email");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await requestInvite({
+        name: name.trim(),
+        email: email.trim(),
+        message: message.trim() || undefined,
+      });
+
+      // Send admin notification
+      notifyAdmin({
+        name: name.trim(),
+        email: email.trim(),
+        message: message.trim() || undefined,
+      }).catch(console.error);
+
+      setIsSubmitted(true);
+    } catch (err: any) {
+      setError(err.message || "Something went wrong. Please try again.");
+    }
+    setIsSubmitting(false);
+  }
+
+  if (isSubmitted) {
+    return (
+      <div className="glass-elevated rounded-2xl p-8 text-center">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+        >
+          <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <CheckCircle className="w-8 h-8 text-green-400" />
+          </div>
+          <h3 className="text-xl font-semibold text-white mb-2">Request Received!</h3>
+          <p className="text-gray-400">
+            Thanks for your interest! I&apos;ll review your request and get back to you soon with an invite.
+          </p>
+        </motion.div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="glass-elevated rounded-2xl p-8">
+      <h3 className="text-xl font-semibold text-white mb-2">Request an Invite</h3>
+      <p className="text-gray-400 text-sm mb-6">
+        Tell me a bit about yourself and your VR world. I&apos;ll send you an invite to submit your showcase.
+      </p>
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Your name"
+            className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50"
+            required
+          />
+        </div>
+        <div>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Your email"
+            className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50"
+            required
+          />
+        </div>
+        <div>
+          <textarea
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            placeholder="Tell me about your VR world or project..."
+            rows={3}
+            className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 resize-none"
+          />
+        </div>
+        {error && (
+          <p className="text-red-400 text-sm">{error}</p>
+        )}
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="w-full py-3 rounded-lg bg-cyan-500 text-white font-semibold hover:bg-cyan-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+        >
+          {isSubmitting ? (
+            <>
+              <Loader2 className="w-5 h-5 animate-spin" />
+              Sending...
+            </>
+          ) : (
+            <>
+              <Send className="w-5 h-5" />
+              Request Invite
+            </>
+          )}
+        </button>
+      </form>
     </div>
   );
 }

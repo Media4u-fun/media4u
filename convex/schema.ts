@@ -320,6 +320,7 @@ export default defineSchema({
     worldName: v.string(), // Name of their VR world/project
     description: v.string(), // Short description
     images: v.array(v.string()), // Gallery images (URLs)
+    videoUrl: v.optional(v.string()), // Video tour URL (YouTube, etc.)
     multiverseUrl: v.optional(v.string()), // Link to their VR world
     websiteUrl: v.optional(v.string()), // Their website
     socialLinks: v.optional(v.object({
@@ -337,6 +338,21 @@ export default defineSchema({
     .index("by_inviteId", ["inviteId"])
     .index("by_approved", ["approved"])
     .index("by_featured", ["featured"]),
+
+  // Community Invite Requests (public requests for invites)
+  communityInviteRequests: defineTable({
+    name: v.string(),
+    email: v.string(),
+    message: v.optional(v.string()), // Why they want to join
+    status: v.union(
+      v.literal("pending"),   // Waiting for admin review
+      v.literal("invited"),   // Admin sent them an invite
+      v.literal("declined")   // Admin declined
+    ),
+    createdAt: v.number(),
+  })
+    .index("by_email", ["email"])
+    .index("by_status", ["status"]),
 
   // Site Settings (global configuration)
   siteSettings: defineTable({

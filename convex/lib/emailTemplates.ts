@@ -75,10 +75,8 @@ function emailHeader(): string {
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
       <tr>
         <td align="center">
-          <h1 style="margin: 0; font-size: 32px; font-weight: 700; background: linear-gradient(135deg, ${COLORS.cyan} 0%, ${COLORS.purple} 50%, ${COLORS.pink} 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-family: 'Helvetica Neue', Arial, sans-serif;">
-            Media4U
-          </h1>
-          <p style="margin: 8px 0 0 0; font-size: 14px; color: ${COLORS.textMuted};">
+          <img src="https://media4u.fun/media4u-logo.png" alt="Media4U" width="120" style="display: block; margin: 0 auto 12px auto;" />
+          <p style="margin: 0; font-size: 14px; color: ${COLORS.textMuted};">
             Professional Websites & Immersive VR Experiences
           </p>
         </td>
