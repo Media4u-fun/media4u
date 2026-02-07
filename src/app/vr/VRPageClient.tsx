@@ -249,12 +249,12 @@ export default function VRPageClient() {
               Join the VR Multiverse Community
             </h1>
             <p className="text-gray-400 text-lg mb-6">
-              Hey! I&apos;m Devland, and I&apos;m building something special here - a curated community of creators who are shaping the future of virtual experiences.
+              Hey! I&apos;m MrHarmony, and I&apos;m building something special here - a curated community of creators who are shaping the future of virtual experiences.
             </p>
             <p className="text-gray-400 mb-6">
               This isn&apos;t just another directory. It&apos;s a hand-picked showcase of trusted builders, dreamers, and innovators. If you&apos;re creating meaningful spaces in the Multiverse, I&apos;d love to feature your work.
             </p>
-            <div className="flex items-center gap-4 text-sm text-gray-500">
+            <div className="flex items-center gap-4 text-sm text-gray-500 mb-6">
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-green-500"></div>
                 <span>Personally reviewed</span>
@@ -263,6 +263,11 @@ export default function VRPageClient() {
                 <div className="w-2 h-2 rounded-full bg-cyan-500"></div>
                 <span>Free to join</span>
               </div>
+            </div>
+            <div className="p-4 rounded-lg bg-white/5 border border-white/10">
+              <p className="text-sm text-gray-400">
+                <span className="text-cyan-400 font-medium">What you&apos;ll need:</span> A screenshot of your world, your world link, and a brief description. Optional: a video tour link.
+              </p>
             </div>
           </motion.div>
 
