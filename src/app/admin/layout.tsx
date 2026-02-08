@@ -53,9 +53,9 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   const quoteRequests = useQuery(api.quoteRequests.getAllQuoteRequests, {});
   const communityRequests = useQuery(api.community.getInviteRequests);
 
-  // Calculate unread/new counts
+  // Calculate unread/new counts (only truly new items, not read ones)
   const counts: Record<string, number> = {
-    contacts: contacts?.filter((c) => c.status !== "replied").length || 0,
+    contacts: contacts?.filter((c) => c.status === "new").length || 0,
     projects: projectRequests?.filter((p) => p.status === "new").length || 0,
     quotes: quoteRequests?.filter((q) => q.status === "new").length || 0,
     community: communityRequests?.filter((r) => r.status === "pending").length || 0,
