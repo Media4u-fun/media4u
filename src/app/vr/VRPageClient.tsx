@@ -744,23 +744,32 @@ export default function VRPageClient() {
                   {selectedMember.images.length > 1 && (
                     <>
                       <button
-                        onClick={() => setCurrentImageIndex((prev) => (prev === 0 ? selectedMember.images.length - 1 : prev - 1))}
-                        className="absolute left-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setCurrentImageIndex((prev) => (prev === 0 ? selectedMember.images.length - 1 : prev - 1));
+                        }}
+                        className="absolute left-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors z-10"
                       >
                         <ChevronLeft className="w-6 h-6" />
                       </button>
                       <button
-                        onClick={() => setCurrentImageIndex((prev) => (prev === selectedMember.images.length - 1 ? 0 : prev + 1))}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setCurrentImageIndex((prev) => (prev === selectedMember.images.length - 1 ? 0 : prev + 1));
+                        }}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors z-10"
                       >
                         <ChevronRight className="w-6 h-6" />
                       </button>
                       {/* Image Dots */}
-                      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+                      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
                         {selectedMember.images.map((_: any, idx: number) => (
                           <button
                             key={idx}
-                            onClick={() => setCurrentImageIndex(idx)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setCurrentImageIndex(idx);
+                            }}
                             className={`w-2 h-2 rounded-full transition-colors ${
                               idx === currentImageIndex ? "bg-cyan-400" : "bg-white/50 hover:bg-white/70"
                             }`}

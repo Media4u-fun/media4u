@@ -356,13 +356,22 @@ export default defineSchema({
 
   // Site Settings (global configuration)
   siteSettings: defineTable({
-    key: v.string(), // e.g., "social_media", "contact_info"
+    key: v.string(), // e.g., "site_config"
+    // Company Info
+    companyName: v.optional(v.string()),
+    contactEmail: v.optional(v.string()),
+    phoneNumber: v.optional(v.string()),
+    // Social Media
     instagramUrl: v.optional(v.string()),
     facebookUrl: v.optional(v.string()),
     tiktokUrl: v.optional(v.string()),
     linkedinUrl: v.optional(v.string()),
-    contactEmail: v.optional(v.string()),
+    twitterUrl: v.optional(v.string()),
+    youtubeUrl: v.optional(v.string()),
     whatsappNumber: v.optional(v.string()),
+    // System Settings
+    maintenanceMode: v.optional(v.boolean()),
+    emailNotifications: v.optional(v.boolean()),
     updatedAt: v.number(),
   })
     .index("by_key", ["key"]),

@@ -303,6 +303,49 @@ export const deleteMember = mutation({
   },
 });
 
+// Update a community member (for editing typos, etc.)
+export const updateMember = mutation({
+  args: {
+    id: v.id("communityMembers"),
+    name: v.optional(v.string()),
+    worldName: v.optional(v.string()),
+    description: v.optional(v.string()),
+    images: v.optional(v.array(v.string())),
+    videoUrl: v.optional(v.string()),
+    multiverseUrl: v.optional(v.string()),
+    websiteUrl: v.optional(v.string()),
+    socialLinks: v.optional(v.object({
+      instagram: v.optional(v.string()),
+      youtube: v.optional(v.string()),
+      tiktok: v.optional(v.string()),
+      twitter: v.optional(v.string()),
+    })),
+  },
+  handler: async (ctx, args) => {
+    await requireAdmin(ctx);
+
+    const member = await ctx.db.get(args.id);
+    if (!member) throw new Error("Member not found");
+
+    const updates: Record<string, unknown> = {
+      updatedAt: Date.now(),
+    };
+
+    if (args.name !== undefined) updates.name = args.name;
+    if (args.worldName !== undefined) updates.worldName = args.worldName;
+    if (args.description !== undefined) updates.description = args.description;
+    if (args.images !== undefined) updates.images = args.images;
+    if (args.videoUrl !== undefined) updates.videoUrl = args.videoUrl || undefined;
+    if (args.multiverseUrl !== undefined) updates.multiverseUrl = args.multiverseUrl || undefined;
+    if (args.websiteUrl !== undefined) updates.websiteUrl = args.websiteUrl || undefined;
+    if (args.socialLinks !== undefined) updates.socialLinks = args.socialLinks;
+
+    await ctx.db.patch(args.id, updates);
+
+    return args.id;
+  },
+});
+
 // ============================================
 // PUBLIC: Display
 // ============================================

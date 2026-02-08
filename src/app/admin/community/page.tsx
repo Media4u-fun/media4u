@@ -21,6 +21,7 @@ import {
   UserPlus,
   X,
   Newspaper,
+  Pencil,
 } from "lucide-react";
 
 type TabType = "requests" | "invites" | "pending" | "members";
@@ -486,6 +487,7 @@ function MembersTab() {
   const addToNewsletter = useMutation(api.community.addMemberToNewsletter);
   const addAllToNewsletter = useMutation(api.community.addAllMembersToNewsletter);
   const [isAddingAll, setIsAddingAll] = useState(false);
+  const [editingMember, setEditingMember] = useState<any>(null);
 
   async function handleToggleFeatured(id: Id<"communityMembers">) {
     await toggleFeatured({ id });
@@ -579,6 +581,13 @@ function MembersTab() {
                     {member.featured ? "Featured" : "Feature"}
                   </button>
                   <button
+                    onClick={() => setEditingMember(member)}
+                    className="px-3 py-2 rounded-lg bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 transition-all border border-purple-500/30"
+                    title="Edit Member"
+                  >
+                    <Pencil className="w-4 h-4" />
+                  </button>
+                  <button
                     onClick={() => handleAddToNewsletter(member._id)}
                     className="px-3 py-2 rounded-lg bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500/20 transition-all border border-cyan-500/30"
                     title="Add to Newsletter"
@@ -596,6 +605,14 @@ function MembersTab() {
             </div>
           ))}
         </div>
+      )}
+
+      {/* Edit Modal */}
+      {editingMember && (
+        <EditMemberModal
+          member={editingMember}
+          onClose={() => setEditingMember(null)}
+        />
       )}
     </div>
   );
@@ -713,6 +730,208 @@ function InviteModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void
               <>
                 <Send className="w-4 h-4" />
                 Send Invite
+              </>
+            )}
+          </button>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
+// ============================================
+// EDIT MEMBER MODAL
+// ============================================
+
+function EditMemberModal({ member, onClose }: { member: any; onClose: () => void }) {
+  const [name, setName] = useState(member.name || "");
+  const [worldName, setWorldName] = useState(member.worldName || "");
+  const [description, setDescription] = useState(member.description || "");
+  const [videoUrl, setVideoUrl] = useState(member.videoUrl || "");
+  const [multiverseUrl, setMultiverseUrl] = useState(member.multiverseUrl || "");
+  const [websiteUrl, setWebsiteUrl] = useState(member.websiteUrl || "");
+  const [instagram, setInstagram] = useState(member.socialLinks?.instagram || "");
+  const [youtube, setYoutube] = useState(member.socialLinks?.youtube || "");
+  const [tiktok, setTiktok] = useState(member.socialLinks?.tiktok || "");
+  const [isSaving, setIsSaving] = useState(false);
+
+  const updateMember = useMutation(api.community.updateMember);
+
+  async function handleSave() {
+    if (!name.trim() || !worldName.trim() || !description.trim()) {
+      alert("Name, World Name, and Description are required");
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      await updateMember({
+        id: member._id,
+        name: name.trim(),
+        worldName: worldName.trim(),
+        description: description.trim(),
+        videoUrl: videoUrl.trim() || undefined,
+        multiverseUrl: multiverseUrl.trim() || undefined,
+        websiteUrl: websiteUrl.trim() || undefined,
+        socialLinks: {
+          instagram: instagram.trim() || undefined,
+          youtube: youtube.trim() || undefined,
+          tiktok: tiktok.trim() || undefined,
+        },
+      });
+      alert("Member updated successfully!");
+      onClose();
+    } catch (error: any) {
+      alert(error.message || "Failed to update member");
+    }
+    setIsSaving(false);
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="relative z-10 w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-gray-900 rounded-2xl shadow-2xl border border-white/10 p-6"
+      >
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-semibold text-white">Edit Community Member</h2>
+          <button
+            onClick={onClose}
+            className="p-2 rounded-lg bg-white/5 text-gray-400 hover:text-white"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="space-y-4">
+          {/* Basic Info */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-1">Creator Name</label>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="w-full px-4 py-2.5 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-1">World Name</label>
+              <input
+                type="text"
+                value={worldName}
+                onChange={(e) => setWorldName(e.target.value)}
+                className="w-full px-4 py-2.5 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50"
+              />
+            </div>
+          </div>
+
+          {/* Description */}
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1">Description</label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={4}
+              className="w-full px-4 py-2.5 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 resize-none"
+            />
+          </div>
+
+          {/* Links */}
+          <div className="border-t border-white/10 pt-4">
+            <h3 className="text-sm font-medium text-gray-300 mb-3">Links</h3>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">Multiverse URL</label>
+                <input
+                  type="url"
+                  value={multiverseUrl}
+                  onChange={(e) => setMultiverseUrl(e.target.value)}
+                  placeholder="https://..."
+                  className="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">Video Tour URL</label>
+                <input
+                  type="url"
+                  value={videoUrl}
+                  onChange={(e) => setVideoUrl(e.target.value)}
+                  placeholder="https://youtube.com/..."
+                  className="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">Website URL</label>
+                <input
+                  type="url"
+                  value={websiteUrl}
+                  onChange={(e) => setWebsiteUrl(e.target.value)}
+                  placeholder="https://..."
+                  className="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 text-sm"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Social Links */}
+          <div className="border-t border-white/10 pt-4">
+            <h3 className="text-sm font-medium text-gray-300 mb-3">Social Links</h3>
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">Instagram</label>
+                <input
+                  type="url"
+                  value={instagram}
+                  onChange={(e) => setInstagram(e.target.value)}
+                  placeholder="https://instagram.com/..."
+                  className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">YouTube</label>
+                <input
+                  type="url"
+                  value={youtube}
+                  onChange={(e) => setYoutube(e.target.value)}
+                  placeholder="https://youtube.com/..."
+                  className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">TikTok</label>
+                <input
+                  type="url"
+                  value={tiktok}
+                  onChange={(e) => setTiktok(e.target.value)}
+                  placeholder="https://tiktok.com/..."
+                  className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 text-sm"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex gap-3 mt-6">
+          <button
+            onClick={onClose}
+            className="flex-1 px-4 py-2.5 rounded-lg bg-white/5 text-gray-400 hover:text-white border border-white/10 font-medium"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={isSaving}
+            className="flex-1 px-4 py-2.5 rounded-lg bg-purple-500 text-white hover:bg-purple-600 font-medium disabled:opacity-50 flex items-center justify-center gap-2"
+          >
+            {isSaving ? (
+              "Saving..."
+            ) : (
+              <>
+                <CheckCircle className="w-4 h-4" />
+                Save Changes
               </>
             )}
           </button>

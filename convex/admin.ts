@@ -1,23 +1,45 @@
 import { query, mutation, internalMutation } from "./_generated/server";
 import { requireAdmin } from "./auth";
 import { v } from "convex/values";
+import { components } from "./_generated/api";
 
 export const getAllUsers = query({
   args: {},
   handler: async (ctx) => {
     await requireAdmin(ctx);
 
-    // Get all user roles - this is our source of truth for managed users
+    // Get all user roles
     const userRoles = await ctx.db.query("userRoles").collect();
 
-    // Return simplified user info based on userRoles
-    // We can't easily access Better Auth user data, so just show userId and role
-    return userRoles.map((roleRecord) => ({
-      _id: roleRecord.userId,
-      name: `User ${roleRecord.userId.slice(-8)}`, // Show last 8 chars of ID
-      email: roleRecord.userId, // Show full userId as "email" for now
-      role: roleRecord.role,
-    }));
+    // Fetch user details from Better Auth for each user with a role
+    const usersWithDetails = await Promise.all(
+      userRoles.map(async (roleRecord) => {
+        try {
+          // Query Better Auth user table to get name and email
+          const authUser = await ctx.runQuery(components.betterAuth.adapter.findOne, {
+            model: "user",
+            where: [{ field: "id", value: roleRecord.userId, operator: "eq" }],
+          });
+
+          return {
+            _id: roleRecord.userId,
+            name: authUser?.name || `User ${roleRecord.userId.slice(-8)}`,
+            email: authUser?.email || roleRecord.userId,
+            role: roleRecord.role,
+          };
+        } catch {
+          // Fallback if user not found in Better Auth
+          return {
+            _id: roleRecord.userId,
+            name: `User ${roleRecord.userId.slice(-8)}`,
+            email: roleRecord.userId,
+            role: roleRecord.role,
+          };
+        }
+      })
+    );
+
+    return usersWithDetails;
   },
 });
 
