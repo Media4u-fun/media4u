@@ -380,42 +380,47 @@ export const requestInvite = mutation({
     message: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const email = args.email.toLowerCase().trim();
+    try {
+      const email = args.email.toLowerCase().trim();
 
-    // Check if already requested
-    const existing = await ctx.db
-      .query("communityInviteRequests")
-      .withIndex("by_email", (q) => q.eq("email", email))
-      .first();
+      // Check if already requested
+      const existing = await ctx.db
+        .query("communityInviteRequests")
+        .withIndex("by_email", (q) => q.eq("email", email))
+        .first();
 
-    if (existing) {
-      if (existing.status === "pending") {
-        throw new Error("You already have a pending invite request");
+      if (existing) {
+        if (existing.status === "pending") {
+          throw new Error("You already have a pending invite request");
+        }
+        if (existing.status === "invited") {
+          throw new Error("You have already been invited - check your email!");
+        }
       }
-      if (existing.status === "invited") {
-        throw new Error("You have already been invited - check your email!");
+
+      // Check if they already have an invite
+      const existingInvite = await ctx.db
+        .query("communityInvites")
+        .withIndex("by_email", (q) => q.eq("email", email))
+        .first();
+
+      if (existingInvite) {
+        throw new Error("You already have an invite - check your email!");
       }
+
+      const requestId = await ctx.db.insert("communityInviteRequests", {
+        name: args.name.trim(),
+        email,
+        message: args.message?.trim() || undefined,
+        status: "pending",
+        createdAt: Date.now(),
+      });
+
+      return requestId;
+    } catch (error) {
+      console.error("requestInvite error:", error);
+      throw error;
     }
-
-    // Check if they already have an invite
-    const existingInvite = await ctx.db
-      .query("communityInvites")
-      .withIndex("by_email", (q) => q.eq("email", email))
-      .first();
-
-    if (existingInvite) {
-      throw new Error("You already have an invite - check your email!");
-    }
-
-    const requestId = await ctx.db.insert("communityInviteRequests", {
-      name: args.name.trim(),
-      email,
-      message: args.message?.trim(),
-      status: "pending",
-      createdAt: Date.now(),
-    });
-
-    return requestId;
   },
 });
 
