@@ -1,13 +1,40 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, useMotionValue, useSpring } from "motion/react";
 import { Eye, MousePointer2 } from "lucide-react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
+
+// Generate data point positions (called once on client)
+function generateDataPoints() {
+  return [...Array(20)].map((_, i) => {
+    const angle = (i * 360) / 20;
+    const radius = 30 + Math.random() * 30;
+    const depth = Math.random() * 60 - 30;
+    const duration = 2 + Math.random() * 2;
+    return {
+      angle,
+      radius,
+      depth,
+      duration,
+      left: 50 + Math.cos((angle * Math.PI) / 180) * radius,
+      top: 50 + Math.sin((angle * Math.PI) / 180) * radius,
+      color: i % 3 === 0 ? "#00d4ff" : i % 3 === 1 ? "#8b5cf6" : "#ff2d92",
+    };
+  });
+}
 
 export function VRSphere360() {
+  const router = useRouter();
   const [isDragging, setIsDragging] = useState(false);
   const [rotation, setRotation] = useState({ x: 0, y: 0 });
+  const [dataPoints, setDataPoints] = useState<ReturnType<typeof generateDataPoints> | null>(null);
+  const autoRotateRef = useRef<number>(0);
+
+  // Generate data points only on client to avoid hydration mismatch
+  useEffect(() => {
+    setDataPoints(generateDataPoints());
+  }, []);
 
   const x = useMotionValue(0);
   const y = useMotionValue(0);
@@ -16,13 +43,33 @@ export function VRSphere360() {
   const rotateX = useSpring(y, springConfig);
   const rotateY = useSpring(x, springConfig);
 
+  // Auto-spin effect when not dragging
+  useEffect(() => {
+    if (isDragging) return;
+
+    const interval = setInterval(() => {
+      autoRotateRef.current += 0.3;
+      x.set(autoRotateRef.current);
+      setRotation((prev) => ({ ...prev, y: autoRotateRef.current }));
+    }, 50);
+
+    return () => clearInterval(interval);
+  }, [isDragging, x]);
+
   const handleDrag = (_event: MouseEvent | TouchEvent | PointerEvent, info: { offset: { x: number; y: number } }) => {
-    const newRotationY = info.offset.x * 0.5;
+    const newRotationY = info.offset.x * 0.5 + autoRotateRef.current;
     const newRotationX = -info.offset.y * 0.3;
 
     x.set(newRotationY);
     y.set(newRotationX);
     setRotation({ x: newRotationX, y: newRotationY });
+    autoRotateRef.current = newRotationY;
+  };
+
+  const handleEnterVR = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    router.push("/vr");
   };
 
   return (
@@ -144,34 +191,28 @@ export function VRSphere360() {
           </svg>
 
           {/* Floating data points - representing VR space elements */}
-          {[...Array(20)].map((_, i) => {
-            const angle = (i * 360) / 20;
-            const radius = 30 + Math.random() * 30;
-            const depth = Math.random() * 60 - 30;
-
-            return (
-              <motion.div
-                key={i}
-                className="absolute w-2 h-2 rounded-full"
-                style={{
-                  left: `${50 + Math.cos((angle * Math.PI) / 180) * radius}%`,
-                  top: `${50 + Math.sin((angle * Math.PI) / 180) * radius}%`,
-                  background: i % 3 === 0 ? "#00d4ff" : i % 3 === 1 ? "#8b5cf6" : "#ff2d92",
-                  transform: `translateZ(${depth}px)`,
-                  boxShadow: `0 0 10px ${i % 3 === 0 ? "#00d4ff" : i % 3 === 1 ? "#8b5cf6" : "#ff2d92"}`,
-                }}
-                animate={{
-                  scale: [0.8, 1.5, 0.8],
-                  opacity: [0.3, 1, 0.3],
-                }}
-                transition={{
-                  duration: 2 + Math.random() * 2,
-                  repeat: Infinity,
-                  delay: i * 0.1,
-                }}
-              />
-            );
-          })}
+          {dataPoints && dataPoints.map((point, i) => (
+            <motion.div
+              key={i}
+              className="absolute w-2 h-2 rounded-full"
+              style={{
+                left: `${point.left}%`,
+                top: `${point.top}%`,
+                background: point.color,
+                transform: `translateZ(${point.depth}px)`,
+                boxShadow: `0 0 10px ${point.color}`,
+              }}
+              animate={{
+                scale: [0.8, 1.5, 0.8],
+                opacity: [0.3, 1, 0.3],
+              }}
+              transition={{
+                duration: point.duration,
+                repeat: Infinity,
+                delay: i * 0.1,
+              }}
+            />
+          ))}
 
           {/* Scanning beam effect */}
           <motion.div
@@ -211,28 +252,27 @@ export function VRSphere360() {
         >
           <div className="relative">
             {/* Center button */}
-            <Link href="/vr" className="relative z-30">
-              <motion.div
-                className="relative px-8 py-4 rounded-full bg-gradient-to-r from-cyan-500 via-purple-500 to-magenta-500 text-white font-semibold text-lg shadow-2xl cursor-pointer flex items-center justify-center"
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
-                animate={{
-                  boxShadow: [
-                    "0 0 20px rgba(0,212,255,0.5)",
-                    "0 0 40px rgba(139,92,246,0.7)",
-                    "0 0 20px rgba(255,45,146,0.5)",
-                    "0 0 20px rgba(0,212,255,0.5)",
-                  ],
-                }}
-                transition={{
-                  duration: 3,
-                  repeat: Infinity,
-                }}
-              >
-                <Eye className="w-5 h-5 inline-block mr-2" />
-                Enter VR
-              </motion.div>
-            </Link>
+            <motion.button
+              onClick={handleEnterVR}
+              className="relative z-30 px-8 py-4 rounded-full bg-gradient-to-r from-cyan-500 via-purple-500 to-magenta-500 text-white font-semibold text-lg shadow-2xl cursor-pointer flex items-center justify-center"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+              animate={{
+                boxShadow: [
+                  "0 0 20px rgba(0,212,255,0.5)",
+                  "0 0 40px rgba(139,92,246,0.7)",
+                  "0 0 20px rgba(255,45,146,0.5)",
+                  "0 0 20px rgba(0,212,255,0.5)",
+                ],
+              }}
+              transition={{
+                duration: 3,
+                repeat: Infinity,
+              }}
+            >
+              <Eye className="w-5 h-5 inline-block mr-2" />
+              Enter VR
+            </motion.button>
 
             {/* Orbital rings around button */}
             {[...Array(3)].map((_, i) => (
