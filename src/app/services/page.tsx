@@ -319,7 +319,7 @@ export default function ServicesPage(): React.ReactNode {
           tag="What We Do"
           title="Websites First. VR When You're "
           highlight="Ready to Innovate"
-          description="We're a full-service creative studio. Start with a professional website, add branding and media assets, and when you're ready-extend your presence into immersive VR environments."
+          description="We're a full-service creative studio. Start with a professional website, add branding and media assets, and when you're ready - extend your presence into immersive VR environments."
         />
       </Section>
 

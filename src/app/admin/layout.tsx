@@ -4,6 +4,8 @@ import { useEffect, ReactNode } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { motion } from "motion/react";
 import { useAuth } from "@/components/AuthContext";
+import { useQuery } from "convex/react";
+import { api } from "@convex/_generated/api";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -24,26 +26,40 @@ import {
 } from "lucide-react";
 
 const adminNavItems = [
-  { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/admin/orders", label: "Orders", icon: CreditCard },
-  { href: "/admin/subscriptions", label: "Subscriptions", icon: RefreshCw },
-  { href: "/admin/contacts", label: "Contact Forms", icon: Mail },
-  { href: "/admin/project-requests", label: "Project Requests", icon: ClipboardList },
-  { href: "/admin/quotes", label: "Quote Requests", icon: MessageSquare },
-  { href: "/admin/leads", label: "Leads", icon: Users },
-  { href: "/admin/projects", label: "Projects", icon: Briefcase },
-  { href: "/admin/newsletter", label: "Newsletter", icon: Inbox },
-  { href: "/admin/blog", label: "Blog Posts", icon: FileText },
-  { href: "/admin/portfolio", label: "Portfolio", icon: ImageIcon },
-  { href: "/admin/vr", label: "VR Experiences", icon: Glasses },
-  { href: "/admin/community", label: "Community", icon: Globe },
-  { href: "/admin/settings", label: "Settings", icon: Settings },
+  { href: "/admin", label: "Dashboard", icon: LayoutDashboard, countKey: null },
+  { href: "/admin/orders", label: "Orders", icon: CreditCard, countKey: null },
+  { href: "/admin/subscriptions", label: "Subscriptions", icon: RefreshCw, countKey: null },
+  { href: "/admin/contacts", label: "Contact Forms", icon: Mail, countKey: "contacts" },
+  { href: "/admin/project-requests", label: "Project Requests", icon: ClipboardList, countKey: "projects" },
+  { href: "/admin/quotes", label: "Quote Requests", icon: MessageSquare, countKey: "quotes" },
+  { href: "/admin/leads", label: "Leads", icon: Users, countKey: null },
+  { href: "/admin/projects", label: "Projects", icon: Briefcase, countKey: null },
+  { href: "/admin/newsletter", label: "Newsletter", icon: Inbox, countKey: null },
+  { href: "/admin/blog", label: "Blog Posts", icon: FileText, countKey: null },
+  { href: "/admin/portfolio", label: "Portfolio", icon: ImageIcon, countKey: null },
+  { href: "/admin/vr", label: "VR Experiences", icon: Glasses, countKey: null },
+  { href: "/admin/community", label: "Community", icon: Globe, countKey: "community" },
+  { href: "/admin/settings", label: "Settings", icon: Settings, countKey: null },
 ];
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   const { isAuthenticated, isLoading, isAdmin, signOut } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
+
+  // Fetch notification counts
+  const contacts = useQuery(api.contactSubmissions.getContactSubmissions, {});
+  const projectRequests = useQuery(api.projectRequests.getProjectRequests, {});
+  const quoteRequests = useQuery(api.quoteRequests.getAllQuoteRequests, {});
+  const communityRequests = useQuery(api.community.getInviteRequests);
+
+  // Calculate unread/new counts
+  const counts: Record<string, number> = {
+    contacts: contacts?.filter((c) => c.status !== "replied").length || 0,
+    projects: projectRequests?.filter((p) => p.status === "new").length || 0,
+    quotes: quoteRequests?.filter((q) => q.status === "new").length || 0,
+    community: communityRequests?.filter((r) => r.status === "pending").length || 0,
+  };
 
   useEffect(() => {
     if (isLoading) return;
@@ -102,6 +118,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         <nav className="space-y-2 mb-12">
           {adminNavItems.map((item) => {
             const isActive = pathname === item.href;
+            const count = item.countKey ? counts[item.countKey] : 0;
             return (
               <Link
                 key={item.href}
@@ -113,7 +130,12 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                 }`}
               >
                 <item.icon className="w-5 h-5" />
-                <span className="font-medium">{item.label}</span>
+                <span className="font-medium flex-1">{item.label}</span>
+                {count > 0 && (
+                  <span className="min-w-[20px] h-5 px-1.5 rounded-full bg-red-500 text-white text-xs font-bold flex items-center justify-center">
+                    {count > 99 ? "99+" : count}
+                  </span>
+                )}
               </Link>
             );
           })}

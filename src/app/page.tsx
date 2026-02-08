@@ -156,7 +156,7 @@ function ServicesSection() {
           tag="Our Core Services"
           title="Web Design, Branding, & Immersive "
           highlight="Experiences"
-          description="From professional websites to VR storefronts-we build digital solutions that work together to strengthen your brand."
+          description="From professional websites to VR storefronts - we build digital solutions that work together to strengthen your brand."
         />
       </AnimatedSection>
 
