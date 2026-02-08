@@ -20,6 +20,7 @@ import {
   Globe,
   UserPlus,
   X,
+  Newspaper,
 } from "lucide-react";
 
 type TabType = "requests" | "invites" | "pending" | "members";
@@ -482,6 +483,9 @@ function MembersTab() {
   const members = useQuery(api.community.getAllMembers);
   const toggleFeatured = useMutation(api.community.toggleFeatured);
   const deleteMember = useMutation(api.community.deleteMember);
+  const addToNewsletter = useMutation(api.community.addMemberToNewsletter);
+  const addAllToNewsletter = useMutation(api.community.addAllMembersToNewsletter);
+  const [isAddingAll, setIsAddingAll] = useState(false);
 
   async function handleToggleFeatured(id: Id<"communityMembers">) {
     await toggleFeatured({ id });
@@ -493,10 +497,45 @@ function MembersTab() {
     }
   }
 
+  async function handleAddToNewsletter(id: Id<"communityMembers">) {
+    try {
+      await addToNewsletter({ memberId: id });
+      alert("Added to newsletter!");
+    } catch (error: any) {
+      alert(error.message || "Failed to add to newsletter");
+    }
+  }
+
+  async function handleAddAllToNewsletter() {
+    if (!confirm("Add all community members to the newsletter?")) return;
+    setIsAddingAll(true);
+    try {
+      const result = await addAllToNewsletter();
+      alert(`Added ${result.added} members to newsletter. ${result.skipped} were already subscribed.`);
+    } catch (error: any) {
+      alert(error.message || "Failed to add members");
+    }
+    setIsAddingAll(false);
+  }
+
   const approvedMembers = members?.filter((m: any) => m.approved) || [];
 
   return (
     <div>
+      {/* Header with Add All button */}
+      {approvedMembers.length > 0 && (
+        <div className="flex justify-end mb-6">
+          <button
+            onClick={handleAddAllToNewsletter}
+            disabled={isAddingAll}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/30 transition-all border border-cyan-500/30 disabled:opacity-50"
+          >
+            <Newspaper className="w-4 h-4" />
+            {isAddingAll ? "Adding..." : "Add All to Newsletter"}
+          </button>
+        </div>
+      )}
+
       {approvedMembers.length === 0 ? (
         <div className="glass-elevated rounded-2xl p-12 text-center">
           <Users className="w-12 h-12 text-gray-500 mx-auto mb-4" />
@@ -538,6 +577,13 @@ function MembersTab() {
                   >
                     <Star className="w-4 h-4" />
                     {member.featured ? "Featured" : "Feature"}
+                  </button>
+                  <button
+                    onClick={() => handleAddToNewsletter(member._id)}
+                    className="px-3 py-2 rounded-lg bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500/20 transition-all border border-cyan-500/30"
+                    title="Add to Newsletter"
+                  >
+                    <Newspaper className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => handleDelete(member._id)}

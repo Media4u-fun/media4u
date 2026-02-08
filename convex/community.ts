@@ -753,3 +753,99 @@ export const notifyAdminSubmission = action({
     }
   },
 });
+
+// ============================================
+// NEWSLETTER: Add Community Member
+// ============================================
+
+// Add a community member to the newsletter subscribers
+export const addMemberToNewsletter = mutation({
+  args: {
+    memberId: v.id("communityMembers"),
+  },
+  handler: async (ctx, args) => {
+    await requireAdmin(ctx);
+
+    // Get the member
+    const member = await ctx.db.get(args.memberId);
+    if (!member) {
+      throw new Error("Member not found");
+    }
+
+    // Get their invite to get email
+    const invite = await ctx.db.get(member.inviteId);
+    if (!invite) {
+      throw new Error("Invite not found");
+    }
+
+    const email = invite.email.toLowerCase().trim();
+
+    // Check if already subscribed
+    const existing = await ctx.db
+      .query("newsletterSubscribers")
+      .withIndex("by_email", (q) => q.eq("email", email))
+      .first();
+
+    if (existing) {
+      if (!existing.unsubscribed) {
+        throw new Error("Already subscribed to newsletter");
+      }
+      // Re-subscribe
+      await ctx.db.patch(existing._id, { unsubscribed: false });
+      return { success: true, resubscribed: true };
+    }
+
+    // Add as new subscriber
+    await ctx.db.insert("newsletterSubscribers", {
+      email,
+      subscribedAt: Date.now(),
+      unsubscribed: false,
+    });
+
+    return { success: true, resubscribed: false };
+  },
+});
+
+// Add all approved community members to newsletter
+export const addAllMembersToNewsletter = mutation({
+  handler: async (ctx) => {
+    await requireAdmin(ctx);
+
+    const members = await ctx.db
+      .query("communityMembers")
+      .collect();
+
+    let added = 0;
+    let skipped = 0;
+
+    for (const member of members) {
+      const invite = await ctx.db.get(member.inviteId);
+      if (!invite) continue;
+
+      const email = invite.email.toLowerCase().trim();
+
+      const existing = await ctx.db
+        .query("newsletterSubscribers")
+        .withIndex("by_email", (q) => q.eq("email", email))
+        .first();
+
+      if (existing) {
+        if (existing.unsubscribed) {
+          await ctx.db.patch(existing._id, { unsubscribed: false });
+          added++;
+        } else {
+          skipped++;
+        }
+      } else {
+        await ctx.db.insert("newsletterSubscribers", {
+          email,
+          subscribedAt: Date.now(),
+          unsubscribed: false,
+        });
+        added++;
+      }
+    }
+
+    return { added, skipped };
+  },
+});
