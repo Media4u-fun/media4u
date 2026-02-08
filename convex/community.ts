@@ -392,10 +392,10 @@ export const requestInvite = mutation({
 
       if (existing) {
         if (existing.status === "pending") {
-          throw new Error("You already have a pending invite request");
+          throw new Error("Good news! You already have a pending request. We'll review it and send your invite soon!");
         }
         if (existing.status === "invited") {
-          throw new Error("You have already been invited - check your email!");
+          throw new Error("You're already invited! Check your email for the invite link - it's still valid unless revoked.");
         }
       }
 
@@ -406,7 +406,7 @@ export const requestInvite = mutation({
         .first();
 
       if (existingInvite) {
-        throw new Error("You already have an invite - check your email!");
+        throw new Error("You're already invited! Check your email for the invite link - it's still valid unless revoked.");
       }
 
       const requestId = await ctx.db.insert("communityInviteRequests", {

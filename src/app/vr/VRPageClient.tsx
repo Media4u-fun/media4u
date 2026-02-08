@@ -921,7 +921,13 @@ function InviteRequestForm() {
 
       setIsSubmitted(true);
     } catch (err: any) {
-      setError(err.message || "Something went wrong. Please try again.");
+      // Extract the actual error message from Convex errors
+      const errorMessage = err.data?.message || err.message || "Something went wrong. Please try again.";
+      // Clean up Convex error format if needed
+      const cleanMessage = errorMessage.includes("Uncaught Error:")
+        ? errorMessage.split("Uncaught Error:")[1]?.trim()
+        : errorMessage;
+      setError(cleanMessage || "Something went wrong. Please try again.");
     }
     setIsSubmitting(false);
   }
