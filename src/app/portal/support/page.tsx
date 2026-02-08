@@ -2,7 +2,10 @@
 
 import { type ReactElement, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Mail, MessageCircle, FileQuestion, ChevronDown, ExternalLink, Send } from "lucide-react";
+import { Mail, MessageCircle, FileQuestion, ChevronDown, ExternalLink, Send, CheckCircle, Loader2 } from "lucide-react";
+import { useAction } from "convex/react";
+import { api } from "../../../../convex/_generated/api";
+import { useAuth } from "@/components/AuthContext";
 
 const FAQ_ITEMS = [
   {
@@ -33,9 +36,51 @@ const FAQ_ITEMS = [
 
 export default function PortalSupportPage(): ReactElement {
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
+  const [subject, setSubject] = useState("");
+  const [message, setMessage] = useState("");
+  const [isSending, setIsSending] = useState(false);
+  const [isSent, setIsSent] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const { user } = useAuth();
+  const sendSupportRequest = useAction(api.support.sendSupportRequest);
 
   const toggleFaq = (index: number) => {
     setOpenFaqIndex(openFaqIndex === index ? null : index);
+  };
+
+  const handleSubmit = async () => {
+    if (!subject.trim() || !message.trim()) {
+      setError("Please fill in both subject and message");
+      return;
+    }
+
+    if (!user?.email || !user?.name) {
+      setError("Unable to get your account info. Please refresh and try again.");
+      return;
+    }
+
+    setIsSending(true);
+    setError(null);
+
+    try {
+      await sendSupportRequest({
+        userName: user.name,
+        userEmail: user.email,
+        subject: subject.trim(),
+        message: message.trim(),
+      });
+      setIsSent(true);
+      setSubject("");
+      setMessage("");
+      // Reset success message after 5 seconds
+      setTimeout(() => setIsSent(false), 5000);
+    } catch (err) {
+      console.error("Failed to send support request:", err);
+      setError("Failed to send message. Please try again or email us directly.");
+    } finally {
+      setIsSending(false);
+    }
   };
 
   return (
@@ -178,7 +223,31 @@ export default function PortalSupportPage(): ReactElement {
         <p className="text-gray-400 text-sm mb-6">
           Send us a message and we&apos;ll get back to you as soon as possible.
         </p>
-        <form className="space-y-4">
+
+        {isSent && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6 p-4 rounded-lg bg-green-500/20 border border-green-500/30 flex items-center gap-3"
+          >
+            <CheckCircle className="w-5 h-5 text-green-400" />
+            <p className="text-green-300 text-sm">
+              Your message has been sent! We&apos;ll get back to you soon.
+            </p>
+          </motion.div>
+        )}
+
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6 p-4 rounded-lg bg-red-500/20 border border-red-500/30"
+          >
+            <p className="text-red-300 text-sm">{error}</p>
+          </motion.div>
+        )}
+
+        <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
           <div>
             <label htmlFor="subject" className="block text-sm text-gray-400 mb-2">
               Subject
@@ -186,8 +255,11 @@ export default function PortalSupportPage(): ReactElement {
             <input
               type="text"
               id="subject"
+              value={subject}
+              onChange={(e) => setSubject(e.target.value)}
               className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 transition-colors"
               placeholder="What do you need help with?"
+              disabled={isSending}
             />
           </div>
           <div>
@@ -197,25 +269,31 @@ export default function PortalSupportPage(): ReactElement {
             <textarea
               id="message"
               rows={5}
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
               className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 transition-colors resize-none"
               placeholder="Describe your issue or question in detail..."
+              disabled={isSending}
             />
           </div>
           <button
             type="button"
-            onClick={() => {
-              const subject = (document.getElementById("subject") as HTMLInputElement)?.value || "Support Request";
-              const message = (document.getElementById("message") as HTMLTextAreaElement)?.value || "";
-              window.location.href = `mailto:support@media4u.fun?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(message)}`;
-            }}
-            className="flex items-center gap-2 px-6 py-3 rounded-lg bg-gradient-to-r from-cyan-500 to-purple-500 text-white font-semibold hover:shadow-lg hover:shadow-cyan-500/25 transition-all duration-300"
+            onClick={handleSubmit}
+            disabled={isSending || !subject.trim() || !message.trim()}
+            className="flex items-center gap-2 px-6 py-3 rounded-lg bg-gradient-to-r from-cyan-500 to-purple-500 text-white font-semibold hover:shadow-lg hover:shadow-cyan-500/25 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <Send className="w-4 h-4" />
-            Send Message
+            {isSending ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Sending...
+              </>
+            ) : (
+              <>
+                <Send className="w-4 h-4" />
+                Send Message
+              </>
+            )}
           </button>
-          <p className="text-xs text-gray-500">
-            This will open your default email client with your message pre-filled
-          </p>
         </form>
       </motion.div>
     </div>

@@ -30,6 +30,7 @@ import type * as quoteRequests from "../quoteRequests.js";
 import type * as seed from "../seed.js";
 import type * as settings from "../settings.js";
 import type * as stripe from "../stripe.js";
+import type * as support from "../support.js";
 import type * as vr from "../vr.js";
 
 import type {
@@ -61,6 +62,7 @@ declare const fullApi: ApiFromModules<{
   seed: typeof seed;
   settings: typeof settings;
   stripe: typeof stripe;
+  support: typeof support;
   vr: typeof vr;
 }>;
 

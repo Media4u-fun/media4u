@@ -66,7 +66,7 @@ export default function PortalLayout({ children }: { children: ReactNode }) {
             />
           </Link>
           <p className="text-xs text-gray-500 uppercase tracking-wider text-center">
-            Client Portal
+            Portal
           </p>
         </div>
 
