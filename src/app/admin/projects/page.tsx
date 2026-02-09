@@ -6,7 +6,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
 import { useState } from "react";
 import { Id } from "@convex/_generated/dataModel";
-import { Search, Plus, X, ExternalLink, FileDown, MessageSquarePlus, Trash2, Palette, Share2 } from "lucide-react";
+import { Search, Plus, X, ExternalLink, FileDown, MessageSquarePlus, Trash2, Palette, Share2, Lock, Copy, Check } from "lucide-react";
 
 type ProjectStatus = "new" | "planning" | "design" | "development" | "review" | "completed" | "launched";
 
@@ -43,6 +43,8 @@ export default function ProjectsAdminPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [newNote, setNewNote] = useState("");
+  const [exportedVault, setExportedVault] = useState<string | null>(null);
+  const [copiedExport, setCopiedExport] = useState(false);
 
   // Add Project Form State
   const [formData, setFormData] = useState({
@@ -213,6 +215,136 @@ export default function ProjectsAdminPage() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+  }
+
+  function exportVaultForClaude() {
+    if (!selected) {
+      alert("No project selected");
+      return;
+    }
+
+    const vault = selected.integrationVault;
+    if (!vault) {
+      alert("No integration vault data available for this project");
+      return;
+    }
+
+    // Create formatted export text
+    let exportText = `=== PROJECT SETUP: ${selected.name} - ${selected.projectType} ===\n\n`;
+    exportText += `Client: ${selected.name}\n`;
+    exportText += `Email: ${selected.email}\n`;
+    if (selected.company) exportText += `Company: ${selected.company}\n`;
+    exportText += `\nExported: ${new Date().toLocaleString()}\n`;
+    exportText += `\n${"=".repeat(70)}\n\n`;
+
+    // Email Provider Section
+    if (vault.emailProvider || vault.emailApiKey || vault.emailFromAddress) {
+      exportText += `📧 EMAIL PROVIDER\n`;
+      if (vault.emailProvider) exportText += `Provider: ${vault.emailProvider}\n`;
+      if (vault.emailApiKey) exportText += `API Key: ${vault.emailApiKey}\n`;
+      if (vault.emailFromAddress) exportText += `From Address: ${vault.emailFromAddress}\n`;
+      exportText += `\n`;
+    }
+
+    // Analytics Section
+    if (vault.googleAnalyticsId || vault.googleTagManagerId || vault.facebookPixelId) {
+      exportText += `📊 ANALYTICS\n`;
+      if (vault.googleAnalyticsId) exportText += `Google Analytics ID: ${vault.googleAnalyticsId}\n`;
+      if (vault.googleTagManagerId) exportText += `Google Tag Manager ID: ${vault.googleTagManagerId}\n`;
+      if (vault.facebookPixelId) exportText += `Facebook Pixel ID: ${vault.facebookPixelId}\n`;
+      exportText += `\n`;
+    }
+
+    // Webhooks Section
+    if (vault.webhookUrl || vault.webhookSecret) {
+      exportText += `🔗 WEBHOOKS\n`;
+      if (vault.webhookUrl) exportText += `Webhook URL: ${vault.webhookUrl}\n`;
+      if (vault.webhookSecret) exportText += `Webhook Secret: ${vault.webhookSecret}\n`;
+      exportText += `\n`;
+    }
+
+    // Stripe Section
+    if (vault.stripePublishableKey || vault.stripeSecretKey) {
+      exportText += `💳 STRIPE\n`;
+      if (vault.stripePublishableKey) exportText += `Publishable Key: ${vault.stripePublishableKey}\n`;
+      if (vault.stripeSecretKey) exportText += `Secret Key: ${vault.stripeSecretKey}\n`;
+      exportText += `\n`;
+    }
+
+    // Custom API Keys Section
+    if (vault.customApiKey1Label || vault.customApiKey2Label || vault.customApiKey3Label) {
+      exportText += `🔑 CUSTOM API KEYS\n`;
+      if (vault.customApiKey1Label) {
+        exportText += `${vault.customApiKey1Label}: ${vault.customApiKey1Value || "[Not provided]"}\n`;
+      }
+      if (vault.customApiKey2Label) {
+        exportText += `${vault.customApiKey2Label}: ${vault.customApiKey2Value || "[Not provided]"}\n`;
+      }
+      if (vault.customApiKey3Label) {
+        exportText += `${vault.customApiKey3Label}: ${vault.customApiKey3Value || "[Not provided]"}\n`;
+      }
+      exportText += `\n`;
+    }
+
+    // Additional Notes
+    if (vault.notes) {
+      exportText += `📝 ADDITIONAL NOTES\n`;
+      exportText += `${vault.notes}\n\n`;
+    }
+
+    // Project Details
+    exportText += `${"=".repeat(70)}\n\n`;
+    exportText += `PROJECT DETAILS\n\n`;
+    exportText += `Description: ${selected.description}\n`;
+    if (selected.requirements) exportText += `Requirements: ${selected.requirements}\n`;
+    if (selected.budget) exportText += `Budget: ${selected.budget}\n`;
+    if (selected.timeline) exportText += `Timeline: ${selected.timeline}\n`;
+    if (selected.liveUrl) exportText += `Live URL: ${selected.liveUrl}\n`;
+
+    // Technical Requirements
+    if (selected.backendComplexity || selected.technicalFeatures) {
+      exportText += `\nTECHNICAL REQUIREMENTS\n`;
+      if (selected.backendComplexity) exportText += `Backend: ${selected.backendComplexity}\n`;
+      if (selected.technicalFeatures && selected.technicalFeatures.length > 0) {
+        exportText += `Features: ${selected.technicalFeatures.join(", ")}\n`;
+      }
+    }
+
+    // Brand Colors
+    if (selected.brandColors) {
+      exportText += `\nBRAND COLORS\n`;
+      if (selected.brandColors.primary) exportText += `Primary: ${selected.brandColors.primary}\n`;
+      if (selected.brandColors.secondary) exportText += `Secondary: ${selected.brandColors.secondary}\n`;
+      if (selected.brandColors.accent) exportText += `Accent: ${selected.brandColors.accent}\n`;
+    }
+
+    // Social Links
+    if (selected.socialLinks) {
+      const hasLinks = Object.values(selected.socialLinks).some(link => link);
+      if (hasLinks) {
+        exportText += `\nSOCIAL MEDIA LINKS\n`;
+        if (selected.socialLinks.website) exportText += `Website: ${selected.socialLinks.website}\n`;
+        if (selected.socialLinks.instagram) exportText += `Instagram: ${selected.socialLinks.instagram}\n`;
+        if (selected.socialLinks.facebook) exportText += `Facebook: ${selected.socialLinks.facebook}\n`;
+        if (selected.socialLinks.twitter) exportText += `Twitter: ${selected.socialLinks.twitter}\n`;
+        if (selected.socialLinks.linkedin) exportText += `LinkedIn: ${selected.socialLinks.linkedin}\n`;
+        if (selected.socialLinks.youtube) exportText += `YouTube: ${selected.socialLinks.youtube}\n`;
+        if (selected.socialLinks.tiktok) exportText += `TikTok: ${selected.socialLinks.tiktok}\n`;
+      }
+    }
+
+    exportText += `\n${"=".repeat(70)}\n`;
+    exportText += `\nThis export contains all setup information needed to build ${selected.name}'s project.\n`;
+    exportText += `Copy and paste this entire message to Claude to provide full project context.\n`;
+
+    setExportedVault(exportText);
+  }
+
+  async function copyExportToClipboard() {
+    if (!exportedVault) return;
+    await navigator.clipboard.writeText(exportedVault);
+    setCopiedExport(true);
+    setTimeout(() => setCopiedExport(false), 2000);
   }
 
   return (
@@ -604,6 +736,177 @@ export default function ProjectsAdminPage() {
                 </div>
               </div>
 
+              {/* Integration Vault */}
+              <div className="pt-4 border-t border-white/10">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <Lock className="w-5 h-5 text-purple-400" />
+                    <p className="text-sm font-semibold text-white">Integration Vault</p>
+                  </div>
+                  <button
+                    onClick={exportVaultForClaude}
+                    disabled={!selected.integrationVault}
+                    className="px-3 py-1.5 rounded-lg bg-purple-500/20 text-purple-400 hover:bg-purple-500/30 border border-purple-500/50 text-sm font-medium flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  >
+                    <FileDown className="w-4 h-4" />
+                    Export for Claude
+                  </button>
+                </div>
+
+                {selected.integrationVault ? (
+                  <div className="space-y-4">
+                    {/* Email Provider */}
+                    {(selected.integrationVault.emailProvider || selected.integrationVault.emailApiKey || selected.integrationVault.emailFromAddress) && (
+                      <div className="p-4 rounded-lg bg-white/5 border border-white/10">
+                        <p className="text-xs uppercase tracking-wider text-gray-400 mb-3 flex items-center gap-2">
+                          📧 Email Provider
+                        </p>
+                        <div className="grid gap-2 text-sm">
+                          {selected.integrationVault.emailProvider && (
+                            <div>
+                              <span className="text-gray-500">Provider:</span>{" "}
+                              <span className="text-white">{selected.integrationVault.emailProvider}</span>
+                            </div>
+                          )}
+                          {selected.integrationVault.emailApiKey && (
+                            <div>
+                              <span className="text-gray-500">API Key:</span>{" "}
+                              <span className="text-white font-mono">••••••••••••</span>
+                            </div>
+                          )}
+                          {selected.integrationVault.emailFromAddress && (
+                            <div>
+                              <span className="text-gray-500">From Address:</span>{" "}
+                              <span className="text-cyan-400">{selected.integrationVault.emailFromAddress}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Analytics */}
+                    {(selected.integrationVault.googleAnalyticsId || selected.integrationVault.googleTagManagerId || selected.integrationVault.facebookPixelId) && (
+                      <div className="p-4 rounded-lg bg-white/5 border border-white/10">
+                        <p className="text-xs uppercase tracking-wider text-gray-400 mb-3 flex items-center gap-2">
+                          📊 Analytics
+                        </p>
+                        <div className="grid gap-2 text-sm">
+                          {selected.integrationVault.googleAnalyticsId && (
+                            <div>
+                              <span className="text-gray-500">Google Analytics:</span>{" "}
+                              <span className="text-white font-mono">{selected.integrationVault.googleAnalyticsId}</span>
+                            </div>
+                          )}
+                          {selected.integrationVault.googleTagManagerId && (
+                            <div>
+                              <span className="text-gray-500">Tag Manager:</span>{" "}
+                              <span className="text-white font-mono">{selected.integrationVault.googleTagManagerId}</span>
+                            </div>
+                          )}
+                          {selected.integrationVault.facebookPixelId && (
+                            <div>
+                              <span className="text-gray-500">Facebook Pixel:</span>{" "}
+                              <span className="text-white font-mono">{selected.integrationVault.facebookPixelId}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Webhooks */}
+                    {(selected.integrationVault.webhookUrl || selected.integrationVault.webhookSecret) && (
+                      <div className="p-4 rounded-lg bg-white/5 border border-white/10">
+                        <p className="text-xs uppercase tracking-wider text-gray-400 mb-3 flex items-center gap-2">
+                          🔗 Webhooks
+                        </p>
+                        <div className="grid gap-2 text-sm">
+                          {selected.integrationVault.webhookUrl && (
+                            <div>
+                              <span className="text-gray-500">URL:</span>{" "}
+                              <span className="text-cyan-400 break-all">{selected.integrationVault.webhookUrl}</span>
+                            </div>
+                          )}
+                          {selected.integrationVault.webhookSecret && (
+                            <div>
+                              <span className="text-gray-500">Secret:</span>{" "}
+                              <span className="text-white font-mono">••••••••••••</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Stripe */}
+                    {(selected.integrationVault.stripePublishableKey || selected.integrationVault.stripeSecretKey) && (
+                      <div className="p-4 rounded-lg bg-white/5 border border-white/10">
+                        <p className="text-xs uppercase tracking-wider text-gray-400 mb-3 flex items-center gap-2">
+                          💳 Stripe
+                        </p>
+                        <div className="grid gap-2 text-sm">
+                          {selected.integrationVault.stripePublishableKey && (
+                            <div>
+                              <span className="text-gray-500">Publishable Key:</span>{" "}
+                              <span className="text-white font-mono">pk_••••••••••••</span>
+                            </div>
+                          )}
+                          {selected.integrationVault.stripeSecretKey && (
+                            <div>
+                              <span className="text-gray-500">Secret Key:</span>{" "}
+                              <span className="text-white font-mono">sk_••••••••••••</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Custom API Keys */}
+                    {(selected.integrationVault.customApiKey1Label || selected.integrationVault.customApiKey2Label || selected.integrationVault.customApiKey3Label) && (
+                      <div className="p-4 rounded-lg bg-white/5 border border-white/10">
+                        <p className="text-xs uppercase tracking-wider text-gray-400 mb-3 flex items-center gap-2">
+                          🔑 Custom API Keys
+                        </p>
+                        <div className="grid gap-2 text-sm">
+                          {selected.integrationVault.customApiKey1Label && (
+                            <div>
+                              <span className="text-gray-500">{selected.integrationVault.customApiKey1Label}:</span>{" "}
+                              <span className="text-white font-mono">••••••••••••</span>
+                            </div>
+                          )}
+                          {selected.integrationVault.customApiKey2Label && (
+                            <div>
+                              <span className="text-gray-500">{selected.integrationVault.customApiKey2Label}:</span>{" "}
+                              <span className="text-white font-mono">••••••••••••</span>
+                            </div>
+                          )}
+                          {selected.integrationVault.customApiKey3Label && (
+                            <div>
+                              <span className="text-gray-500">{selected.integrationVault.customApiKey3Label}:</span>{" "}
+                              <span className="text-white font-mono">••••••••••••</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Notes */}
+                    {selected.integrationVault.notes && (
+                      <div className="p-4 rounded-lg bg-white/5 border border-white/10">
+                        <p className="text-xs uppercase tracking-wider text-gray-400 mb-3 flex items-center gap-2">
+                          📝 Integration Notes
+                        </p>
+                        <p className="text-sm text-gray-300 whitespace-pre-wrap">{selected.integrationVault.notes}</p>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="p-8 text-center text-gray-500 text-sm bg-white/5 rounded-lg border border-white/10">
+                    <Lock className="w-12 h-12 text-gray-600 mx-auto mb-3" />
+                    <p>No integration credentials stored yet.</p>
+                    <p className="text-xs mt-1">Client can add credentials in their User Portal.</p>
+                  </div>
+                )}
+              </div>
+
               {/* Project Notes Timeline */}
               <div className="pt-4 border-t border-white/10">
                 <div className="flex items-center justify-between mb-4">
@@ -887,6 +1190,73 @@ export default function ProjectsAdminPage() {
                 </button>
               </div>
             </form>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Export Vault Modal */}
+      {exportedVault && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-gray-900 rounded-2xl p-6 max-w-4xl w-full border border-white/10 max-h-[90vh] overflow-y-auto"
+          >
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-purple-500/20 border border-purple-500/50">
+                  <Lock className="w-6 h-6 text-purple-400" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold text-white">Export for Claude</h2>
+                  <p className="text-sm text-gray-400">Copy and paste this into your chat with Claude</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setExportedVault(null)}
+                className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+              >
+                <X className="w-6 h-6 text-gray-400" />
+              </button>
+            </div>
+
+            {/* Export Text */}
+            <div className="mb-6 p-4 rounded-lg bg-black/50 border border-white/10 font-mono text-sm text-gray-300 whitespace-pre-wrap max-h-96 overflow-y-auto">
+              {exportedVault}
+            </div>
+
+            {/* Actions */}
+            <div className="flex gap-3">
+              <button
+                onClick={copyExportToClipboard}
+                className="flex-1 px-4 py-3 rounded-lg bg-purple-500 text-white hover:bg-purple-600 transition-all font-medium flex items-center justify-center gap-2"
+              >
+                {copiedExport ? (
+                  <>
+                    <Check className="w-5 h-5" />
+                    Copied!
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-5 h-5" />
+                    Copy to Clipboard
+                  </>
+                )}
+              </button>
+              <button
+                onClick={() => setExportedVault(null)}
+                className="px-6 py-3 rounded-lg bg-white/5 text-gray-400 hover:bg-white/10 transition-all border border-white/10 font-medium"
+              >
+                Close
+              </button>
+            </div>
+
+            <div className="mt-4 p-3 rounded-lg bg-cyan-500/10 border border-cyan-500/30 text-sm text-cyan-400">
+              <p className="font-medium mb-1">💡 Pro Tip</p>
+              <p className="text-cyan-400/80">
+                Paste this entire export into Claude to give full project context including all API keys and credentials. Claude will use this to build integrations correctly.
+              </p>
+            </div>
           </motion.div>
         </div>
       )}
