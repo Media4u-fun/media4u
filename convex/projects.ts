@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { requireAdmin, getAuthenticatedUser } from "./auth";
+import { internal } from "./_generated/api";
 
 // Get all projects (admin only - sorted by creation date, newest first)
 export const getAllProjects = query({
@@ -77,6 +78,15 @@ export const createProject = mutation({
       createdAt: Date.now(),
       updatedAt: Date.now(),
     });
+
+    // Send welcome email to client
+    await ctx.scheduler.runAfter(0, internal.projectEmails.sendProjectWelcomeEmailInternal, {
+      clientName: args.name,
+      clientEmail: args.email,
+      projectType: args.projectType,
+      projectDescription: args.description,
+    });
+
     return projectId;
   },
 });
