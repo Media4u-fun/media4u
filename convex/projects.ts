@@ -337,6 +337,19 @@ export const updateIntegrationVault = mutation({
       integrationVault: args.integrationVault,
     });
 
+    // Log client activity (only if client updated, not admin)
+    if (isProjectOwner && !isAdmin) {
+      await ctx.db.insert("clientActivity", {
+        projectId: args.projectId,
+        userId: user.userId,
+        userName: user.name || user.email,
+        activityType: "vault_updated",
+        description: "Updated integration vault credentials",
+        read: false,
+        createdAt: Date.now(),
+      });
+    }
+
     return { success: true };
   },
 });

@@ -23,12 +23,14 @@ import {
   Briefcase,
   MessageSquare,
   Globe,
+  Bell,
 } from "lucide-react";
 
 const adminNavItems = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard, countKey: null },
   { href: "/admin/orders", label: "Orders", icon: CreditCard, countKey: null },
   { href: "/admin/subscriptions", label: "Subscriptions", icon: RefreshCw, countKey: null },
+  { href: "/admin/notifications", label: "Client Updates", icon: Bell, countKey: "clientActivity" },
   { href: "/admin/contacts", label: "Contact Forms", icon: Mail, countKey: "contacts" },
   { href: "/admin/project-requests", label: "Project Requests", icon: ClipboardList, countKey: "projects" },
   { href: "/admin/quotes", label: "Quote Requests", icon: MessageSquare, countKey: "quotes" },
@@ -52,12 +54,14 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   const projectRequests = useQuery(api.projectRequests.getProjectRequests, {});
   const quoteRequests = useQuery(api.quoteRequests.getAllQuoteRequests, {});
   const communityRequests = useQuery(api.community.getInviteRequests);
+  const clientActivityCount = useQuery(api.clientActivity.getUnreadCount);
 
   // Calculate unread/new counts (only truly new items, not read ones)
   const counts: Record<string, number> = {
     contacts: contacts?.filter((c) => c.status === "new").length || 0,
     projects: projectRequests?.filter((p) => p.status === "new").length || 0,
     quotes: quoteRequests?.filter((q) => q.status === "new").length || 0,
+    clientActivity: clientActivityCount || 0,
     community: communityRequests?.filter((r) => r.status === "pending").length || 0,
   };
 

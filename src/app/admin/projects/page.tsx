@@ -6,7 +6,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
 import { useState } from "react";
 import { Id } from "@convex/_generated/dataModel";
-import { Search, Plus, X, ExternalLink, FileDown, MessageSquarePlus, Trash2, Palette, Share2, Lock, Copy, Check } from "lucide-react";
+import { Search, Plus, X, ExternalLink, FileDown, MessageSquarePlus, Trash2, Palette, Share2, Lock, Copy, Check, Upload, Image as ImageIcon, File } from "lucide-react";
 
 type ProjectStatus = "new" | "planning" | "design" | "development" | "review" | "completed" | "launched";
 
@@ -38,6 +38,11 @@ export default function ProjectsAdminPage() {
   const addProjectNote = useMutation(api.projects.addProjectNote);
   const deleteProjectNote = useMutation(api.projects.deleteProjectNote);
 
+  // Project Files
+  const generateUploadUrl = useMutation(api.projectFiles.generateUploadUrl);
+  const saveFileMetadata = useMutation(api.projectFiles.saveFileMetadata);
+  const deleteFile = useMutation(api.projectFiles.deleteFile);
+
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<ProjectStatus | "all">("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -45,6 +50,7 @@ export default function ProjectsAdminPage() {
   const [newNote, setNewNote] = useState("");
   const [exportedVault, setExportedVault] = useState<string | null>(null);
   const [copiedExport, setCopiedExport] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   // Add Project Form State
   const [formData, setFormData] = useState({
@@ -80,6 +86,10 @@ export default function ProjectsAdminPage() {
   const selected = projects?.find((p: any) => p._id === selectedId);
   const projectNotes = useQuery(
     api.projects.getProjectNotes,
+    selectedId ? { projectId: selectedId as Id<"projects"> } : "skip"
+  );
+  const projectFiles = useQuery(
+    api.projectFiles.getProjectFiles,
     selectedId ? { projectId: selectedId as Id<"projects"> } : "skip"
   );
 
@@ -182,6 +192,49 @@ export default function ProjectsAdminPage() {
   async function handleDeleteNote(noteId: Id<"projectNotes">) {
     if (confirm("Delete this note?")) {
       await deleteProjectNote({ id: noteId });
+    }
+  }
+
+  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file || !selectedId) return;
+
+    setIsUploading(true);
+    try {
+      // Get upload URL
+      const uploadUrl = await generateUploadUrl();
+
+      // Upload file to Convex storage
+      const result = await fetch(uploadUrl, {
+        method: "POST",
+        headers: { "Content-Type": file.type },
+        body: file,
+      });
+
+      const { storageId } = await result.json();
+
+      // Save file metadata
+      await saveFileMetadata({
+        projectId: selectedId as Id<"projects">,
+        storageId,
+        fileName: file.name,
+        fileType: file.type,
+        fileSize: file.size,
+      });
+
+      // Reset input
+      e.target.value = "";
+    } catch (error) {
+      console.error("File upload failed:", error);
+      alert("Failed to upload file. Please try again.");
+    } finally {
+      setIsUploading(false);
+    }
+  }
+
+  async function handleDeleteFile(fileId: Id<"projectFiles">) {
+    if (confirm("Delete this file? This cannot be undone.")) {
+      await deleteFile({ id: fileId });
     }
   }
 
@@ -905,6 +958,92 @@ export default function ProjectsAdminPage() {
                     <p className="text-xs mt-1">Client can add credentials in their User Portal.</p>
                   </div>
                 )}
+              </div>
+
+              {/* Project Files */}
+              <div className="pt-4 border-t border-white/10">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <ImageIcon className="w-5 h-5 text-cyan-400" />
+                    <p className="text-sm font-semibold text-white">Project Files</p>
+                  </div>
+                  <label className="px-3 py-1.5 rounded-lg bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/30 border border-cyan-500/50 text-sm font-medium flex items-center gap-2 cursor-pointer transition-all">
+                    <Upload className="w-4 h-4" />
+                    {isUploading ? "Uploading..." : "Upload File"}
+                    <input
+                      type="file"
+                      onChange={handleFileUpload}
+                      disabled={isUploading}
+                      className="hidden"
+                      accept="image/*,.pdf,.doc,.docx"
+                    />
+                  </label>
+                </div>
+
+                {/* Files Grid */}
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {projectFiles && projectFiles.length > 0 ? (
+                    projectFiles.map((file: any) => {
+                      const isImage = file.fileType.startsWith("image/");
+                      const fileSize = (file.fileSize / 1024).toFixed(1); // KB
+
+                      return (
+                        <div key={file._id} className="group relative p-3 rounded-lg bg-white/5 border border-white/10 hover:border-cyan-500/50 transition-all">
+                          {/* Preview */}
+                          <div className="relative aspect-square rounded-lg overflow-hidden bg-white/5 mb-2">
+                            {isImage ? (
+                              <img
+                                src={file.url}
+                                alt={file.fileName}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <File className="w-12 h-12 text-gray-500" />
+                              </div>
+                            )}
+
+                            {/* Delete button overlay */}
+                            <button
+                              onClick={() => handleDeleteFile(file._id)}
+                              className="absolute top-2 right-2 p-1.5 rounded-lg bg-red-500/90 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                          </div>
+
+                          {/* File info */}
+                          <div className="space-y-1">
+                            <p className="text-xs text-white truncate font-medium" title={file.fileName}>
+                              {file.fileName}
+                            </p>
+                            <div className="flex items-center justify-between text-xs text-gray-500">
+                              <span>{fileSize} KB</span>
+                              <a
+                                href={file.url}
+                                download={file.fileName}
+                                className="text-cyan-400 hover:text-cyan-300 flex items-center gap-1"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <FileDown className="w-3 h-3" />
+                              </a>
+                            </div>
+                            <p className="text-xs text-gray-600">
+                              {file.uploadedByName}
+                            </p>
+                            <p className="text-xs text-gray-600">
+                              {new Date(file.createdAt).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <div className="col-span-full p-8 text-center text-gray-500 text-sm border border-dashed border-white/10 rounded-lg">
+                      No files yet. Upload images, documents, or assets for this project.
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Project Notes Timeline */}

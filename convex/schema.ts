@@ -235,6 +235,44 @@ export default defineSchema({
     .index("by_leadId", ["leadId"])
     .index("by_created", ["createdAt"]),
 
+  // Project Files - images, documents, and assets for projects
+  projectFiles: defineTable({
+    projectId: v.id("projects"),
+    fileName: v.string(),
+    fileType: v.string(), // MIME type: "image/png", "application/pdf", etc.
+    fileSize: v.number(), // Size in bytes
+    storageId: v.id("_storage"), // Convex file storage ID
+    uploadedBy: v.string(), // Admin user ID
+    uploadedByName: v.string(), // Admin name for display
+    description: v.optional(v.string()), // Optional note about the file
+    createdAt: v.number(),
+  })
+    .index("by_projectId", ["projectId"])
+    .index("by_created", ["createdAt"]),
+
+  // Client Activity - track client actions in portal for admin notifications
+  clientActivity: defineTable({
+    projectId: v.id("projects"),
+    userId: v.string(), // Client who made the change
+    userName: v.string(), // Client name for display
+    activityType: v.union(
+      v.literal("vault_updated"),
+      v.literal("note_added"),
+      v.literal("project_updated")
+    ),
+    description: v.string(), // "Updated integration vault credentials"
+    metadata: v.optional(v.object({
+      fieldName: v.optional(v.string()), // Which field was updated
+      oldValue: v.optional(v.string()),
+      newValue: v.optional(v.string()),
+    })),
+    read: v.boolean(), // Has any admin seen this?
+    createdAt: v.number(),
+  })
+    .index("by_projectId", ["projectId"])
+    .index("by_read", ["read"])
+    .index("by_created", ["createdAt"]),
+
   // Newsletter subscribers
   newsletterSubscribers: defineTable({
     email: v.string(),
