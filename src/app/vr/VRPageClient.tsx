@@ -10,7 +10,7 @@ import { Section, SectionHeader } from "@/components/ui/section";
 import { Card, CardIcon } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
-import { Home, Globe, Star, Coins, ExternalLink, Instagram, Youtube, Send, CheckCircle, Loader2, Sparkles, Users, MapPin, Play, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { Home, Globe, Star, Coins, ExternalLink, Instagram, Youtube, Send, CheckCircle, Loader2, Sparkles, Users, MapPin, Play, X, ChevronLeft, ChevronRight, Heart } from "lucide-react";
 
 const FEATURES = [
   { label: "Interactive Elements", icon: "touch" },
@@ -314,6 +314,15 @@ export default function VRPageClient() {
               </div>
               <p className="text-sm text-gray-400">Featured</p>
             </div>
+            {communityStats.totalLikes > 0 && (
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-2 mb-1">
+                  <Heart className="w-5 h-5 text-red-400 fill-red-400" />
+                  <span className="text-3xl font-display font-bold text-white">{communityStats.totalLikes}</span>
+                </div>
+                <p className="text-sm text-gray-400">Likes</p>
+              </div>
+            )}
           </motion.div>
         </Section>
       )}

@@ -330,6 +330,7 @@ export default defineSchema({
       tiktok: v.optional(v.string()),
       twitter: v.optional(v.string()),
     })),
+    likes: v.optional(v.number()), // Public like count
     featured: v.boolean(), // Featured on top of page
     approved: v.boolean(), // Must be true to show publicly
     approvedAt: v.optional(v.number()),

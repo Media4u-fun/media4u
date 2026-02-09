@@ -5,7 +5,9 @@ import Link from "next/link";
 import { motion, useInView } from "motion/react";
 import { Button, Section, SectionHeader, Card, CardIcon } from "@/components/ui";
 import { VRSphere360 } from "@/components/effects/vr-sphere-360";
-import { Target, Building2, ShoppingCart, Cpu, Glasses, Rocket, type LucideIcon } from "lucide-react";
+import { Target, Building2, ShoppingCart, Cpu, Glasses, Rocket, type LucideIcon, Globe, Users, Star, Heart } from "lucide-react";
+import { useQuery } from "convex/react";
+import { api } from "@convex/_generated/api";
 
 function AnimatedSection({
   children,
@@ -59,16 +61,6 @@ function HeroSection() {
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-void-950" />
 
       <div className="relative z-10 max-w-5xl mx-auto px-6 text-center">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-        >
-          <span className="inline-block mb-6 text-xs font-semibold tracking-[0.3em] uppercase text-cyber-cyan">
-            Web Design / Digital Presence / Immersive VR
-          </span>
-        </motion.div>
-
         <motion.h1
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -411,6 +403,106 @@ function ProcessSection() {
   );
 }
 
+function CommunitySection() {
+  const stats = useQuery(api.community.getCommunityStats);
+  const members = useQuery(api.community.getApprovedMembers);
+
+  // Show up to 5 member thumbnails
+  const thumbnails = (members || []).slice(0, 5);
+
+  return (
+    <Section className="relative">
+      <AnimatedSection>
+        <div className="relative overflow-hidden rounded-3xl p-8 md:p-12">
+          <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 via-purple-500/10 to-pink-500/10" />
+          <div className="absolute inset-0 glass" />
+          <div className="absolute inset-0 rounded-3xl border border-white/10" />
+
+          <div className="relative flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
+            {/* Left - Text + CTA */}
+            <div className="flex-1 text-center lg:text-left">
+              <span className="inline-block mb-3 text-xs font-semibold tracking-[0.2em] uppercase text-cyan-400">
+                Trusted Creators
+              </span>
+              <h2 className="text-2xl md:text-3xl lg:text-4xl font-display font-bold mb-4 text-white">
+                Join Our VR Metaverse Community
+              </h2>
+              <p className="text-gray-400 max-w-lg mb-6">
+                A curated showcase of creators building meaningful spaces in the virtual world. Explore their worlds and get inspired.
+              </p>
+
+              {/* Stats Row */}
+              {stats && (
+                <div className="flex flex-wrap justify-center lg:justify-start gap-6 mb-6">
+                  <div className="flex items-center gap-2">
+                    <Globe className="w-4 h-4 text-cyan-400" />
+                    <span className="text-white font-semibold">{stats.totalWorlds}</span>
+                    <span className="text-gray-500 text-sm">Worlds</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Users className="w-4 h-4 text-purple-400" />
+                    <span className="text-white font-semibold">{stats.totalCreators}</span>
+                    <span className="text-gray-500 text-sm">Creators</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Star className="w-4 h-4 text-yellow-400" />
+                    <span className="text-white font-semibold">{stats.featuredCount}</span>
+                    <span className="text-gray-500 text-sm">Featured</span>
+                  </div>
+                  {stats.totalLikes > 0 && (
+                    <div className="flex items-center gap-2">
+                      <Heart className="w-4 h-4 text-red-400 fill-red-400" />
+                      <span className="text-white font-semibold">{stats.totalLikes}</span>
+                      <span className="text-gray-500 text-sm">Likes</span>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <Link href="/community">
+                <Button variant="secondary">Explore Community</Button>
+              </Link>
+            </div>
+
+            {/* Right - Member Thumbnails */}
+            {thumbnails.length > 0 && (
+              <div className="flex-shrink-0">
+                <div className="grid grid-cols-3 gap-3 max-w-xs">
+                  {thumbnails.map((member, idx) => (
+                    <motion.div
+                      key={member._id}
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      whileInView={{ opacity: 1, scale: 1 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.4, delay: idx * 0.1 }}
+                      className={`relative rounded-xl overflow-hidden border border-white/10 ${
+                        idx === 0 ? "col-span-2 row-span-2 h-40" : "h-[4.5rem]"
+                      }`}
+                    >
+                      {member.images?.[0] ? (
+                        <img
+                          src={member.images[0]}
+                          alt={member.worldName}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-cyan-500/20 to-purple-500/20 flex items-center justify-center">
+                          <Globe className="w-6 h-6 text-white/20" />
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-black/20" />
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </AnimatedSection>
+    </Section>
+  );
+}
+
 function CTASection() {
   return (
     <Section className="relative">
@@ -448,6 +540,7 @@ export default function HomePage() {
       <ProcessSection />
       <ServicesSection />
       <AboutSection />
+      <CommunitySection />
       <CTASection />
     </main>
   );

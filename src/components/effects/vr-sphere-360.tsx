@@ -43,17 +43,40 @@ export function VRSphere360() {
   const rotateX = useSpring(y, springConfig);
   const rotateY = useSpring(x, springConfig);
 
-  // Auto-spin effect when not dragging
+  // Gentle showcase rotation - swings out then returns to center
   useEffect(() => {
     if (isDragging) return;
 
-    const interval = setInterval(() => {
-      autoRotateRef.current += 0.3;
-      x.set(autoRotateRef.current);
-      setRotation((prev) => ({ ...prev, y: autoRotateRef.current }));
-    }, 50);
+    let frame: number;
+    let startTime: number | null = null;
 
-    return () => clearInterval(interval);
+    const animate = (time: number) => {
+      if (startTime === null) startTime = time;
+      const elapsed = (time - startTime) / 1000;
+
+      // Gentle sine wave: swings 15 degrees out and back over 6 seconds, then pauses
+      const cycleTime = 8; // total cycle length in seconds
+      const swingTime = 5; // how long the swing portion lasts
+      const t = elapsed % cycleTime;
+
+      if (t < swingTime) {
+        // Smooth swing out and back
+        const progress = t / swingTime;
+        const swing = Math.sin(progress * Math.PI) * 15;
+        autoRotateRef.current = swing;
+        x.set(swing);
+        setRotation((prev) => ({ ...prev, y: swing }));
+      } else {
+        // Pause at center
+        autoRotateRef.current = 0;
+        x.set(0);
+      }
+
+      frame = requestAnimationFrame(animate);
+    };
+
+    frame = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(frame);
   }, [isDragging, x]);
 
   const handleDrag = (_event: MouseEvent | TouchEvent | PointerEvent, info: { offset: { x: number; y: number } }) => {
@@ -66,9 +89,7 @@ export function VRSphere360() {
     autoRotateRef.current = newRotationY;
   };
 
-  const handleEnterVR = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleEnterVR = () => {
     router.push("/vr");
   };
 
@@ -241,44 +262,19 @@ export function VRSphere360() {
           />
         </div>
 
-        {/* Center CTA area */}
-        <motion.div
-          className="absolute inset-0 flex items-center justify-center"
+        {/* Orbital rings (decorative, inside sphere) */}
+        <div
+          className="absolute inset-0 flex items-center justify-center pointer-events-none"
           style={{
             transformStyle: "preserve-3d",
             transform: "translateZ(50px)",
           }}
-          whileHover={{ scale: 1.05 }}
         >
-          <div className="relative">
-            {/* Center button */}
-            <motion.button
-              onClick={handleEnterVR}
-              className="relative z-30 px-8 py-4 rounded-full bg-gradient-to-r from-cyan-500 via-purple-500 to-magenta-500 text-white font-semibold text-lg shadow-2xl cursor-pointer flex items-center justify-center"
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
-              animate={{
-                boxShadow: [
-                  "0 0 20px rgba(0,212,255,0.5)",
-                  "0 0 40px rgba(139,92,246,0.7)",
-                  "0 0 20px rgba(255,45,146,0.5)",
-                  "0 0 20px rgba(0,212,255,0.5)",
-                ],
-              }}
-              transition={{
-                duration: 3,
-                repeat: Infinity,
-              }}
-            >
-              <Eye className="w-5 h-5 inline-block mr-2" />
-              Enter VR
-            </motion.button>
-
-            {/* Orbital rings around button */}
+          <div className="relative w-40 h-12">
             {[...Array(3)].map((_, i) => (
               <motion.div
                 key={i}
-                className="absolute inset-0 border-2 rounded-full pointer-events-none"
+                className="absolute inset-0 border-2 rounded-full"
                 style={{
                   borderColor: i % 3 === 0 ? "rgba(0,212,255,0.3)" : i % 3 === 1 ? "rgba(139,92,246,0.3)" : "rgba(255,45,146,0.3)",
                   transform: `scale(${1.5 + i * 0.5})`,
@@ -302,7 +298,7 @@ export function VRSphere360() {
               />
             ))}
           </div>
-        </motion.div>
+        </div>
 
         {/* Environment labels floating around sphere */}
         <motion.div
@@ -349,6 +345,39 @@ export function VRSphere360() {
           Event Space
         </motion.div>
       </motion.div>
+
+      {/* Enter VR button - outside draggable area so it works on mobile */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+        <motion.a
+          href="/vr"
+          onClick={(e) => {
+            e.preventDefault();
+            handleEnterVR();
+          }}
+          onTouchEnd={(e) => {
+            e.preventDefault();
+            handleEnterVR();
+          }}
+          className="relative z-50 px-8 py-4 rounded-full bg-gradient-to-r from-cyan-500 via-purple-500 to-magenta-500 text-white font-semibold text-lg shadow-2xl cursor-pointer flex items-center justify-center pointer-events-auto"
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.95 }}
+          animate={{
+            boxShadow: [
+              "0 0 20px rgba(0,212,255,0.5)",
+              "0 0 40px rgba(139,92,246,0.7)",
+              "0 0 20px rgba(255,45,146,0.5)",
+              "0 0 20px rgba(0,212,255,0.5)",
+            ],
+          }}
+          transition={{
+            duration: 3,
+            repeat: Infinity,
+          }}
+        >
+          <Eye className="w-5 h-5 inline-block mr-2" />
+          Enter VR
+        </motion.a>
+      </div>
 
       {/* Interaction hint */}
       <motion.div

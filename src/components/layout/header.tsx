@@ -12,7 +12,7 @@ const navLinks = [
   { href: "/about", label: "About" },
   { href: "/services", label: "Services" },
   { href: "/portfolio", label: "Portfolio" },
-  { href: "/vr", label: "VR/Multiverse Community" },
+  { href: "/vr", label: "VR/Metaverse Community" },
   { href: "/blog", label: "Blog" },
   { href: "/start-project", label: "Start a Project" },
 ];

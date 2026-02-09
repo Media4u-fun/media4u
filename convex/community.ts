@@ -347,6 +347,40 @@ export const updateMember = mutation({
 });
 
 // ============================================
+// PUBLIC: Like / Unlike
+// ============================================
+
+// Like a community member (public - no auth required)
+export const likeMember = mutation({
+  args: {
+    id: v.id("communityMembers"),
+  },
+  handler: async (ctx, args) => {
+    const member = await ctx.db.get(args.id);
+    if (!member) throw new Error("Member not found");
+
+    await ctx.db.patch(args.id, {
+      likes: (member.likes || 0) + 1,
+    });
+  },
+});
+
+// Unlike a community member (public - no auth required)
+export const unlikeMember = mutation({
+  args: {
+    id: v.id("communityMembers"),
+  },
+  handler: async (ctx, args) => {
+    const member = await ctx.db.get(args.id);
+    if (!member) throw new Error("Member not found");
+
+    await ctx.db.patch(args.id, {
+      likes: Math.max((member.likes || 0) - 1, 0),
+    });
+  },
+});
+
+// ============================================
 // PUBLIC: Display
 // ============================================
 
@@ -363,10 +397,13 @@ export const getCommunityStats = query({
     // Count unique creators
     const uniqueCreators = new Set(allMembers.map(m => m.name)).size;
 
+    const totalLikes = allMembers.reduce((sum, m) => sum + (m.likes || 0), 0);
+
     return {
       totalWorlds: allMembers.length,
       totalCreators: uniqueCreators,
       featuredCount,
+      totalLikes,
     };
   },
 });
