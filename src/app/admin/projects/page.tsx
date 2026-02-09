@@ -6,7 +6,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
 import { useState } from "react";
 import { Id } from "@convex/_generated/dataModel";
-import { Search, Plus, X, ExternalLink, FileDown, MessageSquarePlus, Trash2 } from "lucide-react";
+import { Search, Plus, X, ExternalLink, FileDown, MessageSquarePlus, Trash2, Palette, Share2 } from "lucide-react";
 
 type ProjectStatus = "new" | "planning" | "design" | "development" | "review" | "completed" | "launched";
 
@@ -134,6 +134,36 @@ export default function ProjectsAdminPage() {
     await updateProject({
       id: selected._id,
       [field]: value,
+    });
+  }
+
+  async function handleUpdateBrandColor(colorType: "primary" | "secondary" | "accent", value: string) {
+    if (!selected) return;
+    await updateProject({
+      id: selected._id,
+      brandColors: {
+        primary: selected.brandColors?.primary,
+        secondary: selected.brandColors?.secondary,
+        accent: selected.brandColors?.accent,
+        [colorType]: value,
+      },
+    });
+  }
+
+  async function handleUpdateSocialLink(platform: string, value: string) {
+    if (!selected) return;
+    await updateProject({
+      id: selected._id,
+      socialLinks: {
+        website: selected.socialLinks?.website,
+        instagram: selected.socialLinks?.instagram,
+        facebook: selected.socialLinks?.facebook,
+        twitter: selected.socialLinks?.twitter,
+        linkedin: selected.socialLinks?.linkedin,
+        youtube: selected.socialLinks?.youtube,
+        tiktok: selected.socialLinks?.tiktok,
+        [platform]: value,
+      },
     });
   }
 
@@ -422,6 +452,155 @@ export default function ProjectsAdminPage() {
                       Visit
                     </a>
                   )}
+                </div>
+              </div>
+
+              {/* Client Info & Branding */}
+              <div className="pt-4 border-t border-white/10">
+                <div className="flex items-center gap-2 mb-4">
+                  <Palette className="w-5 h-5 text-cyan-400" />
+                  <p className="text-sm font-semibold text-white">Client Branding</p>
+                </div>
+
+                {/* Brand Colors */}
+                <div className="mb-6">
+                  <p className="text-xs uppercase tracking-wider text-gray-500 mb-3">Brand Colors</p>
+                  <div className="grid grid-cols-3 gap-3">
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-2">Primary</label>
+                      <div className="flex gap-2">
+                        <input
+                          type="color"
+                          value={selected.brandColors?.primary || "#00d4ff"}
+                          onChange={(e) => handleUpdateBrandColor("primary", e.target.value)}
+                          className="w-12 h-10 rounded cursor-pointer border border-white/10"
+                        />
+                        <input
+                          type="text"
+                          value={selected.brandColors?.primary || ""}
+                          onChange={(e) => handleUpdateBrandColor("primary", e.target.value)}
+                          placeholder="#00d4ff"
+                          className="flex-1 px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-cyan-500/50"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-2">Secondary</label>
+                      <div className="flex gap-2">
+                        <input
+                          type="color"
+                          value={selected.brandColors?.secondary || "#8b5cf6"}
+                          onChange={(e) => handleUpdateBrandColor("secondary", e.target.value)}
+                          className="w-12 h-10 rounded cursor-pointer border border-white/10"
+                        />
+                        <input
+                          type="text"
+                          value={selected.brandColors?.secondary || ""}
+                          onChange={(e) => handleUpdateBrandColor("secondary", e.target.value)}
+                          placeholder="#8b5cf6"
+                          className="flex-1 px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-cyan-500/50"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-2">Accent</label>
+                      <div className="flex gap-2">
+                        <input
+                          type="color"
+                          value={selected.brandColors?.accent || "#ff2d92"}
+                          onChange={(e) => handleUpdateBrandColor("accent", e.target.value)}
+                          className="w-12 h-10 rounded cursor-pointer border border-white/10"
+                        />
+                        <input
+                          type="text"
+                          value={selected.brandColors?.accent || ""}
+                          onChange={(e) => handleUpdateBrandColor("accent", e.target.value)}
+                          placeholder="#ff2d92"
+                          className="flex-1 px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-cyan-500/50"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Social Links */}
+                <div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <Share2 className="w-4 h-4 text-cyan-400" />
+                    <p className="text-xs uppercase tracking-wider text-gray-500">Social Media</p>
+                  </div>
+                  <div className="grid md:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1.5">Website</label>
+                      <input
+                        type="url"
+                        value={selected.socialLinks?.website || ""}
+                        onChange={(e) => handleUpdateSocialLink("website", e.target.value)}
+                        placeholder="https://client-website.com"
+                        className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-cyan-500/50"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1.5">Instagram</label>
+                      <input
+                        type="text"
+                        value={selected.socialLinks?.instagram || ""}
+                        onChange={(e) => handleUpdateSocialLink("instagram", e.target.value)}
+                        placeholder="@username"
+                        className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-cyan-500/50"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1.5">Facebook</label>
+                      <input
+                        type="text"
+                        value={selected.socialLinks?.facebook || ""}
+                        onChange={(e) => handleUpdateSocialLink("facebook", e.target.value)}
+                        placeholder="facebook.com/page"
+                        className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-cyan-500/50"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1.5">Twitter/X</label>
+                      <input
+                        type="text"
+                        value={selected.socialLinks?.twitter || ""}
+                        onChange={(e) => handleUpdateSocialLink("twitter", e.target.value)}
+                        placeholder="@username"
+                        className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-cyan-500/50"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1.5">LinkedIn</label>
+                      <input
+                        type="text"
+                        value={selected.socialLinks?.linkedin || ""}
+                        onChange={(e) => handleUpdateSocialLink("linkedin", e.target.value)}
+                        placeholder="linkedin.com/company/name"
+                        className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-cyan-500/50"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1.5">YouTube</label>
+                      <input
+                        type="text"
+                        value={selected.socialLinks?.youtube || ""}
+                        onChange={(e) => handleUpdateSocialLink("youtube", e.target.value)}
+                        placeholder="@channel"
+                        className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-cyan-500/50"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1.5">TikTok</label>
+                      <input
+                        type="text"
+                        value={selected.socialLinks?.tiktok || ""}
+                        onChange={(e) => handleUpdateSocialLink("tiktok", e.target.value)}
+                        placeholder="@username"
+                        className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-cyan-500/50"
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
 

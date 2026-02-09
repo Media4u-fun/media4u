@@ -139,6 +139,20 @@ export const updateProject = mutation({
       v.literal("fullstack")
     )),
     technicalFeatures: v.optional(v.array(v.string())),
+    brandColors: v.optional(v.object({
+      primary: v.optional(v.string()),
+      secondary: v.optional(v.string()),
+      accent: v.optional(v.string()),
+    })),
+    socialLinks: v.optional(v.object({
+      website: v.optional(v.string()),
+      instagram: v.optional(v.string()),
+      facebook: v.optional(v.string()),
+      twitter: v.optional(v.string()),
+      linkedin: v.optional(v.string()),
+      youtube: v.optional(v.string()),
+      tiktok: v.optional(v.string()),
+    })),
   },
   handler: async (ctx, args) => {
     const { id, ...updates } = args;
