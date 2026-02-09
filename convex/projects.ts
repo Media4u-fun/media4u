@@ -198,3 +198,42 @@ export const deleteProject = mutation({
     await ctx.db.delete(args.id);
   },
 });
+
+// Get all notes for a project (sorted by creation date, newest first)
+export const getProjectNotes = query({
+  args: { projectId: v.id("projects") },
+  handler: async (ctx, args) => {
+    const notes = await ctx.db
+      .query("projectNotes")
+      .withIndex("by_projectId", (q) => q.eq("projectId", args.projectId))
+      .order("desc")
+      .collect();
+    return notes;
+  },
+});
+
+// Add a note to a project
+export const addProjectNote = mutation({
+  args: {
+    projectId: v.id("projects"),
+    note: v.string(),
+    createdBy: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const noteId = await ctx.db.insert("projectNotes", {
+      projectId: args.projectId,
+      note: args.note,
+      createdAt: Date.now(),
+      createdBy: args.createdBy,
+    });
+    return noteId;
+  },
+});
+
+// Delete a project note
+export const deleteProjectNote = mutation({
+  args: { id: v.id("projectNotes") },
+  handler: async (ctx, args) => {
+    await ctx.db.delete(args.id);
+  },
+});

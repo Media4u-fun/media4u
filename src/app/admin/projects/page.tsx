@@ -6,7 +6,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
 import { useState } from "react";
 import { Id } from "@convex/_generated/dataModel";
-import { Search, Plus, X, ExternalLink } from "lucide-react";
+import { Search, Plus, X, ExternalLink, FileDown, MessageSquarePlus, Trash2 } from "lucide-react";
 
 type ProjectStatus = "new" | "planning" | "design" | "development" | "review" | "completed" | "launched";
 
@@ -35,11 +35,14 @@ export default function ProjectsAdminPage() {
   const createProject = useMutation(api.projects.createProject);
   const updateProject = useMutation(api.projects.updateProject);
   const deleteProject = useMutation(api.projects.deleteProject);
+  const addProjectNote = useMutation(api.projects.addProjectNote);
+  const deleteProjectNote = useMutation(api.projects.deleteProjectNote);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<ProjectStatus | "all">("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [newNote, setNewNote] = useState("");
 
   // Add Project Form State
   const [formData, setFormData] = useState({
@@ -73,6 +76,10 @@ export default function ProjectsAdminPage() {
   }
 
   const selected = projects?.find((p: any) => p._id === selectedId);
+  const projectNotes = useQuery(
+    api.projects.getProjectNotes,
+    selectedId ? { projectId: selectedId as Id<"projects"> } : "skip"
+  );
 
   async function handleStatusChange(id: Id<"projects">, newStatus: ProjectStatus) {
     await updateProject({ id, status: newStatus });
@@ -128,6 +135,54 @@ export default function ProjectsAdminPage() {
       id: selected._id,
       [field]: value,
     });
+  }
+
+  async function handleAddNote() {
+    if (!selected || !newNote.trim()) return;
+    await addProjectNote({
+      projectId: selected._id,
+      note: newNote.trim(),
+      createdBy: "Admin", // You can replace with actual admin name if needed
+    });
+    setNewNote("");
+  }
+
+  async function handleDeleteNote(noteId: Id<"projectNotes">) {
+    if (confirm("Delete this note?")) {
+      await deleteProjectNote({ id: noteId });
+    }
+  }
+
+  function exportNotes() {
+    if (!selected || !projectNotes || projectNotes.length === 0) {
+      alert("No notes to export");
+      return;
+    }
+
+    // Create export text
+    let exportText = `Project Notes - ${selected.name}\n`;
+    exportText += `Client: ${selected.name} (${selected.email})\n`;
+    exportText += `Project Type: ${selected.projectType}\n`;
+    exportText += `Exported: ${new Date().toLocaleString()}\n`;
+    exportText += `\n${"=".repeat(60)}\n\n`;
+
+    projectNotes.forEach((note: any) => {
+      const date = new Date(note.createdAt).toLocaleString();
+      exportText += `[${date}]`;
+      if (note.createdBy) exportText += ` - ${note.createdBy}`;
+      exportText += `\n${note.note}\n\n`;
+    });
+
+    // Create downloadable file
+    const blob = new Blob([exportText], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${selected.name.replace(/[^a-z0-9]/gi, "_")}_notes_${Date.now()}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   }
 
   return (
@@ -370,16 +425,72 @@ export default function ProjectsAdminPage() {
                 </div>
               </div>
 
-              {/* Notes (editable) */}
-              <div>
-                <p className="text-xs uppercase tracking-wider text-gray-500 mb-2">Project Notes</p>
-                <textarea
-                  value={selected.notes}
-                  onChange={(e) => handleUpdateField("notes", e.target.value)}
-                  rows={4}
-                  className="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 resize-none"
-                  placeholder="Add notes about this project..."
-                />
+              {/* Project Notes Timeline */}
+              <div className="pt-4 border-t border-white/10">
+                <div className="flex items-center justify-between mb-4">
+                  <p className="text-sm font-semibold text-white">Project Notes</p>
+                  <button
+                    onClick={exportNotes}
+                    disabled={!projectNotes || projectNotes.length === 0}
+                    className="px-3 py-1.5 rounded-lg bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/30 border border-cyan-500/50 text-sm font-medium flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  >
+                    <FileDown className="w-4 h-4" />
+                    Export Notes
+                  </button>
+                </div>
+
+                {/* Add Note Form */}
+                <div className="mb-4 p-4 rounded-lg bg-white/5 border border-white/10">
+                  <textarea
+                    value={newNote}
+                    onChange={(e) => setNewNote(e.target.value)}
+                    rows={3}
+                    className="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 resize-none mb-3"
+                    placeholder="Type a new note..."
+                  />
+                  <button
+                    onClick={handleAddNote}
+                    disabled={!newNote.trim()}
+                    className="px-4 py-2 rounded-lg bg-cyan-500 text-white hover:bg-cyan-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm font-medium flex items-center gap-2"
+                  >
+                    <MessageSquarePlus className="w-4 h-4" />
+                    Add Note
+                  </button>
+                </div>
+
+                {/* Notes Timeline */}
+                <div className="space-y-3 max-h-96 overflow-y-auto">
+                  {projectNotes && projectNotes.length > 0 ? (
+                    projectNotes.map((note: any) => (
+                      <div key={note._id} className="p-4 rounded-lg bg-white/5 border border-white/10 group">
+                        <div className="flex items-start justify-between gap-3 mb-2">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 text-xs text-gray-400">
+                              <span>{new Date(note.createdAt).toLocaleString()}</span>
+                              {note.createdBy && (
+                                <>
+                                  <span className="text-gray-600">•</span>
+                                  <span>{note.createdBy}</span>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => handleDeleteNote(note._id)}
+                            className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg hover:bg-red-500/20 text-red-400 transition-all"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                        <p className="text-gray-300 whitespace-pre-wrap text-sm">{note.note}</p>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="p-8 text-center text-gray-500 text-sm">
+                      No notes yet. Add your first note above.
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/10">

@@ -146,6 +146,16 @@ export default defineSchema({
     .index("by_email", ["email"])
     .index("by_created", ["createdAt"]),
 
+  // Project Notes - timestamped notes for projects
+  projectNotes: defineTable({
+    projectId: v.id("projects"),
+    note: v.string(),
+    createdAt: v.number(),
+    createdBy: v.optional(v.string()), // Admin who added the note
+  })
+    .index("by_projectId", ["projectId"])
+    .index("by_created", ["createdAt"]),
+
   // Client Projects - converted leads that become actual projects
   projects: defineTable({
     name: v.string(),
