@@ -9,7 +9,9 @@ export default defineSchema({
   userRoles: defineTable({
     userId: v.string(), // Better Auth user ID
     role: v.union(v.literal("admin"), v.literal("user")),
-    displayName: v.optional(v.string()), // Admin-set display name
+    email: v.optional(v.string()), // User's email (captured during signup)
+    name: v.optional(v.string()), // User's name (captured during signup)
+    displayName: v.optional(v.string()), // Admin-set display name (overrides name)
     createdAt: v.number(),
   })
     .index("by_userId", ["userId"])

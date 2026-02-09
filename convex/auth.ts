@@ -65,6 +65,38 @@ export const createAuth = (ctx: GenericCtx<DataModel>) => {
       crossDomain({ siteUrl }),
       convex({ authConfig }),
     ],
+    hooks: {
+      after: [
+        {
+          matcher() {
+            return true;
+          },
+          handler: async ({ user, method }) => {
+            // When a new user signs up, create their userRole record with email/name
+            if (method === "signUp.email" && user) {
+              const db = ctx.db;
+
+              // Check if userRole already exists
+              const existing = await db
+                .query("userRoles")
+                .withIndex("by_userId", (q) => q.eq("userId", user.id))
+                .first();
+
+              if (!existing) {
+                // Create new userRole with email and name
+                await db.insert("userRoles", {
+                  userId: user.id,
+                  email: user.email,
+                  name: user.name ?? undefined,
+                  role: "user",
+                  createdAt: Date.now(),
+                });
+              }
+            }
+          },
+        },
+      ],
+    },
   });
 };
 

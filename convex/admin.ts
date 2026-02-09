@@ -1,44 +1,24 @@
 import { query, mutation, internalMutation } from "./_generated/server";
 import { requireAdmin } from "./auth";
 import { v } from "convex/values";
-import { components } from "./_generated/api";
 
 export const getAllUsers = query({
   args: {},
   handler: async (ctx) => {
     await requireAdmin(ctx);
 
-    // Get all user roles
+    // Get all user roles (now includes email and name)
     const userRoles = await ctx.db.query("userRoles").collect();
 
-    // Fetch user details from Better Auth for each user with a role
-    const usersWithDetails = await Promise.all(
-      userRoles.map(async (roleRecord) => {
-        try {
-          // Query Better Auth user table to get name and email
-          const authUser = await ctx.runQuery(components.betterAuth.adapter.findOne, {
-            model: "user",
-            where: [{ field: "id", value: roleRecord.userId, operator: "eq" }],
-          });
-
-          return {
-            _id: roleRecord.userId,
-            // Use displayName from our table first, then Better Auth name, then fallback
-            name: roleRecord.displayName || authUser?.name || `User ${roleRecord.userId.slice(-8)}`,
-            email: authUser?.email || roleRecord.userId,
-            role: roleRecord.role,
-          };
-        } catch {
-          // Fallback if user not found in Better Auth
-          return {
-            _id: roleRecord.userId,
-            name: roleRecord.displayName || `User ${roleRecord.userId.slice(-8)}`,
-            email: roleRecord.userId,
-            role: roleRecord.role,
-          };
-        }
-      })
-    );
+    // Map to user details using stored email/name
+    const usersWithDetails = userRoles.map((roleRecord) => {
+      return {
+        _id: roleRecord.userId,
+        name: roleRecord.displayName || roleRecord.name || `User ${roleRecord.userId.slice(-8)}`,
+        email: roleRecord.email || `No email stored`,
+        role: roleRecord.role,
+      };
+    });
 
     return usersWithDetails;
   },
@@ -64,6 +44,8 @@ export const setUserRoleInternal = internalMutation({
   args: {
     userId: v.string(),
     role: v.union(v.literal("admin"), v.literal("user")),
+    email: v.optional(v.string()),
+    name: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const existing = await ctx.db
@@ -72,11 +54,17 @@ export const setUserRoleInternal = internalMutation({
       .first();
 
     if (existing) {
-      await ctx.db.patch(existing._id, { role: args.role });
+      await ctx.db.patch(existing._id, {
+        role: args.role,
+        ...(args.email && { email: args.email }),
+        ...(args.name && { name: args.name }),
+      });
     } else {
       await ctx.db.insert("userRoles", {
         userId: args.userId,
         role: args.role,
+        email: args.email,
+        name: args.name,
         createdAt: Date.now(),
       });
     }
@@ -87,6 +75,8 @@ export const addUserByEmail = mutation({
   args: {
     userId: v.string(),
     role: v.union(v.literal("admin"), v.literal("user")),
+    email: v.optional(v.string()),
+    name: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     await requireAdmin(ctx);
@@ -98,14 +88,20 @@ export const addUserByEmail = mutation({
       .first();
 
     if (existing) {
-      // Update existing role
-      await ctx.db.patch(existing._id, { role: args.role });
+      // Update existing role and optionally email/name
+      await ctx.db.patch(existing._id, {
+        role: args.role,
+        ...(args.email && { email: args.email }),
+        ...(args.name && { name: args.name }),
+      });
       return { success: true, message: `Updated user to ${args.role}` };
     } else {
       // Create new role entry
       await ctx.db.insert("userRoles", {
         userId: args.userId,
         role: args.role,
+        email: args.email,
+        name: args.name,
         createdAt: Date.now(),
       });
       return { success: true, message: `Added user as ${args.role}` };
