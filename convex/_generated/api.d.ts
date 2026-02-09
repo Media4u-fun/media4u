@@ -25,6 +25,7 @@ import type * as newsletter from "../newsletter.js";
 import type * as newsletters from "../newsletters.js";
 import type * as passwordReset from "../passwordReset.js";
 import type * as portfolio from "../portfolio.js";
+import type * as projectClientEmails from "../projectClientEmails.js";
 import type * as projectEmails from "../projectEmails.js";
 import type * as projectFiles from "../projectFiles.js";
 import type * as projectRequests from "../projectRequests.js";
@@ -61,6 +62,7 @@ declare const fullApi: ApiFromModules<{
   newsletters: typeof newsletters;
   passwordReset: typeof passwordReset;
   portfolio: typeof portfolio;
+  projectClientEmails: typeof projectClientEmails;
   projectEmails: typeof projectEmails;
   projectFiles: typeof projectFiles;
   projectRequests: typeof projectRequests;

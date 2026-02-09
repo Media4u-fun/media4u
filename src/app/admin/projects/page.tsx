@@ -2,11 +2,12 @@
 "use client";
 
 import { motion } from "motion/react";
-import { useQuery, useMutation } from "convex/react";
+import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "@convex/_generated/api";
 import { useState } from "react";
 import { Id } from "@convex/_generated/dataModel";
-import { Search, Plus, X, ExternalLink, FileDown, MessageSquarePlus, Trash2, Palette, Share2, Lock, Copy, Check, Upload, Image as ImageIcon, File } from "lucide-react";
+import { Search, Plus, X, ExternalLink, FileDown, MessageSquarePlus, Trash2, Palette, Share2, Lock, Copy, Check, Upload, Image as ImageIcon, File, Mail } from "lucide-react";
+import { EmailReplyModal } from "@/components/admin/EmailReplyModal";
 
 type ProjectStatus = "new" | "planning" | "design" | "development" | "review" | "completed" | "launched";
 
@@ -43,6 +44,9 @@ export default function ProjectsAdminPage() {
   const saveFileMetadata = useMutation(api.projectFiles.saveFileMetadata);
   const deleteFile = useMutation(api.projectFiles.deleteFile);
 
+  // Email Client
+  const sendClientEmail = useAction(api.projectClientEmails.sendProjectClientEmail);
+
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<ProjectStatus | "all">("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -51,6 +55,7 @@ export default function ProjectsAdminPage() {
   const [exportedVault, setExportedVault] = useState<string | null>(null);
   const [copiedExport, setCopiedExport] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
 
   // Add Project Form State
   const [formData, setFormData] = useState({
@@ -236,6 +241,19 @@ export default function ProjectsAdminPage() {
     if (confirm("Delete this file? This cannot be undone.")) {
       await deleteFile({ id: fileId });
     }
+  }
+
+  async function handleSendEmail(message: string, attachments?: Array<{ filename: string; content: string }>) {
+    if (!selected) return;
+
+    await sendClientEmail({
+      to: selected.email,
+      toName: selected.name,
+      projectName: `${selected.projectType} - ${selected.name}`,
+      subject: `Update on Your ${selected.projectType} Project`,
+      message,
+      attachments,
+    });
   }
 
   function exportNotes() {
@@ -506,9 +524,18 @@ export default function ProjectsAdminPage() {
         >
           {selected ? (
             <div className="glass-elevated rounded-2xl p-6 space-y-6">
-              <div>
-                <p className="text-xs uppercase tracking-wider text-gray-500 mb-1">Client Name</p>
-                <p className="text-xl font-semibold text-white">{selected.name}</p>
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1">
+                  <p className="text-xs uppercase tracking-wider text-gray-500 mb-1">Client Name</p>
+                  <p className="text-xl font-semibold text-white">{selected.name}</p>
+                </div>
+                <button
+                  onClick={() => setIsEmailModalOpen(true)}
+                  className="px-4 py-2 rounded-lg bg-gradient-to-r from-cyan-500 to-purple-500 text-white hover:opacity-90 transition-opacity flex items-center gap-2 font-medium text-sm"
+                >
+                  <Mail className="w-4 h-4" />
+                  Email Client
+                </button>
               </div>
 
               <div className="grid md:grid-cols-2 gap-6">
@@ -1398,6 +1425,18 @@ export default function ProjectsAdminPage() {
             </div>
           </motion.div>
         </div>
+      )}
+
+      {/* Email Client Modal */}
+      {selected && (
+        <EmailReplyModal
+          isOpen={isEmailModalOpen}
+          onClose={() => setIsEmailModalOpen(false)}
+          recipientEmail={selected.email}
+          recipientName={selected.name}
+          subject={`Update on Your ${selected.projectType} Project`}
+          onSend={handleSendEmail}
+        />
       )}
     </div>
   );
