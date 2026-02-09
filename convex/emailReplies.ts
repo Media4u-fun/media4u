@@ -7,6 +7,14 @@ export const sendEmailReply = action({
     subject: v.string(),
     message: v.string(),
     recipientName: v.string(),
+    attachments: v.optional(
+      v.array(
+        v.object({
+          filename: v.string(),
+          content: v.string(), // base64 encoded
+        })
+      )
+    ),
   },
   handler: async (ctx, args) => {
     const RESEND_API_KEY = process.env.RESEND_API_KEY;
@@ -99,6 +107,25 @@ ${args.message}
 </html>
     `.trim();
 
+    // Prepare email payload
+    const emailPayload: {
+      from: string;
+      to: string;
+      subject: string;
+      html: string;
+      attachments?: Array<{ filename: string; content: string }>;
+    } = {
+      from: FROM_EMAIL,
+      to: args.to,
+      subject: args.subject,
+      html: emailHtml,
+    };
+
+    // Add attachments if provided
+    if (args.attachments && args.attachments.length > 0) {
+      emailPayload.attachments = args.attachments;
+    }
+
     // Send email via Resend
     const response = await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -106,12 +133,7 @@ ${args.message}
         "Content-Type": "application/json",
         Authorization: `Bearer ${RESEND_API_KEY}`,
       },
-      body: JSON.stringify({
-        from: FROM_EMAIL,
-        to: args.to,
-        subject: args.subject,
-        html: emailHtml,
-      }),
+      body: JSON.stringify(emailPayload),
     });
 
     if (!response.ok) {

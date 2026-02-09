@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { X, Send } from "lucide-react";
+import { X, Send, Paperclip, Image as ImageIcon } from "lucide-react";
 
 // Reusable modal for sending email replies from admin panel
 interface EmailReplyModalProps {
@@ -11,7 +11,7 @@ interface EmailReplyModalProps {
   recipientEmail: string;
   recipientName: string;
   subject: string;
-  onSend: (message: string) => Promise<void>;
+  onSend: (message: string, attachments?: Array<{ filename: string; content: string }>) => Promise<void>;
 }
 
 export function EmailReplyModal({
@@ -24,6 +24,52 @@ export function EmailReplyModal({
 }: EmailReplyModalProps) {
   const [message, setMessage] = useState("");
   const [isSending, setIsSending] = useState(false);
+  const [attachments, setAttachments] = useState<Array<{ filename: string; content: string }>>([]);
+
+  const ALLOWED_TYPES = ["image/png", "image/jpeg", "image/jpg", "image/webp"];
+  const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+
+  async function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files || []);
+
+    for (const file of files) {
+      // Validate file type
+      if (!ALLOWED_TYPES.includes(file.type)) {
+        alert(`${file.name}: Only PNG, JPG, and WebP images are allowed`);
+        continue;
+      }
+
+      // Validate file size
+      if (file.size > MAX_FILE_SIZE) {
+        alert(`${file.name}: File size must be less than 5MB`);
+        continue;
+      }
+
+      // Convert to base64
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const base64 = event.target?.result as string;
+        // Remove data URL prefix to get just the base64 content
+        const base64Content = base64.split(",")[1];
+
+        setAttachments((prev) => [
+          ...prev,
+          {
+            filename: file.name,
+            content: base64Content,
+          },
+        ]);
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // Reset input
+    e.target.value = "";
+  }
+
+  function removeAttachment(index: number) {
+    setAttachments((prev) => prev.filter((_, i) => i !== index));
+  }
 
   async function handleSend() {
     if (!message.trim()) {
@@ -33,9 +79,10 @@ export function EmailReplyModal({
 
     setIsSending(true);
     try {
-      await onSend(message);
+      await onSend(message, attachments.length > 0 ? attachments : undefined);
       alert("Email sent successfully!");
       setMessage("");
+      setAttachments([]);
       onClose();
     } catch (error) {
       console.error("Failed to send email:", error);
@@ -105,9 +152,55 @@ export function EmailReplyModal({
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 placeholder="Type your reply here..."
-                rows={12}
+                rows={8}
                 className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 resize-none"
               />
+            </div>
+
+            {/* Attachments */}
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Attachments (PNG, JPG, WebP - Max 5MB each):
+              </label>
+
+              {/* File Input Button */}
+              <label className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white/10 text-white hover:bg-white/20 transition-colors cursor-pointer border border-white/10">
+                <Paperclip className="w-4 h-4" />
+                <span className="text-sm">Add Images</span>
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/jpg,image/webp"
+                  multiple
+                  onChange={handleFileSelect}
+                  className="hidden"
+                />
+              </label>
+
+              {/* Attachment List */}
+              {attachments.length > 0 && (
+                <div className="mt-3 space-y-2">
+                  {attachments.map((attachment, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/10"
+                    >
+                      <div className="flex items-center gap-2">
+                        <ImageIcon className="w-4 h-4 text-cyan-400" />
+                        <span className="text-sm text-white">{attachment.filename}</span>
+                      </div>
+                      <button
+                        onClick={() => removeAttachment(index)}
+                        className="p-1 rounded hover:bg-white/10 transition-colors"
+                      >
+                        <X className="w-4 h-4 text-gray-400 hover:text-red-400" />
+                      </button>
+                    </div>
+                  ))}
+                  <p className="text-xs text-gray-500">
+                    {attachments.length} image{attachments.length > 1 ? "s" : ""} attached
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 

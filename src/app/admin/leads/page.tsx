@@ -93,7 +93,7 @@ export default function LeadsAdminPage() {
     }
   }
 
-  async function handleSendReply(message: string) {
+  async function handleSendReply(message: string, attachments?: Array<{ filename: string; content: string }>) {
     if (!selected) return;
 
     await sendEmailReply({
@@ -101,6 +101,7 @@ export default function LeadsAdminPage() {
       subject: "Following up - Media4U",
       message,
       recipientName: selected.name,
+      attachments,
     });
 
     // Mark as contacted and update timestamp

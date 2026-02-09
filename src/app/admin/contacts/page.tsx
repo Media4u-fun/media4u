@@ -62,7 +62,7 @@ export default function ContactsAdminPage() {
     }
   }
 
-  async function handleSendReply(message: string) {
+  async function handleSendReply(message: string, attachments?: Array<{ filename: string; content: string }>) {
     if (!selected) return;
 
     await sendEmailReply({
@@ -70,6 +70,7 @@ export default function ContactsAdminPage() {
       subject: `Re: ${selected.service} Inquiry`,
       message,
       recipientName: selected.name,
+      attachments,
     });
 
     // Mark as replied

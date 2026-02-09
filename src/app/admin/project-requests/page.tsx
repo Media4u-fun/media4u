@@ -80,7 +80,7 @@ export default function ProjectRequestsAdminPage() {
     }
   }
 
-  async function handleSendReply(message: string) {
+  async function handleSendReply(message: string, attachments?: Array<{ filename: string; content: string }>) {
     if (!selected) return;
 
     await sendEmailReply({
@@ -88,6 +88,7 @@ export default function ProjectRequestsAdminPage() {
       subject: `Re: Your Project Request - ${selected.projectTypes.join(", ")}`,
       message,
       recipientName: selected.name,
+      attachments,
     });
 
     // Mark as contacted
