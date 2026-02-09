@@ -55,17 +55,18 @@ function MorphingBlob() {
 
 function HeroSection() {
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+    <section className="relative overflow-hidden">
       <MorphingBlob />
 
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-void-950" />
 
-      <div className="relative z-10 max-w-5xl mx-auto px-6 text-center">
+      <Section className="pt-32 md:pt-40 relative z-10">
+        <div className="text-center">
         <motion.h1
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.1, ease: "easeOut" }}
-          className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-display font-bold mb-6 leading-tight text-white"
+          className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-display font-bold mb-6 text-white"
         >
           Professional Websites That Convert and VR Experiences That Wow
         </motion.h1>
@@ -102,7 +103,8 @@ function HeroSection() {
         >
           <VRSphere360 />
         </motion.div>
-      </div>
+        </div>
+      </Section>
     </section>
   );
 }

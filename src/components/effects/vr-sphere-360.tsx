@@ -89,6 +89,25 @@ export function VRSphere360() {
     autoRotateRef.current = newRotationY;
   };
 
+  const handleDragEnd = () => {
+    setIsDragging(false);
+
+    // Snap to nearest angle increment (30 degrees for both axes)
+    const snapIncrement = 30;
+    const currentX = y.get(); // Note: y motion value controls rotateX
+    const currentY = x.get(); // Note: x motion value controls rotateY
+
+    // Calculate nearest snap point for each axis
+    const snappedX = Math.round(currentX / snapIncrement) * snapIncrement;
+    const snappedY = Math.round(currentY / snapIncrement) * snapIncrement;
+
+    // Animate to snapped positions
+    y.set(snappedX);
+    x.set(snappedY);
+    setRotation({ x: snappedX, y: snappedY });
+    autoRotateRef.current = snappedY;
+  };
+
   const handleEnterVR = () => {
     router.push("/vr");
   };
@@ -101,7 +120,7 @@ export function VRSphere360() {
         dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
         onDragStart={() => setIsDragging(true)}
         onDrag={handleDrag}
-        onDragEnd={() => setIsDragging(false)}
+        onDragEnd={handleDragEnd}
         style={{
           rotateX,
           rotateY,
