@@ -50,14 +50,17 @@ export const saveFileMetadata = mutation({
 
     await requireAdmin(ctx);
 
+    const uploadedByName = (user.name ?? user.email ?? "Admin") as string;
+    const uploadedBy = (user.userId ?? user._id ?? "unknown") as string;
+
     const fileId = await ctx.db.insert("projectFiles", {
       projectId: args.projectId,
       storageId: args.storageId,
       fileName: args.fileName,
       fileType: args.fileType,
       fileSize: args.fileSize,
-      uploadedBy: user.userId,
-      uploadedByName: user.name || user.email,
+      uploadedBy,
+      uploadedByName,
       description: args.description,
       createdAt: Date.now(),
     });
