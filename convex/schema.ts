@@ -182,6 +182,31 @@ export default defineSchema({
       youtube: v.optional(v.string()),
       tiktok: v.optional(v.string()),
     })),
+    // Integration Vault - secure storage for client API keys and credentials
+    integrationVault: v.optional(v.object({
+      // Email Provider
+      emailProvider: v.optional(v.string()), // e.g., "Resend", "SendGrid"
+      emailApiKey: v.optional(v.string()),
+      emailFromAddress: v.optional(v.string()),
+      // Analytics
+      googleAnalyticsId: v.optional(v.string()),
+      googleTagManagerId: v.optional(v.string()),
+      facebookPixelId: v.optional(v.string()),
+      // Webhooks
+      webhookUrl: v.optional(v.string()),
+      webhookSecret: v.optional(v.string()),
+      // Custom API Keys
+      customApiKey1Label: v.optional(v.string()),
+      customApiKey1Value: v.optional(v.string()),
+      customApiKey2Label: v.optional(v.string()),
+      customApiKey2Value: v.optional(v.string()),
+      customApiKey3Label: v.optional(v.string()),
+      customApiKey3Value: v.optional(v.string()),
+      // Other
+      stripePublishableKey: v.optional(v.string()),
+      stripeSecretKey: v.optional(v.string()),
+      notes: v.optional(v.string()), // General integration notes
+    })),
     status: v.union(
       v.literal("new"),
       v.literal("planning"),

@@ -4,7 +4,8 @@ import { motion } from "motion/react";
 import { useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { useState } from "react";
-import { Search, ExternalLink, Calendar, Package } from "lucide-react";
+import { Search, ExternalLink, Calendar, Package, Lock } from "lucide-react";
+import Link from "next/link";
 
 type ProjectStatus = "new" | "planning" | "design" | "development" | "review" | "completed" | "launched";
 
@@ -114,18 +115,27 @@ export default function ClientProjectsPage() {
                 )}
               </div>
 
-              {/* Live URL */}
-              {project.liveUrl && (
-                <a
-                  href={project.liveUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/30 border border-cyan-500/50 transition-colors text-sm font-medium"
+              {/* Actions */}
+              <div className="grid grid-cols-2 gap-3">
+                {project.liveUrl && (
+                  <a
+                    href={project.liveUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/30 border border-cyan-500/50 transition-colors text-sm font-medium justify-center"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                    Live Site
+                  </a>
+                )}
+                <Link
+                  href={`/portal/projects/${project._id}/vault`}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg bg-purple-500/20 text-purple-400 hover:bg-purple-500/30 border border-purple-500/50 transition-colors text-sm font-medium justify-center ${!project.liveUrl ? 'col-span-2' : ''}`}
                 >
-                  <ExternalLink className="w-4 h-4" />
-                  View Live Site
-                </a>
-              )}
+                  <Lock className="w-4 h-4" />
+                  Setup Vault
+                </Link>
+              </div>
 
               {/* Created Date */}
               <div className="mt-4 pt-4 border-t border-white/10 text-xs text-gray-500">

@@ -273,3 +273,60 @@ export const deleteProjectNote = mutation({
     await ctx.db.delete(args.id);
   },
 });
+
+// Update integration vault (clients can update their own, admins can update any)
+export const updateIntegrationVault = mutation({
+  args: {
+    projectId: v.id("projects"),
+    integrationVault: v.object({
+      emailProvider: v.optional(v.string()),
+      emailApiKey: v.optional(v.string()),
+      emailFromAddress: v.optional(v.string()),
+      googleAnalyticsId: v.optional(v.string()),
+      googleTagManagerId: v.optional(v.string()),
+      facebookPixelId: v.optional(v.string()),
+      webhookUrl: v.optional(v.string()),
+      webhookSecret: v.optional(v.string()),
+      customApiKey1Label: v.optional(v.string()),
+      customApiKey1Value: v.optional(v.string()),
+      customApiKey2Label: v.optional(v.string()),
+      customApiKey2Value: v.optional(v.string()),
+      customApiKey3Label: v.optional(v.string()),
+      customApiKey3Value: v.optional(v.string()),
+      stripePublishableKey: v.optional(v.string()),
+      stripeSecretKey: v.optional(v.string()),
+      notes: v.optional(v.string()),
+    }),
+  },
+  handler: async (ctx, args) => {
+    const user = await getAuthenticatedUser(ctx);
+    if (!user) {
+      throw new Error("Authentication required");
+    }
+
+    // Get the project
+    const project = await ctx.db.get(args.projectId);
+    if (!project) {
+      throw new Error("Project not found");
+    }
+
+    // Check permissions: must be project owner or admin
+    const isProjectOwner = project.email === user.email;
+    const userRole = await ctx.db
+      .query("userRoles")
+      .withIndex("by_userId", (q) => q.eq("userId", user._id))
+      .first();
+    const isAdmin = userRole?.role === "admin";
+
+    if (!isProjectOwner && !isAdmin) {
+      throw new Error("Permission denied");
+    }
+
+    // Update vault
+    await ctx.db.patch(args.projectId, {
+      integrationVault: args.integrationVault,
+    });
+
+    return { success: true };
+  },
+});
