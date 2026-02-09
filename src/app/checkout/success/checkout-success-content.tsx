@@ -132,7 +132,7 @@ export function CheckoutSuccessContent(): ReactElement {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/portal">
               <Button variant="primary" size="lg">
-                Go to Client Portal
+                Go to User Portal
               </Button>
             </Link>
             <Link href="/">

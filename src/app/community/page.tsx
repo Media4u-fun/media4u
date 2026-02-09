@@ -334,7 +334,7 @@ function CommunityCard({ member }: { member: any }) {
   }, [isLiked, member._id, likeMember, unlikeMember]);
 
   return (
-    <div className="group relative glass-elevated rounded-2xl overflow-hidden hover:translate-y-[-8px] transition-all duration-300">
+    <div className="group relative glass-elevated rounded-2xl overflow-hidden hover:translate-y-[-8px] transition-all duration-300 h-full flex flex-col">
       {/* Featured Badge */}
       {member.featured && (
         <div className="absolute top-4 right-4 z-10 px-3 py-1 rounded-full bg-yellow-500/20 text-yellow-400 text-xs font-medium flex items-center gap-1 border border-yellow-500/30 backdrop-blur-sm">
@@ -359,7 +359,7 @@ function CommunityCard({ member }: { member: any }) {
       </div>
 
       {/* Content */}
-      <div className="p-5">
+      <div className="p-5 flex flex-col flex-grow">
         <div className="flex items-start justify-between mb-1">
           <div className="min-w-0 flex-1">
             <h3 className="text-xl font-semibold text-white">{member.worldName}</h3>
@@ -395,10 +395,10 @@ function CommunityCard({ member }: { member: any }) {
             )}
           </button>
         </div>
-        <p className="text-sm text-gray-400 line-clamp-3 mb-4">{member.description}</p>
+        <p className="text-sm text-gray-400 line-clamp-3 mb-4 flex-grow">{member.description}</p>
 
         {/* Links */}
-        <div className="flex items-center gap-3 flex-wrap">
+        <div className="flex items-center gap-3 flex-wrap mt-auto">
           {member.multiverseUrl && (
             <a
               href={member.multiverseUrl}

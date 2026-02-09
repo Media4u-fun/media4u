@@ -207,7 +207,7 @@ export function StartProjectContent(): ReactElement {
       </Section>
 
       {/* SECTION 2 - WHAT WE BUILD */}
-      <Section className="border-t border-white/10">
+      <Section>
         <SectionHeader
           tag="What We Build"
           title="Your Vision,"

@@ -447,7 +447,7 @@ export default function VRPageClient() {
                 transition={{ duration: 0.5, delay: idx * 0.1 }}
               >
                 <div
-                  className="group relative glass-elevated rounded-2xl overflow-hidden hover:translate-y-[-8px] transition-all duration-300 cursor-pointer"
+                  className="group relative glass-elevated rounded-2xl overflow-hidden hover:translate-y-[-8px] transition-all duration-300 cursor-pointer h-full flex flex-col"
                   onClick={() => { setSelectedMember(member); setCurrentImageIndex(0); }}
                 >
                   {/* Featured Badge */}
@@ -475,7 +475,7 @@ export default function VRPageClient() {
                   </div>
 
                   {/* Content */}
-                  <div className="p-5">
+                  <div className="p-5 flex flex-col flex-grow">
                     <div className="flex items-start justify-between mb-1">
                       <div className="min-w-0 flex-1">
                         <h3 className="text-xl font-semibold text-white">{member.worldName}</h3>
@@ -485,10 +485,10 @@ export default function VRPageClient() {
                         <LikeButton memberId={member._id} likes={member.likes || 0} />
                       </div>
                     </div>
-                    <p className="text-sm text-gray-400 line-clamp-3 mb-4">{member.description}</p>
+                    <p className="text-sm text-gray-400 line-clamp-3 mb-4 flex-grow">{member.description}</p>
 
                     {/* Links */}
-                    <div className="flex items-center gap-3 flex-wrap" onClick={(e) => e.stopPropagation()}>
+                    <div className="flex items-center gap-3 flex-wrap mt-auto" onClick={(e) => e.stopPropagation()}>
                       {member.videoUrl && (
                         <a
                           href={member.videoUrl}
