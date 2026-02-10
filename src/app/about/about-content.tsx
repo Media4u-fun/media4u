@@ -71,7 +71,7 @@ const VALUES = [
     ),
     title: "Purpose",
     description:
-      "Faith-informed and purpose-driven, we&apos;re here to help you build something meaningful that serves everyone.",
+      "Faith-informed and purpose-driven, we're here to help you build something meaningful that serves everyone.",
     glow: "magenta" as const,
   },
 ];

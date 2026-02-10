@@ -10,7 +10,7 @@ const services = [
     id: "web-design",
     title: "Professional Websites",
     description:
-      "Modern, mobile-responsive websites built for businesses, creators, and brands who want to grow their online presence. From landing pages to full eCommerce-we build sites that convert.",
+      "Modern, mobile-responsive websites built for businesses, creators, and brands who want to grow their online presence. From landing pages to full eCommerce - we build sites that convert.",
     features: [
       "Responsive mobile-first design",
       "SEO optimization built-in",
