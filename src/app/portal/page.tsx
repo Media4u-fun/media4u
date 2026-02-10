@@ -216,18 +216,34 @@ export default function PortalPage(): ReactElement {
         </div>
 
         {recentProjects.length === 0 ? (
-          <div className="glass-elevated rounded-2xl p-12 text-center">
-            <Briefcase className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-            <p className="text-gray-400 mb-2">No projects yet</p>
-            <p className="text-gray-500 text-sm mb-4">
-              Your projects will appear here once they&apos;re created
-            </p>
-            <Link
-              href="/start-project"
-              className="inline-block text-cyan-400 hover:text-cyan-300 font-medium transition-colors"
-            >
-              Start a new project
-            </Link>
+          <div className="glass-elevated rounded-2xl p-8 border border-cyan-500/20">
+            <div className="flex flex-col md:flex-row items-center gap-6">
+              <div className="w-16 h-16 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center flex-shrink-0">
+                <Briefcase className="w-8 h-8 text-cyan-400" />
+              </div>
+              <div className="flex-1 text-center md:text-left">
+                <h3 className="text-lg font-semibold text-white mb-1">
+                  Ready to build something?
+                </h3>
+                <p className="text-gray-400 text-sm">
+                  Start your first project - whether it is a professional website, branding, a VR experience, or all three. We will guide you through every step.
+                </p>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-3 flex-shrink-0">
+                <Link
+                  href="/portal/projects"
+                  className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-cyan-500 text-black font-semibold hover:bg-cyan-400 transition-colors text-sm whitespace-nowrap"
+                >
+                  View Project Options
+                </Link>
+                <Link
+                  href="/start-project"
+                  className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-gray-300 hover:text-white hover:bg-white/10 transition-all text-sm whitespace-nowrap"
+                >
+                  Start the Wizard
+                </Link>
+              </div>
+            </div>
           </div>
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
