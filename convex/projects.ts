@@ -337,7 +337,7 @@ export const linkRequestToProject = mutation({
       lookAndFeel: request.lookAndFeel || undefined,
       growthStage: request.growthStage || undefined,
       technicalFeatures: allFeatures.length > 0 ? allFeatures : undefined,
-      description: request.description || undefined,
+      ...(request.description ? { description: request.description } : {}),
       requirements: request.vision || undefined,
       updatedAt: Date.now(),
     });
