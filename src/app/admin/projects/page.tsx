@@ -51,7 +51,7 @@ export default function ProjectsAdminPage() {
   const sendClientEmail = useAction(api.projectClientEmails.sendProjectClientEmail);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [filterStatus, setFilterStatus] = useState<ProjectStatus | "all">("all");
+  const [filterStatus, setFilterStatus] = useState<ProjectStatus | "all" | "active">("active");
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [newNote, setNewNote] = useState("");
@@ -79,8 +79,10 @@ export default function ProjectsAdminPage() {
   // Filter by status first, then search
   let filtered = projects;
 
-  if (filterStatus !== "all" && filtered) {
-    filtered = filtered.filter((p: any) => p.status === filterStatus);
+  if (filterStatus === "active") {
+    filtered = filtered?.filter((p: any) => p.status !== "completed" && p.status !== "launched");
+  } else if (filterStatus !== "all") {
+    filtered = filtered?.filter((p: any) => p.status === filterStatus);
   }
 
   if (searchQuery.trim() && filtered) {
@@ -549,8 +551,8 @@ export default function ProjectsAdminPage() {
       </div>
 
       {/* Filters */}
-      <div className="flex gap-3 mb-6 overflow-x-auto scrollbar-hide">
-        {(["all", "new", "planning", "design", "development", "review", "completed", "launched"] as const).map((status) => (
+      <div className="flex gap-3 mb-6 overflow-x-auto pb-2">
+        {(["active", "all", "new", "planning", "design", "development", "review", "completed", "launched"] as const).map((status) => (
           <button
             key={status}
             onClick={() => setFilterStatus(status)}
@@ -560,7 +562,7 @@ export default function ProjectsAdminPage() {
                 : "bg-white/5 text-gray-400 hover:text-white border border-white/10"
             }`}
           >
-            {status === "all" ? "All" : statusLabels[status]}
+            {status === "active" ? "Active" : status === "all" ? "All" : statusLabels[status]}
           </button>
         ))}
       </div>
@@ -705,6 +707,37 @@ export default function ProjectsAdminPage() {
                   <p className="text-xs uppercase tracking-wider text-gray-500 mb-1">Requirements</p>
                   <p className="text-gray-300 whitespace-pre-wrap">{selected.requirements}</p>
                 </div>
+              )}
+
+              {/* Wizard data - only shown if present */}
+              {selected.primaryGoal && (
+                <div>
+                  <p className="text-xs uppercase tracking-wider text-gray-500 mb-1">Primary Goal</p>
+                  <p className="text-gray-300">{selected.primaryGoal}</p>
+                </div>
+              )}
+              {selected.lookAndFeel && (
+                <div>
+                  <p className="text-xs uppercase tracking-wider text-gray-500 mb-1">Look & Feel</p>
+                  <p className="text-gray-300">{selected.lookAndFeel}</p>
+                </div>
+              )}
+              {selected.growthStage && (
+                <div>
+                  <p className="text-xs uppercase tracking-wider text-gray-500 mb-1">Growth Stage</p>
+                  <p className="text-gray-300">{selected.growthStage}</p>
+                </div>
+              )}
+              {selected.websiteGoals && (
+                <div>
+                  <p className="text-xs uppercase tracking-wider text-gray-500 mb-1">Website Goals</p>
+                  <p className="text-gray-300 whitespace-pre-wrap">{selected.websiteGoals}</p>
+                </div>
+              )}
+
+              {/* Link to original request if not yet linked */}
+              {!selected.sourceRequestId && (
+                <LinkRequestSection projectId={selected._id} />
               )}
 
               <div className="grid md:grid-cols-2 gap-6">
@@ -1722,6 +1755,67 @@ export default function ProjectsAdminPage() {
           onSend={handleSendEmail}
         />
       )}
+    </div>
+  );
+}
+
+// --- Link Request Section - lets admin connect a project to its original wizard submission ---
+function LinkRequestSection({ projectId }: { projectId: any }) {
+  const requests = useQuery(api.projectRequests.getProjectRequests, {});
+  const linkRequest = useMutation(api.projects.linkRequestToProject);
+  const [selectedReqId, setSelectedReqId] = useState("");
+  const [linking, setLinking] = useState(false);
+  const [show, setShow] = useState(false);
+
+  if (!show) {
+    return (
+      <button
+        onClick={() => setShow(true)}
+        className="text-xs text-gray-500 hover:text-cyan-400 transition-colors underline"
+      >
+        Link original project request
+      </button>
+    );
+  }
+
+  const unlinkedRequests = requests?.filter((r: any) => r.status !== "accepted") ?? [];
+
+  return (
+    <div className="p-3 rounded-xl bg-white/5 border border-white/10 space-y-2">
+      <p className="text-xs text-gray-400 font-medium">Link to original project request</p>
+      <div className="flex gap-2">
+        <select
+          value={selectedReqId}
+          onChange={(e) => setSelectedReqId(e.target.value)}
+          className="flex-1 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white text-xs focus:outline-none focus:border-cyan-500/50"
+        >
+          <option value="">Select a request...</option>
+          {unlinkedRequests.map((r: any) => (
+            <option key={r._id} value={r._id}>
+              {r.name} - {r.email} ({new Date(r.createdAt).toLocaleDateString()})
+            </option>
+          ))}
+        </select>
+        <button
+          onClick={async () => {
+            if (!selectedReqId) return;
+            setLinking(true);
+            try {
+              await linkRequest({ projectId, requestId: selectedReqId as any });
+            } finally {
+              setLinking(false);
+              setShow(false);
+            }
+          }}
+          disabled={!selectedReqId || linking}
+          className="px-3 py-1.5 rounded-lg bg-cyan-500 text-white text-xs disabled:opacity-50"
+        >
+          {linking ? "Linking..." : "Link"}
+        </button>
+        <button onClick={() => setShow(false)} className="px-3 py-1.5 rounded-lg bg-white/5 text-gray-400 text-xs">
+          Cancel
+        </button>
+      </div>
     </div>
   );
 }

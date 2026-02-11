@@ -247,6 +247,10 @@ export default defineSchema({
       v.literal("fullstack")
     )),
     technicalFeatures: v.optional(v.array(v.string())), // e.g., ["authentication", "database", "payment"]
+    sourceRequestId: v.optional(v.id("projectRequests")), // Link back to original wizard submission
+    lookAndFeel: v.optional(v.string()), // Design style preference from wizard
+    growthStage: v.optional(v.string()), // Business growth stage from wizard
+    primaryGoal: v.optional(v.string()), // Primary goal from wizard
     createdAt: v.number(),
     updatedAt: v.number(),
   })
