@@ -6,7 +6,7 @@ import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "@convex/_generated/api";
 import { useState } from "react";
 import { Id } from "@convex/_generated/dataModel";
-import { Search, Plus, X, ExternalLink, FileDown, MessageSquarePlus, Trash2, Palette, Share2, Lock, Copy, Check, Upload, Image as ImageIcon, File, Mail, Receipt, ToggleLeft, ToggleRight } from "lucide-react";
+import { Search, Plus, X, ExternalLink, FileDown, MessageSquarePlus, Trash2, Palette, Share2, Lock, Copy, Check, Upload, Image as ImageIcon, File, Mail, Receipt, ToggleLeft, ToggleRight, CheckCircle, Clock, CreditCard, AlertCircle, RotateCcw, Monitor } from "lucide-react";
 import { EmailReplyModal } from "@/components/admin/EmailReplyModal";
 
 type ProjectStatus = "new" | "planning" | "design" | "development" | "review" | "completed" | "launched";
@@ -59,6 +59,7 @@ export default function ProjectsAdminPage() {
   const [copiedExport, setCopiedExport] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
+  const [detailTab, setDetailTab] = useState<"details" | "client-view">("details");
 
   // Add Project Form State
   const [formData, setFormData] = useState({
@@ -526,8 +527,8 @@ export default function ProjectsAdminPage() {
           className="lg:col-span-2"
         >
           {selected ? (
-            <div className="glass-elevated rounded-2xl p-6 space-y-6">
-              <div className="flex items-start justify-between gap-4">
+            <div className="glass-elevated rounded-2xl p-6">
+              <div className="flex items-start justify-between gap-4 mb-4">
                 <div className="flex-1">
                   <p className="text-xs uppercase tracking-wider text-gray-500 mb-1">Client Name</p>
                   <p className="text-xl font-semibold text-white">{selected.name}</p>
@@ -541,6 +542,24 @@ export default function ProjectsAdminPage() {
                 </button>
               </div>
 
+              {/* Tabs */}
+              <div className="flex gap-1 p-1 rounded-xl bg-white/5 border border-white/10 mb-6">
+                {(["details", "client-view"] as const).map((tab) => (
+                  <button
+                    key={tab}
+                    onClick={() => setDetailTab(tab)}
+                    className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${
+                      detailTab === tab
+                        ? "bg-white/10 text-white"
+                        : "text-gray-500 hover:text-gray-300"
+                    }`}
+                  >
+                    {tab === "details" ? "Admin Details" : "Client View"}
+                  </button>
+                ))}
+              </div>
+
+              {detailTab === "details" && (<div className="space-y-6">
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
                   <p className="text-xs uppercase tracking-wider text-gray-500 mb-1">Email</p>
@@ -1338,6 +1357,11 @@ export default function ProjectsAdminPage() {
               >
                 Delete Project
               </button>
+              </div>)}
+
+              {detailTab === "client-view" && (
+                <ClientPortalPreview project={selected} />
+              )}
             </div>
           ) : (
             <div className="glass-elevated rounded-2xl p-12 text-center">
@@ -1593,6 +1617,120 @@ export default function ProjectsAdminPage() {
           onSend={handleSendEmail}
         />
       )}
+    </div>
+  );
+}
+
+// --- Client Portal Preview (read-only view of what the client sees) ---
+function ClientPortalPreview({ project }: { project: any }) {
+  const invoiceStatus = project.setupInvoiceStatus ?? "pending";
+  const monthlyAmount = project.monthlyAmount ?? 149;
+  const setupFee = project.setupFeeAmount ?? 500;
+
+  if (!project.isCustomDeal) {
+    return (
+      <div className="py-8 text-center text-gray-400 space-y-2">
+        <Monitor className="w-8 h-8 mx-auto opacity-30" />
+        <p className="text-sm">This project does not have Custom Deal enabled.</p>
+        <p className="text-xs text-gray-500">Enable Custom Deal Flow to see the client portal preview.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-2 p-3 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-xs text-cyan-400 mb-2">
+        <Monitor className="w-4 h-4 flex-shrink-0" />
+        <span>This is what <strong>{project.name}</strong> sees when they log into their portal.</span>
+      </div>
+
+      {/* Intake Status */}
+      {!project.intakeSubmittedAt ? (
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+          <p className="text-sm font-semibold text-white mb-1">Project Intake Form</p>
+          <p className="text-xs text-gray-400 mb-3">Client fills in logo, brand colors, and website goals.</p>
+          <div className="flex items-center gap-2 text-xs text-yellow-400">
+            <Clock className="w-4 h-4" />
+            Not submitted yet - client sees the intake form
+          </div>
+        </div>
+      ) : (
+        <div className="rounded-2xl border border-green-500/30 bg-green-500/5 p-5">
+          <div className="flex items-center gap-2 text-sm text-green-400 font-semibold mb-1">
+            <CheckCircle className="w-4 h-4" />
+            Intake Submitted
+          </div>
+          <p className="text-xs text-gray-400">
+            Submitted {new Date(project.intakeSubmittedAt).toLocaleDateString()}
+          </p>
+        </div>
+      )}
+
+      {/* Setup Fee Card */}
+      <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+        <div className="flex items-center gap-3 mb-3">
+          <Receipt className="w-5 h-5 text-yellow-400" />
+          <div>
+            <p className="text-sm font-semibold text-white">Setup Fee - ${setupFee}</p>
+            <p className="text-xs text-gray-400">One-time fee paid via Stripe invoice</p>
+          </div>
+        </div>
+        {invoiceStatus === "pending" && (
+          <div className="flex items-center gap-2 text-xs text-yellow-400">
+            <Clock className="w-4 h-4" />
+            Client sees: &ldquo;Invoice coming soon - you will receive an email from Stripe&rdquo;
+          </div>
+        )}
+        {invoiceStatus === "sent" && (
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 text-xs text-blue-400">
+              <Receipt className="w-4 h-4" />
+              Client sees: &ldquo;Invoice sent - check your email to pay&rdquo;
+            </div>
+            {project.setupInvoiceUrl && (
+              <a href={project.setupInvoiceUrl} target="_blank" rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-xs text-yellow-400 underline">
+                <ExternalLink className="w-3 h-3" /> View Invoice
+              </a>
+            )}
+            <div className="text-xs text-gray-500 italic">Client also has a &ldquo;Paid another way?&rdquo; button</div>
+          </div>
+        )}
+        {invoiceStatus === "needs_verification" && (
+          <div className="flex items-center gap-2 text-xs text-blue-400">
+            <RotateCcw className="w-4 h-4" />
+            Client sees: &ldquo;Payment submitted - verifying&rdquo;
+          </div>
+        )}
+        {invoiceStatus === "paid" && (
+          <div className="flex items-center gap-2 text-xs text-green-400">
+            <CheckCircle className="w-4 h-4" />
+            Client sees: &ldquo;Setup fee confirmed - paid&rdquo;
+          </div>
+        )}
+      </div>
+
+      {/* Subscription Card */}
+      <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+        <div className="flex items-center gap-3 mb-3">
+          <CreditCard className="w-5 h-5 text-cyan-400" />
+          <div>
+            <p className="text-sm font-semibold text-white">Monthly Plan - ${monthlyAmount}/month</p>
+            <p className="text-xs text-gray-400">3-month plan, starts 1st of next month</p>
+          </div>
+        </div>
+        {project.subscriptionStatus === "active" ? (
+          <div className="flex items-center gap-2 text-xs text-green-400">
+            <CheckCircle className="w-4 h-4" />
+            Client sees: Plan active with billing dates + &ldquo;Manage Billing&rdquo; button
+          </div>
+        ) : (
+          <div className="flex items-center gap-2 text-xs text-gray-400">
+            <AlertCircle className="w-4 h-4" />
+            Client sees: How-it-works breakdown + &ldquo;Start Plan&rdquo; button
+          </div>
+        )}
+      </div>
     </div>
   );
 }
