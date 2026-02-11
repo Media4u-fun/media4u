@@ -70,7 +70,7 @@ export default function PortalLayout({ children }: { children: ReactNode }) {
         onToggle={() => setIsMobileMenuOpen((prev) => !prev)}
         onClose={() => setIsMobileMenuOpen(false)}
         navItems={portalNavItems}
-        pathname={pathname}
+        pathname={pathname ?? ""}
         user={user}
         onSignOut={signOut}
       />
