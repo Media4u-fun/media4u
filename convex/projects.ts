@@ -240,6 +240,7 @@ export const updateProject = mutation({
       youtube: v.optional(v.string()),
       tiktok: v.optional(v.string()),
     })),
+    paymentStatus: v.optional(v.union(v.literal("unpaid"), v.literal("paid"))),
   },
   handler: async (ctx, args) => {
     const { id, ...updates } = args;
@@ -654,6 +655,7 @@ export const markSetupInvoicePaidByWebhook = internalMutation({
     await ctx.db.patch(project._id, {
       setupInvoiceStatus: "paid",
       setupInvoicePaid: true,
+      paymentStatus: "paid",
       updatedAt: Date.now(),
     });
 
