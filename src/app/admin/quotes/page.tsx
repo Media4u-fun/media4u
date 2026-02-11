@@ -31,11 +31,15 @@ export default function QuotesAdminPage() {
   const convertToProject = useMutation(api.quoteRequests.createProjectFromQuoteRequest);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [filterStatus, setFilterStatus] = useState<QuoteStatus | "all">("all");
+  const [filterStatus, setFilterStatus] = useState<QuoteStatus | "all" | "active">("active");
 
   const filtered =
-    quotes && filterStatus !== "all"
-      ? quotes.filter((q: any) => q.status === filterStatus)
+    quotes
+      ? filterStatus === "active"
+        ? quotes.filter((q: any) => q.status !== "closed")
+        : filterStatus === "all"
+          ? quotes
+          : quotes.filter((q: any) => q.status === filterStatus)
       : quotes;
 
   const selected = quotes?.find((q: any) => q._id === selectedId);
@@ -72,7 +76,7 @@ export default function QuotesAdminPage() {
 
       {/* Filters */}
       <div className="flex gap-3 mb-6 flex-wrap">
-        {(["all", "new", "contacted", "quoted", "closed"] as const).map((status) => (
+        {(["active", "all", "new", "contacted", "quoted", "closed"] as const).map((status) => (
           <button
             key={status}
             onClick={() => setFilterStatus(status)}
@@ -82,7 +86,7 @@ export default function QuotesAdminPage() {
                 : "bg-white/5 text-gray-400 hover:text-white border border-white/10"
             }`}
           >
-            {status === "all" ? "All" : statusLabels[status]}
+            {status === "active" ? "Active" : status === "all" ? "All" : statusLabels[status]}
           </button>
         ))}
       </div>

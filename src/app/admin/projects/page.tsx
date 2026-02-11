@@ -51,7 +51,7 @@ export default function ProjectsAdminPage() {
   const sendClientEmail = useAction(api.projectClientEmails.sendProjectClientEmail);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [filterStatus, setFilterStatus] = useState<ProjectStatus | "all">("all");
+  const [filterStatus, setFilterStatus] = useState<ProjectStatus | "all" | "active">("active");
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [newNote, setNewNote] = useState("");
@@ -79,8 +79,10 @@ export default function ProjectsAdminPage() {
   // Filter by status first, then search
   let filtered = projects;
 
-  if (filterStatus !== "all" && filtered) {
-    filtered = filtered.filter((p: any) => p.status === filterStatus);
+  if (filterStatus === "active") {
+    filtered = filtered?.filter((p: any) => p.status !== "completed" && p.status !== "launched");
+  } else if (filterStatus !== "all") {
+    filtered = filtered?.filter((p: any) => p.status === filterStatus);
   }
 
   if (searchQuery.trim() && filtered) {
@@ -550,7 +552,7 @@ export default function ProjectsAdminPage() {
 
       {/* Filters */}
       <div className="flex gap-3 mb-6 overflow-x-auto pb-2">
-        {(["all", "new", "planning", "design", "development", "review", "completed", "launched"] as const).map((status) => (
+        {(["active", "all", "new", "planning", "design", "development", "review", "completed", "launched"] as const).map((status) => (
           <button
             key={status}
             onClick={() => setFilterStatus(status)}
@@ -560,7 +562,7 @@ export default function ProjectsAdminPage() {
                 : "bg-white/5 text-gray-400 hover:text-white border border-white/10"
             }`}
           >
-            {status === "all" ? "All" : statusLabels[status]}
+            {status === "active" ? "Active" : status === "all" ? "All" : statusLabels[status]}
           </button>
         ))}
       </div>

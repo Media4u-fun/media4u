@@ -39,7 +39,7 @@ export default function LeadsAdminPage() {
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [subscribing, setSubscribing] = useState(false);
-  const [filterStatus, setFilterStatus] = useState<LeadStatus | "all">("all");
+  const [filterStatus, setFilterStatus] = useState<LeadStatus | "all" | "active">("active");
   const [searchQuery, setSearchQuery] = useState("");
   const [isReplyModalOpen, setIsReplyModalOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -67,8 +67,10 @@ export default function LeadsAdminPage() {
   // Filter by status first, then search
   let filtered = leads;
 
-  if (filterStatus !== "all" && filtered) {
-    filtered = filtered.filter((l: any) => l.status === filterStatus);
+  if (filterStatus === "active") {
+    filtered = filtered?.filter((l: any) => l.status !== "converted" && l.status !== "lost");
+  } else if (filterStatus !== "all") {
+    filtered = filtered?.filter((l: any) => l.status === filterStatus);
   }
 
   if (searchQuery.trim() && filtered) {
@@ -226,7 +228,7 @@ export default function LeadsAdminPage() {
 
       {/* Filters */}
       <div className="flex gap-3 mb-6 overflow-x-auto">
-        {(["all", "new", "contacted", "qualified", "converted", "lost"] as const).map((status) => (
+        {(["active", "all", "new", "contacted", "qualified", "converted", "lost"] as const).map((status) => (
           <button
             key={status}
             onClick={() => setFilterStatus(status)}
@@ -236,7 +238,7 @@ export default function LeadsAdminPage() {
                 : "bg-white/5 text-gray-400 hover:text-white border border-white/10"
             }`}
           >
-            {status === "all" ? "All" : statusLabels[status]}
+            {status === "active" ? "Active" : status === "all" ? "All" : statusLabels[status]}
           </button>
         ))}
       </div>

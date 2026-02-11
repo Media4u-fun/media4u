@@ -30,15 +30,17 @@ export default function ContactsAdminPage() {
   const sendEmailReply = useAction(api.emailReplies.sendEmailReply);
   const convertToProject = useMutation(api.contactSubmissions.createProjectFromContact);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [filterStatus, setFilterStatus] = useState<ContactStatus | "all">("all");
+  const [filterStatus, setFilterStatus] = useState<ContactStatus | "all" | "active">("active");
   const [searchQuery, setSearchQuery] = useState("");
   const [isReplyModalOpen, setIsReplyModalOpen] = useState(false);
 
   // Filter by status first, then search
   let filtered = submissions;
 
-  if (filterStatus !== "all" && filtered) {
-    filtered = filtered.filter((s: any) => s.status === filterStatus);
+  if (filterStatus === "active") {
+    filtered = filtered?.filter((s: any) => s.status !== "replied");
+  } else if (filterStatus !== "all") {
+    filtered = filtered?.filter((s: any) => s.status === filterStatus);
   }
 
   if (searchQuery.trim() && filtered) {
@@ -112,7 +114,7 @@ export default function ContactsAdminPage() {
 
       {/* Filters */}
       <div className="flex gap-3 mb-6">
-        {(["all", "new", "read", "replied"] as const).map((status) => (
+        {(["active", "all", "new", "read", "replied"] as const).map((status) => (
           <button
             key={status}
             onClick={() => setFilterStatus(status)}
@@ -122,7 +124,7 @@ export default function ContactsAdminPage() {
                 : "bg-white/5 text-gray-400 hover:text-white border border-white/10"
             }`}
           >
-            {status === "all" ? "All" : statusLabels[status]}
+            {status === "active" ? "Active" : status === "all" ? "All" : statusLabels[status]}
           </button>
         ))}
       </div>
