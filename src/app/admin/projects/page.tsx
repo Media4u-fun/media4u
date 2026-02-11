@@ -707,6 +707,37 @@ export default function ProjectsAdminPage() {
                 </div>
               )}
 
+              {/* Wizard data - only shown if present */}
+              {selected.primaryGoal && (
+                <div>
+                  <p className="text-xs uppercase tracking-wider text-gray-500 mb-1">Primary Goal</p>
+                  <p className="text-gray-300">{selected.primaryGoal}</p>
+                </div>
+              )}
+              {selected.lookAndFeel && (
+                <div>
+                  <p className="text-xs uppercase tracking-wider text-gray-500 mb-1">Look & Feel</p>
+                  <p className="text-gray-300">{selected.lookAndFeel}</p>
+                </div>
+              )}
+              {selected.growthStage && (
+                <div>
+                  <p className="text-xs uppercase tracking-wider text-gray-500 mb-1">Growth Stage</p>
+                  <p className="text-gray-300">{selected.growthStage}</p>
+                </div>
+              )}
+              {selected.websiteGoals && (
+                <div>
+                  <p className="text-xs uppercase tracking-wider text-gray-500 mb-1">Website Goals</p>
+                  <p className="text-gray-300 whitespace-pre-wrap">{selected.websiteGoals}</p>
+                </div>
+              )}
+
+              {/* Link to original request if not yet linked */}
+              {!selected.sourceRequestId && (
+                <LinkRequestSection projectId={selected._id} />
+              )}
+
               <div className="grid md:grid-cols-2 gap-6">
                 {selected.budget && (
                   <div>
@@ -1722,6 +1753,67 @@ export default function ProjectsAdminPage() {
           onSend={handleSendEmail}
         />
       )}
+    </div>
+  );
+}
+
+// --- Link Request Section - lets admin connect a project to its original wizard submission ---
+function LinkRequestSection({ projectId }: { projectId: any }) {
+  const requests = useQuery(api.projectRequests.getProjectRequests, {});
+  const linkRequest = useMutation(api.projects.linkRequestToProject);
+  const [selectedReqId, setSelectedReqId] = useState("");
+  const [linking, setLinking] = useState(false);
+  const [show, setShow] = useState(false);
+
+  if (!show) {
+    return (
+      <button
+        onClick={() => setShow(true)}
+        className="text-xs text-gray-500 hover:text-cyan-400 transition-colors underline"
+      >
+        Link original project request
+      </button>
+    );
+  }
+
+  const unlinkedRequests = requests?.filter((r: any) => r.status !== "accepted") ?? [];
+
+  return (
+    <div className="p-3 rounded-xl bg-white/5 border border-white/10 space-y-2">
+      <p className="text-xs text-gray-400 font-medium">Link to original project request</p>
+      <div className="flex gap-2">
+        <select
+          value={selectedReqId}
+          onChange={(e) => setSelectedReqId(e.target.value)}
+          className="flex-1 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white text-xs focus:outline-none focus:border-cyan-500/50"
+        >
+          <option value="">Select a request...</option>
+          {unlinkedRequests.map((r: any) => (
+            <option key={r._id} value={r._id}>
+              {r.name} - {r.email} ({new Date(r.createdAt).toLocaleDateString()})
+            </option>
+          ))}
+        </select>
+        <button
+          onClick={async () => {
+            if (!selectedReqId) return;
+            setLinking(true);
+            try {
+              await linkRequest({ projectId, requestId: selectedReqId as any });
+            } finally {
+              setLinking(false);
+              setShow(false);
+            }
+          }}
+          disabled={!selectedReqId || linking}
+          className="px-3 py-1.5 rounded-lg bg-cyan-500 text-white text-xs disabled:opacity-50"
+        >
+          {linking ? "Linking..." : "Link"}
+        </button>
+        <button onClick={() => setShow(false)} className="px-3 py-1.5 rounded-lg bg-white/5 text-gray-400 text-xs">
+          Cancel
+        </button>
+      </div>
     </div>
   );
 }

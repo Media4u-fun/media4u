@@ -262,24 +262,40 @@ export const createProjectFromRequest = mutation({
       throw new Error("Project request not found");
     }
 
-    // Create project with request's info
+    // Merge all features from the wizard
+    const allFeatures = [
+      ...(request.features ?? []),
+      ...(request.optionalEnhancements ?? []),
+    ];
+
+    // Build website goals from vision + primaryGoal
+    const goalParts = [];
+    if (request.primaryGoal) goalParts.push(`Primary Goal: ${request.primaryGoal}`);
+    if (request.vision) goalParts.push(`Vision: ${request.vision}`);
+
+    // Create project with all wizard data properly mapped
     const projectId = await ctx.db.insert("projects", {
       name: request.name,
       email: request.email,
       company: request.businessName,
       phone: undefined,
-      projectType: request.projectTypes.join(", "), // Join multiple types
+      projectType: request.projectTypes.join(", "),
       description: request.description,
       requirements: request.vision || undefined,
       budget: request.budget,
       timeline: request.timeline,
       status: "new",
-      notes: `Converted from project request.\n\nOriginal request details:\n- Primary Goal: ${request.primaryGoal || "N/A"}\n- Features: ${request.features?.join(", ") || "N/A"}\n- Look & Feel: ${request.lookAndFeel || "N/A"}`,
+      notes: undefined,
       liveUrl: undefined,
       leadId: undefined,
       backendComplexity: undefined,
-      technicalFeatures: undefined,
-      paymentStatus: "paid", // Project request conversions are considered paid
+      technicalFeatures: allFeatures.length > 0 ? allFeatures : undefined,
+      websiteGoals: goalParts.length > 0 ? goalParts.join("\n") : undefined,
+      primaryGoal: request.primaryGoal || undefined,
+      lookAndFeel: request.lookAndFeel || undefined,
+      growthStage: request.growthStage || undefined,
+      sourceRequestId: args.requestId,
+      paymentStatus: "paid",
       packageType: undefined,
       orderId: undefined,
       createdAt: Date.now(),
@@ -292,6 +308,42 @@ export const createProjectFromRequest = mutation({
     });
 
     return projectId;
+  },
+});
+
+// Link an existing project to a project request and pull in the wizard data
+export const linkRequestToProject = mutation({
+  args: {
+    projectId: v.id("projects"),
+    requestId: v.id("projectRequests"),
+  },
+  handler: async (ctx, args) => {
+    await requireAdmin(ctx);
+    const request = await ctx.db.get(args.requestId);
+    if (!request) throw new Error("Project request not found");
+
+    const allFeatures = [
+      ...(request.features ?? []),
+      ...(request.optionalEnhancements ?? []),
+    ];
+    const goalParts = [];
+    if (request.primaryGoal) goalParts.push(`Primary Goal: ${request.primaryGoal}`);
+    if (request.vision) goalParts.push(`Vision: ${request.vision}`);
+
+    await ctx.db.patch(args.projectId, {
+      sourceRequestId: args.requestId,
+      websiteGoals: goalParts.length > 0 ? goalParts.join("\n") : undefined,
+      primaryGoal: request.primaryGoal || undefined,
+      lookAndFeel: request.lookAndFeel || undefined,
+      growthStage: request.growthStage || undefined,
+      technicalFeatures: allFeatures.length > 0 ? allFeatures : undefined,
+      description: request.description || undefined,
+      requirements: request.vision || undefined,
+      updatedAt: Date.now(),
+    });
+
+    await ctx.db.patch(args.requestId, { status: "accepted" });
+    return { success: true };
   },
 });
 
