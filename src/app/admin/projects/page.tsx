@@ -60,6 +60,7 @@ export default function ProjectsAdminPage() {
   const [isUploading, setIsUploading] = useState(false);
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
   const [detailTab, setDetailTab] = useState<"details" | "client-view">("details");
+  const [copiedBriefing, setCopiedBriefing] = useState(false);
 
   // Add Project Form State
   const [formData, setFormData] = useState({
@@ -258,6 +259,97 @@ export default function ProjectsAdminPage() {
       message,
       attachments,
     });
+  }
+
+  async function handleExportForClaude() {
+    if (!selected) return;
+
+    const lines: string[] = [];
+    const sep = "=".repeat(60);
+
+    lines.push("PROJECT BRIEFING FOR CLAUDE");
+    lines.push(`Exported: ${new Date().toLocaleString()}`);
+    lines.push(sep);
+
+    // Client info
+    lines.push("CLIENT");
+    lines.push(`Name: ${selected.name}`);
+    lines.push(`Email: ${selected.email}`);
+    if (selected.company) lines.push(`Company: ${selected.company}`);
+    if (selected.phone) lines.push(`Phone: ${selected.phone}`);
+    lines.push("");
+
+    // Project info
+    lines.push("PROJECT");
+    lines.push(`Type: ${selected.projectType}`);
+    lines.push(`Status: ${selected.status}`);
+    if (selected.description) lines.push(`Description: ${selected.description}`);
+    if (selected.requirements) lines.push(`Requirements: ${selected.requirements}`);
+    if (selected.budget) lines.push(`Budget: ${selected.budget}`);
+    if (selected.timeline) lines.push(`Timeline: ${selected.timeline}`);
+    if (selected.liveUrl) lines.push(`Live URL: ${selected.liveUrl}`);
+    lines.push("");
+
+    // Custom deal
+    if (selected.isCustomDeal) {
+      lines.push("CUSTOM DEAL");
+      lines.push(`Setup Fee: $${selected.setupFeeAmount ?? 500}`);
+      lines.push(`Monthly: $${selected.monthlyAmount ?? 149}/month`);
+      lines.push(`Invoice Status: ${selected.setupInvoiceStatus ?? "pending"}`);
+      if (selected.setupInvoiceUrl) lines.push(`Invoice URL: ${selected.setupInvoiceUrl}`);
+      if (selected.intakeSubmittedAt) lines.push(`Intake Submitted: ${new Date(selected.intakeSubmittedAt).toLocaleDateString()}`);
+      else lines.push("Intake: Not submitted yet");
+      lines.push("");
+    }
+
+    // Website goals from intake
+    if (selected.websiteGoals) {
+      lines.push("WEBSITE GOALS (from client intake)");
+      lines.push(selected.websiteGoals);
+      lines.push("");
+    }
+
+    // Brand colors
+    if (selected.brandColors && (selected.brandColors.primary || selected.brandColors.secondary)) {
+      lines.push("BRAND COLORS");
+      if (selected.brandColors.primary) lines.push(`Primary: ${selected.brandColors.primary}`);
+      if (selected.brandColors.secondary) lines.push(`Secondary: ${selected.brandColors.secondary}`);
+      if (selected.brandColors.accent) lines.push(`Accent: ${selected.brandColors.accent}`);
+      lines.push("");
+    }
+
+    // Social links
+    if (selected.socialLinks) {
+      const socials = Object.entries(selected.socialLinks).filter(([, v]) => v);
+      if (socials.length > 0) {
+        lines.push("SOCIAL / WEB LINKS");
+        socials.forEach(([k, v]) => lines.push(`${k}: ${v}`));
+        lines.push("");
+      }
+    }
+
+    // Technical features
+    if (selected.technicalFeatures && selected.technicalFeatures.length > 0) {
+      lines.push(`TECHNICAL FEATURES: ${selected.technicalFeatures.join(", ")}`);
+      lines.push("");
+    }
+
+    // Recent notes
+    if (projectNotes && projectNotes.length > 0) {
+      lines.push("PROJECT NOTES");
+      projectNotes.slice(0, 5).forEach((note: any) => {
+        const date = new Date(note.createdAt).toLocaleDateString();
+        lines.push(`[${date}] ${note.note}`);
+      });
+      lines.push("");
+    }
+
+    lines.push(sep);
+    lines.push("Use this briefing to understand the full context of this client project.");
+
+    await navigator.clipboard.writeText(lines.join("\n"));
+    setCopiedBriefing(true);
+    setTimeout(() => setCopiedBriefing(false), 3000);
   }
 
   function exportNotes() {
@@ -533,13 +625,26 @@ export default function ProjectsAdminPage() {
                   <p className="text-xs uppercase tracking-wider text-gray-500 mb-1">Client Name</p>
                   <p className="text-xl font-semibold text-white">{selected.name}</p>
                 </div>
-                <button
-                  onClick={() => setIsEmailModalOpen(true)}
-                  className="px-4 py-2 rounded-lg bg-gradient-to-r from-cyan-500 to-purple-500 text-white hover:opacity-90 transition-opacity flex items-center gap-2 font-medium text-sm"
-                >
-                  <Mail className="w-4 h-4" />
-                  Email Client
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handleExportForClaude}
+                    className={`px-3 py-2 rounded-lg border text-sm font-medium flex items-center gap-2 transition-all ${
+                      copiedBriefing
+                        ? "bg-green-500/20 border-green-500/40 text-green-400"
+                        : "bg-white/5 border-white/10 text-gray-400 hover:text-white hover:border-white/20"
+                    }`}
+                  >
+                    {copiedBriefing ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                    {copiedBriefing ? "Copied!" : "Export for Claude"}
+                  </button>
+                  <button
+                    onClick={() => setIsEmailModalOpen(true)}
+                    className="px-4 py-2 rounded-lg bg-gradient-to-r from-cyan-500 to-purple-500 text-white hover:opacity-90 transition-opacity flex items-center gap-2 font-medium text-sm"
+                  >
+                    <Mail className="w-4 h-4" />
+                    Email Client
+                  </button>
+                </div>
               </div>
 
               {/* Tabs */}
