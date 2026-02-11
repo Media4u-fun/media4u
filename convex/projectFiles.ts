@@ -90,6 +90,14 @@ export const deleteFile = mutation({
   },
 });
 
+// Get logo URL for a project (client-facing)
+export const getLogoUrl = query({
+  args: { storageId: v.id("_storage") },
+  handler: async (ctx, args) => {
+    return await ctx.storage.getUrl(args.storageId);
+  },
+});
+
 // Update file description
 export const updateFileDescription = mutation({
   args: {

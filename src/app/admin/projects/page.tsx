@@ -6,7 +6,7 @@ import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "@convex/_generated/api";
 import { useState } from "react";
 import { Id } from "@convex/_generated/dataModel";
-import { Search, Plus, X, ExternalLink, FileDown, MessageSquarePlus, Trash2, Palette, Share2, Lock, Copy, Check, Upload, Image as ImageIcon, File, Mail } from "lucide-react";
+import { Search, Plus, X, ExternalLink, FileDown, MessageSquarePlus, Trash2, Palette, Share2, Lock, Copy, Check, Upload, Image as ImageIcon, File, Mail, Receipt, ToggleLeft, ToggleRight } from "lucide-react";
 import { EmailReplyModal } from "@/components/admin/EmailReplyModal";
 
 type ProjectStatus = "new" | "planning" | "design" | "development" | "review" | "completed" | "launched";
@@ -38,6 +38,8 @@ export default function ProjectsAdminPage() {
   const deleteProject = useMutation(api.projects.deleteProject);
   const addProjectNote = useMutation(api.projects.addProjectNote);
   const deleteProjectNote = useMutation(api.projects.deleteProjectNote);
+  const setCustomDeal = useMutation(api.projects.setCustomDeal);
+  const confirmSetupInvoicePaid = useMutation(api.projects.confirmSetupInvoicePaid);
 
   // Project Files
   const generateUploadUrl = useMutation(api.projectFiles.generateUploadUrl);
@@ -663,6 +665,87 @@ export default function ProjectsAdminPage() {
                       <ExternalLink className="w-4 h-4" />
                       Visit
                     </a>
+                  )}
+                </div>
+              </div>
+
+              {/* Custom Deal Section */}
+              <div className="pt-4 border-t border-white/10">
+                <div className="flex items-center gap-2 mb-4">
+                  <Receipt className="w-5 h-5 text-yellow-400" />
+                  <p className="text-sm font-semibold text-white">Custom Deal</p>
+                  <span className="text-xs text-gray-500 ml-1">($500 setup + $149/mo subscription flow)</span>
+                </div>
+
+                <div className="glass rounded-xl p-4 space-y-4">
+                  {/* Toggle custom deal */}
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-white">Enable Custom Deal Flow</p>
+                      <p className="text-xs text-gray-500 mt-0.5">Shows intake form + invoice + subscription in client portal</p>
+                    </div>
+                    <button
+                      onClick={async () => {
+                        await setCustomDeal({ projectId: selected._id, isCustomDeal: !selected.isCustomDeal });
+                      }}
+                      className="flex items-center gap-1 text-sm"
+                    >
+                      {selected.isCustomDeal ? (
+                        <ToggleRight className="w-8 h-8 text-cyan-400" />
+                      ) : (
+                        <ToggleLeft className="w-8 h-8 text-gray-500" />
+                      )}
+                    </button>
+                  </div>
+
+                  {/* Invoice status fields - only show when custom deal is on */}
+                  {selected.isCustomDeal && (
+                    <div className="pt-3 border-t border-white/10 space-y-3">
+                      {/* Setup invoice status display */}
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-xs text-gray-400">Setup Invoice ($500)</p>
+                          <div className="flex items-center gap-2 mt-1">
+                            {selected.setupInvoiceStatus === "paid" && (
+                              <span className="text-xs px-2 py-0.5 rounded-full bg-green-500/20 text-green-400 border border-green-500/30">Paid - Confirmed</span>
+                            )}
+                            {selected.setupInvoiceStatus === "needs_verification" && (
+                              <span className="text-xs px-2 py-0.5 rounded-full bg-yellow-500/20 text-yellow-400 border border-yellow-500/30">Client says paid - needs verification</span>
+                            )}
+                            {(!selected.setupInvoiceStatus || selected.setupInvoiceStatus === "pending") && (
+                              <span className="text-xs px-2 py-0.5 rounded-full bg-gray-500/20 text-gray-400 border border-gray-500/30">Pending</span>
+                            )}
+                          </div>
+                        </div>
+                        {selected.setupInvoiceStatus === "needs_verification" && !selected.setupInvoicePaid && (
+                          <button
+                            onClick={async () => {
+                              await confirmSetupInvoicePaid({ projectId: selected._id });
+                            }}
+                            className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-green-500/20 text-green-400 hover:bg-green-500/30 border border-green-500/30 text-xs font-medium transition-colors"
+                          >
+                            <Check className="w-3.5 h-3.5" />
+                            Confirm Paid
+                          </button>
+                        )}
+                        {selected.setupInvoicePaid && (
+                          <span className="text-xs text-green-400">Invoice confirmed</span>
+                        )}
+                      </div>
+
+                      {/* Intake status */}
+                      <div>
+                        <p className="text-xs text-gray-400">Intake Form</p>
+                        <p className="text-sm text-white mt-0.5">
+                          {selected.intakeSubmittedAt
+                            ? `Submitted ${new Date(selected.intakeSubmittedAt).toLocaleDateString()}`
+                            : "Not submitted yet"}
+                        </p>
+                        {selected.websiteGoals && (
+                          <p className="text-xs text-gray-400 mt-1 italic line-clamp-2">&ldquo;{selected.websiteGoals}&rdquo;</p>
+                        )}
+                      </div>
+                    </div>
                   )}
                 </div>
               </div>

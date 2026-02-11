@@ -171,6 +171,17 @@ export default defineSchema({
     paymentStatus: v.optional(v.union(v.literal("unpaid"), v.literal("paid"))),
     packageType: v.optional(v.union(v.literal("starter"), v.literal("professional"))), // Links to order
     orderId: v.optional(v.id("orders")), // Link to order record
+    // Custom Deal / Intake Flow
+    isCustomDeal: v.optional(v.boolean()), // Admin-marked custom deal (intake + invoice + subscription flow)
+    setupInvoiceStatus: v.optional(v.union(
+      v.literal("pending"),           // Invoice not yet sent/acknowledged
+      v.literal("needs_verification"), // Client clicked "I've Paid"
+      v.literal("paid")               // Admin confirmed payment
+    )),
+    setupInvoicePaid: v.optional(v.boolean()), // Admin confirmed $500 invoice paid
+    logoStorageId: v.optional(v.id("_storage")), // Client-uploaded logo
+    websiteGoals: v.optional(v.string()), // Intake: what they want the website to do
+    intakeSubmittedAt: v.optional(v.number()), // When client submitted the intake form
     // Client Branding & Social Info
     brandColors: v.optional(v.object({
       primary: v.optional(v.string()),
@@ -262,7 +273,10 @@ export default defineSchema({
     activityType: v.union(
       v.literal("vault_updated"),
       v.literal("note_added"),
-      v.literal("project_updated")
+      v.literal("project_updated"),
+      v.literal("intake_submitted"),
+      v.literal("invoice_marked_paid"),
+      v.literal("subscription_started")
     ),
     description: v.string(), // "Updated integration vault credentials"
     metadata: v.optional(v.object({

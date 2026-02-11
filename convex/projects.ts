@@ -446,3 +446,132 @@ export const updateIntegrationVault = mutation({
     return { success: true };
   },
 });
+
+// ── Custom Deal / Intake Flow ────────────────────────────────────────────────
+
+// Generate a logo upload URL (client-facing, no admin required)
+export const generateLogoUploadUrl = mutation({
+  handler: async (ctx) => {
+    const user = await getAuthenticatedUser(ctx);
+    if (!user) throw new Error("Authentication required");
+    return await ctx.storage.generateUploadUrl();
+  },
+});
+
+// Submit intake form (client fills in branding, goals, uploads logo)
+export const submitIntake = mutation({
+  args: {
+    projectId: v.id("projects"),
+    company: v.optional(v.string()),
+    phone: v.optional(v.string()),
+    brandColors: v.optional(v.object({
+      primary: v.optional(v.string()),
+      secondary: v.optional(v.string()),
+      accent: v.optional(v.string()),
+    })),
+    websiteGoals: v.optional(v.string()),
+    requirements: v.optional(v.string()),
+    logoStorageId: v.optional(v.id("_storage")),
+  },
+  handler: async (ctx, args) => {
+    const user = await getAuthenticatedUser(ctx);
+    if (!user) throw new Error("Authentication required");
+
+    const project = await ctx.db.get(args.projectId);
+    if (!project) throw new Error("Project not found");
+    if (project.email !== user.email) throw new Error("Permission denied");
+
+    const { projectId, ...fields } = args;
+
+    await ctx.db.patch(projectId, {
+      ...fields,
+      status: "planning",
+      intakeSubmittedAt: Date.now(),
+      setupInvoiceStatus: project.setupInvoiceStatus ?? "pending",
+      updatedAt: Date.now(),
+    });
+
+    const userName = (user.name ?? user.email ?? "Client") as string;
+    const userId = (user.userId ?? user._id ?? "unknown") as string;
+
+    await ctx.db.insert("clientActivity", {
+      projectId,
+      userId,
+      userName,
+      activityType: "intake_submitted",
+      description: "Submitted project intake form",
+      read: false,
+      createdAt: Date.now(),
+    });
+
+    return { success: true };
+  },
+});
+
+// Client clicks "I've Paid the Setup Invoice"
+export const markSetupInvoicePaid = mutation({
+  args: { projectId: v.id("projects") },
+  handler: async (ctx, args) => {
+    const user = await getAuthenticatedUser(ctx);
+    if (!user) throw new Error("Authentication required");
+
+    const project = await ctx.db.get(args.projectId);
+    if (!project) throw new Error("Project not found");
+    if (project.email !== user.email) throw new Error("Permission denied");
+
+    await ctx.db.patch(args.projectId, {
+      setupInvoiceStatus: "needs_verification",
+      updatedAt: Date.now(),
+    });
+
+    const userName = (user.name ?? user.email ?? "Client") as string;
+    const userId = (user.userId ?? user._id ?? "unknown") as string;
+
+    await ctx.db.insert("clientActivity", {
+      projectId: args.projectId,
+      userId,
+      userName,
+      activityType: "invoice_marked_paid",
+      description: "Marked $500 setup invoice as paid - awaiting admin verification",
+      read: false,
+      createdAt: Date.now(),
+    });
+
+    return { success: true };
+  },
+});
+
+// Admin confirms setup invoice was paid
+export const confirmSetupInvoicePaid = mutation({
+  args: { projectId: v.id("projects") },
+  handler: async (ctx, args) => {
+    await requireAdmin(ctx);
+
+    await ctx.db.patch(args.projectId, {
+      setupInvoiceStatus: "paid",
+      setupInvoicePaid: true,
+      updatedAt: Date.now(),
+    });
+
+    return { success: true };
+  },
+});
+
+// Admin toggles custom deal flag on a project
+export const setCustomDeal = mutation({
+  args: {
+    projectId: v.id("projects"),
+    isCustomDeal: v.boolean(),
+  },
+  handler: async (ctx, args) => {
+    await requireAdmin(ctx);
+
+    await ctx.db.patch(args.projectId, {
+      isCustomDeal: args.isCustomDeal,
+      setupInvoiceStatus: args.isCustomDeal ? "pending" : undefined,
+      updatedAt: Date.now(),
+    });
+
+    return { success: true };
+  },
+});
