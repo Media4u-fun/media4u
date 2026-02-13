@@ -935,7 +935,10 @@ export default function ProjectsAdminPage() {
                             <button
                               onClick={async () => {
                                 const amount = selected.setupFeeAmount ?? 500;
-                                if (!confirm(`Send a $${amount} Stripe invoice to ${selected.email}?`)) return;
+                                const msg = selected.setupInvoiceStatus === "sent"
+                                  ? `This will void the previous invoice and send a NEW $${amount} invoice to ${selected.email}. Continue?`
+                                  : `Send a $${amount} Stripe invoice to ${selected.email}?`;
+                                if (!confirm(msg)) return;
                                 try {
                                   const res = await fetch("/api/stripe/create-invoice", {
                                     method: "POST",

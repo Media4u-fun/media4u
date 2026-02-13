@@ -51,6 +51,29 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    // Void any existing open/draft invoices for this project to prevent duplicates
+    const existingInvoices = await stripe.invoices.list({
+      customer: customer.id,
+      status: "open",
+      limit: 10,
+    });
+    for (const inv of existingInvoices.data) {
+      if (inv.metadata?.projectId === projectId && inv.metadata?.type === "setup_fee") {
+        await stripe.invoices.voidInvoice(inv.id);
+      }
+    }
+    // Also check draft invoices
+    const draftInvoices = await stripe.invoices.list({
+      customer: customer.id,
+      status: "draft",
+      limit: 10,
+    });
+    for (const inv of draftInvoices.data) {
+      if (inv.metadata?.projectId === projectId && inv.metadata?.type === "setup_fee") {
+        await stripe.invoices.del(inv.id);
+      }
+    }
+
     // Create invoice item
     await stripe.invoiceItems.create({
       customer: customer.id,
