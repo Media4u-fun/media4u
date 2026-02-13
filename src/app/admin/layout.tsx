@@ -22,6 +22,7 @@ import {
   Menu,
   X,
   Mail,
+  MessageCircle,
 } from "lucide-react";
 
 const adminNavItems = [
@@ -29,6 +30,7 @@ const adminNavItems = [
   { href: "/admin/inbox", label: "Inbox", icon: Inbox, countKey: "inbox" },
   { href: "/admin/billing", label: "Billing", icon: CreditCard, countKey: null },
   { href: "/admin/notifications", label: "Client Updates", icon: Bell, countKey: "clientActivity" },
+  { href: "/admin/messages", label: "Messages", icon: MessageCircle, countKey: "messages" },
   { href: "/admin/projects", label: "Projects", icon: Briefcase, countKey: null },
   { href: "/admin/newsletter", label: "Newsletter", icon: Mail, countKey: null },
   { href: "/admin/blog", label: "Blog Posts", icon: FileText, countKey: null },
@@ -48,10 +50,12 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   const inboxNewCount = useQuery(api.inbox.getInboxNewCount);
   const communityRequests = useQuery(api.community.getInviteRequests);
   const clientActivityCount = useQuery(api.clientActivity.getUnreadCount);
+  const messagesUnreadCount = useQuery(api.messages.getUnreadCountForAdmin);
 
   const counts: Record<string, number> = {
     inbox: inboxNewCount || 0,
     clientActivity: clientActivityCount || 0,
+    messages: messagesUnreadCount || 0,
     community: communityRequests?.filter((r) => r.status === "pending").length || 0,
   };
 

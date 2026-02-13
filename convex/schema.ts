@@ -473,6 +473,23 @@ export default defineSchema({
     .index("by_email", ["email"])
     .index("by_status", ["status"]),
 
+  // Messages - support thread messaging between clients and admin
+  messages: defineTable({
+    threadId: v.string(), // Groups messages into threads (e.g., "general_<userId>" or "project_<projectId>_<userId>")
+    projectId: v.optional(v.id("projects")), // Optional link to a project
+    userId: v.string(), // The client's user ID (thread owner)
+    userName: v.string(),
+    userEmail: v.string(),
+    sender: v.union(v.literal("client"), v.literal("admin")),
+    message: v.string(),
+    read: v.boolean(),
+    createdAt: v.number(),
+  })
+    .index("by_threadId", ["threadId"])
+    .index("by_userId", ["userId"])
+    .index("by_unread", ["sender", "read"])
+    .index("by_created", ["createdAt"]),
+
   // Site Settings (global configuration)
   siteSettings: defineTable({
     key: v.string(), // e.g., "site_config"

@@ -22,6 +22,7 @@ import type * as http from "../http.js";
 import type * as inbox from "../inbox.js";
 import type * as leads from "../leads.js";
 import type * as lib_emailTemplates from "../lib/emailTemplates.js";
+import type * as messages from "../messages.js";
 import type * as newsletter from "../newsletter.js";
 import type * as newsletters from "../newsletters.js";
 import type * as passwordReset from "../passwordReset.js";
@@ -60,6 +61,7 @@ declare const fullApi: ApiFromModules<{
   inbox: typeof inbox;
   leads: typeof leads;
   "lib/emailTemplates": typeof lib_emailTemplates;
+  messages: typeof messages;
   newsletter: typeof newsletter;
   newsletters: typeof newsletters;
   passwordReset: typeof passwordReset;

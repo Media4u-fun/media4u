@@ -120,26 +120,24 @@ export default function PortalSupportPage(): ReactElement {
           </div>
         </motion.a>
 
-        <motion.div
+        <motion.a
+          href="/portal/support/messages"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 lg:p-6"
+          className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 lg:p-6 hover:bg-zinc-800/50 transition-all duration-300 group cursor-pointer"
         >
-          <div className="w-12 h-12 rounded-full bg-zinc-800 flex items-center justify-center mb-4">
+          <div className="w-12 h-12 rounded-full bg-zinc-800 flex items-center justify-center mb-4 group-hover:bg-zinc-700 transition-colors">
             <MessageCircle className="w-6 h-6 text-zinc-400" />
           </div>
-          <h3 className="text-lg font-semibold text-white mb-2">Live Chat</h3>
+          <h3 className="text-lg font-semibold text-white mb-2">Messages</h3>
           <p className="text-gray-400 text-sm mb-3">
-            Chat with our support team in real-time.
+            Send us a message and we will reply directly.
           </p>
-          <button
-            disabled
-            className="text-gray-500 text-sm font-medium cursor-not-allowed"
-          >
-            Coming Soon
-          </button>
-        </motion.div>
+          <span className="text-zinc-300 text-sm font-medium">
+            Open Messages &rarr;
+          </span>
+        </motion.a>
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
