@@ -152,7 +152,7 @@ const PROJECT_TYPES = [
     gradient: "from-brand-dark/20 to-brand-dark/5",
   },
   {
-    title: "Full Stack Solutions",
+    title: "Complete Solutions",
     description: "Complete systems with databases, user accounts, and backend integrations.",
     icon: Rocket,
     gradient: "from-orange-500/20 to-orange-500/5",

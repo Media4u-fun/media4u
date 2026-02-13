@@ -84,8 +84,8 @@ export function ContactInfo() {
         </h2>
         <p className="text-gray-400 text-lg leading-relaxed">
           Ready to bring your vision to life? Whether you&apos;re dreaming of
-          immersive VR experiences, cutting-edge web design, or exploring
-          the multiverse, we&apos;re here to make it happen.
+          immersive VR experiences or a professional website,
+          we&apos;re here to make it happen.
         </p>
       </div>
 

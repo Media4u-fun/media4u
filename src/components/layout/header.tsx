@@ -11,7 +11,7 @@ import { useAuth } from "@/components/AuthContext";
 const navLinks = [
   { href: "/services", label: "Services" },
   { href: "/portfolio", label: "Portfolio" },
-  { href: "/vr", label: "VR/Metaverse" },
+  { href: "/vr", label: "VR Experiences" },
 ];
 
 const learnSections = [

@@ -50,7 +50,7 @@ const USE_CASES = [
     glow: "magenta" as const,
   },
   {
-    title: "Multiverse Hubs",
+    title: "Virtual Hubs",
     description: "Design interconnected virtual spaces that serve as gateways to endless digital experiences.",
     icon: "hub",
     glow: "purple" as const,
@@ -348,13 +348,13 @@ export default function VRPageClient() {
               <span className="text-sm font-medium text-brand-light">Invite-Only Community</span>
             </span>
             <h1 className="text-4xl md:text-5xl font-display font-bold mb-6 text-white">
-              Join the VR Multiverse Community
+              Join the VR Community
             </h1>
             <p className="text-gray-400 text-lg mb-6">
               Hey! I&apos;m MrHarmony, and I&apos;m building something special here - a curated community of creators who are shaping the future of virtual experiences.
             </p>
             <p className="text-gray-400 mb-6">
-              This isn&apos;t just another directory. It&apos;s a hand-picked showcase of trusted builders, dreamers, and innovators. If you&apos;re creating meaningful spaces in the Multiverse, I&apos;d love to feature your work.
+              This isn&apos;t just another directory. It&apos;s a hand-picked showcase of trusted builders, dreamers, and innovators. If you&apos;re creating meaningful virtual spaces, I&apos;d love to feature your work.
             </p>
             <div className="flex items-center gap-4 text-sm text-gray-500 mb-6">
               <div className="flex items-center gap-2">
@@ -434,7 +434,7 @@ export default function VRPageClient() {
             tag="Our Community"
             title="Trusted "
             highlight="Creators"
-            description="Meet the builders shaping the future of the Multiverse. A curated community of creators, collaborators, and friends."
+            description="Meet the builders shaping the future of virtual worlds. A curated community of creators, collaborators, and friends."
           />
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -576,7 +576,7 @@ export default function VRPageClient() {
             tag="Explore"
             title="Featured VR "
             highlight="Experiences"
-            description="Discover our curated collection of virtual properties and destinations across the multiverse."
+            description="Discover our curated collection of virtual properties and destinations."
           />
 
           {/* Filter Tabs */}
@@ -712,7 +712,7 @@ export default function VRPageClient() {
             </h2>
             <p className="text-gray-400 text-lg mb-8 leading-relaxed">
               We design and develop cutting-edge VR environments that transport users to extraordinary digital realms.
-              From virtual showrooms to expansive multiverse hubs, our solutions combine stunning visuals with intuitive
+              From virtual showrooms to expansive VR hubs, our solutions combine stunning visuals with intuitive
               interactions to create unforgettable experiences.
             </p>
 
@@ -803,7 +803,7 @@ export default function VRPageClient() {
               Ready to Enter the Virtual World?
             </h2>
             <p className="text-gray-400 text-lg max-w-2xl mx-auto mb-8">
-              Let us build your gateway to the multiverse. From concept to deployment,
+              Let us build your virtual world. From concept to deployment,
               we handle every aspect of your VR journey.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">

@@ -99,7 +99,7 @@ const SERVICES = [
     number: "04",
     title: "Immersive VR Environments",
     description:
-      "Custom virtual storefronts, event spaces, and interactive experiences for brands ready to innovate. From the Multiverse to standalone VR-we build spaces that engage and inspire.",
+      "Custom virtual storefronts, event spaces, and interactive experiences for brands ready to stand out. We build VR spaces that engage and inspire.",
   },
 ];
 

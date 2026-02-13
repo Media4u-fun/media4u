@@ -13,20 +13,20 @@ export const metadata: Metadata = {
     default: "Media4U | VR Environments & Digital Solutions",
     template: "%s | Media4U",
   },
-  description: "Custom VR environments, stunning websites, and innovative multiverse experiences that connect people and inspire creativity.",
-  keywords: ["VR", "virtual reality", "web design", "multiverse", "digital agency", "immersive experiences"],
+  description: "Custom VR environments, stunning websites, and immersive virtual experiences that connect people and inspire creativity.",
+  keywords: ["VR", "virtual reality", "web design", "virtual worlds", "digital agency", "immersive experiences"],
   authors: [{ name: "Media4U" }],
   openGraph: {
     type: "website",
     locale: "en_US",
     siteName: "Media4U",
     title: "Media4U | VR Environments & Digital Solutions",
-    description: "Custom VR environments, stunning websites, and innovative multiverse experiences.",
+    description: "Custom VR environments, stunning websites, and immersive virtual experiences.",
   },
   twitter: {
     card: "summary_large_image",
     title: "Media4U | VR Environments & Digital Solutions",
-    description: "Custom VR environments, stunning websites, and innovative multiverse experiences.",
+    description: "Custom VR environments, stunning websites, and immersive virtual experiences.",
   },
 };
 
@@ -49,7 +49,7 @@ export default function RootLayout({
               alternateName: 'Media4U Digital Solutions',
               url: 'https://media4u.fun',
               logo: 'https://media4u.fun/media4u-logo.png',
-              description: 'Custom VR environments, stunning websites, and innovative multiverse experiences that connect people and inspire creativity.',
+              description: 'Custom VR environments, stunning websites, and immersive virtual experiences that connect people and inspire creativity.',
               email: 'info@media4u.fun',
               priceRange: '$$',
               address: {
@@ -104,8 +104,8 @@ export default function RootLayout({
                     '@type': 'Offer',
                     itemOffered: {
                       '@type': 'Service',
-                      name: 'Multiverse Experiences',
-                      description: 'Innovative multiverse and metaverse solutions',
+                      name: 'Immersive VR Experiences',
+                      description: 'Custom virtual reality environments and experiences',
                     },
                   },
                 ],

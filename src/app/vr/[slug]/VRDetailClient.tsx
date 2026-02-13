@@ -251,7 +251,7 @@ export function VRDetailClient({ experience }: { experience: VRExperience }) {
             </h2>
             <p className="text-gray-400 text-lg mb-10">
               {experience.type === "property"
-                ? "Take the next step in your metaverse journey."
+                ? "Take the next step in your virtual journey."
                 : "Step into the future of virtual experiences."}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">

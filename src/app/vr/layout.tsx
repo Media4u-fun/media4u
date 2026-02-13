@@ -2,14 +2,14 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
 export const metadata: Metadata = {
-  title: "VR & Multiverse",
-  description: "Explore immersive VR environments and multiverse experiences. Custom virtual reality properties, destinations, event spaces, showrooms, and art galleries built by Media4U.",
+  title: "VR Experiences",
+  description: "Explore immersive VR environments and virtual experiences. Custom virtual reality properties, destinations, event spaces, showrooms, and art galleries built by Media4U.",
   keywords: [
     "VR",
     "virtual reality",
     "VR environments",
     "VR experiences",
-    "metaverse",
+    "virtual worlds",
     "VR properties",
     "virtual showrooms",
     "VR destinations",
@@ -18,8 +18,8 @@ export const metadata: Metadata = {
     "virtual reality development",
   ],
   openGraph: {
-    title: "VR Environments & Multiverse Experiences | Media4U",
-    description: "Explore immersive VR environments and custom multiverse experiences.",
+    title: "VR Environments & Virtual Experiences | Media4U",
+    description: "Explore immersive VR environments and custom virtual experiences.",
   },
 };
 

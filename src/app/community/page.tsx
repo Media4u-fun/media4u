@@ -26,7 +26,7 @@ export default function CommunityPage() {
             Curated Creators
           </span>
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-display font-bold mb-6 text-white">
-            VR Multiverse
+            VR
             <br />
             <span className="text-white">
               Community
@@ -34,7 +34,7 @@ export default function CommunityPage() {
           </h1>
           <p className="text-gray-400 text-lg max-w-2xl mx-auto">
             A curated showcase of trusted creators building meaningful spaces in the virtual world.
-            These are the people shaping the future of the Multiverse.
+            These are the people shaping the future of virtual worlds.
           </p>
         </motion.div>
       </Section>
@@ -53,7 +53,7 @@ export default function CommunityPage() {
             <h2 className="text-2xl font-semibold text-white mb-3">Coming Soon</h2>
             <p className="text-gray-400 max-w-md mx-auto">
               Our community is growing. Check back soon to explore amazing VR worlds
-              created by talented builders across the Multiverse.
+              created by talented builders across virtual worlds.
             </p>
           </motion.div>
         ) : (
@@ -111,7 +111,7 @@ export default function CommunityPage() {
           className="text-center"
         >
           <h2 className="text-2xl md:text-3xl font-display font-bold mb-4 text-white">
-            Want to Build in the Multiverse?
+            Want to Build a Virtual World?
           </h2>
           <p className="text-gray-400 max-w-xl mx-auto mb-6">
             Whether you&apos;re dreaming of a virtual storefront or an immersive experience - we can help.

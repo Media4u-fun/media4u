@@ -3,7 +3,7 @@ import { ContactPageContent } from "./contact-page-content";
 
 export const metadata: Metadata = {
   title: "Contact",
-  description: "Get in touch with Media4U for custom VR environments, web design, and multiverse experiences. We're here to bring your digital vision to life.",
+  description: "Get in touch with Media4U for custom VR environments, web design, and immersive virtual experiences. We are here to bring your digital vision to life.",
   openGraph: {
     title: "Contact Media4U",
     description: "Get in touch with Media4U for custom VR environments and digital solutions.",

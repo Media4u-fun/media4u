@@ -69,9 +69,9 @@ const offerings: { icon: LucideIcon; title: string; desc: string }[] = [
   { icon: Target, title: "Landing Pages", desc: "High-converting single pages that capture leads and drive action" },
   { icon: Building2, title: "Business Websites", desc: "Professional multi-page sites that establish credibility and trust" },
   { icon: ShoppingCart, title: "E-Commerce", desc: "Online stores with seamless checkout and inventory management" },
-  { icon: Cpu, title: "Web Applications", desc: "Custom apps with dashboards, accounts, and real-time features" },
+  { icon: Cpu, title: "Web Applications", desc: "Custom apps with dashboards, accounts, and live features" },
   { icon: Glasses, title: "VR Experiences", desc: "Immersive 360-degree environments and virtual storefronts" },
-  { icon: Rocket, title: "Full Stack Solutions", desc: "Complete systems with databases, APIs, and admin panels" },
+  { icon: Rocket, title: "Complete Solutions", desc: "End-to-end systems with databases, APIs, and admin panels" },
 ];
 
 function Services() {
@@ -193,7 +193,7 @@ function Community() {
             <div className="flex flex-col lg:flex-row items-start gap-12">
               <div className="flex-1">
                 <p className="text-sm tracking-[0.2em] uppercase text-zinc-500 mb-4">Community</p>
-                <h2 className="text-2xl md:text-3xl lg:text-4xl font-display mb-4">Join our VR Metaverse community</h2>
+                <h2 className="text-2xl md:text-3xl lg:text-4xl font-display mb-4">Join our VR community</h2>
                 <p className="text-zinc-400 max-w-lg mb-6">A curated showcase of creators building meaningful spaces in the virtual world.</p>
                 {stats && (
                   <div className="flex flex-wrap gap-6 mb-8">

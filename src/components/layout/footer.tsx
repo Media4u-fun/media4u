@@ -16,7 +16,7 @@ const quickLinks = [
 const serviceLinks = [
   { href: "/vr", label: "VR Environments" },
   { href: "/services", label: "Web Design" },
-  { href: "/services", label: "Multiverse Projects" },
+  { href: "/services", label: "VR Projects" },
 ];
 
 export function Footer() {

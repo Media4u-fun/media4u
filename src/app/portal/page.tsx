@@ -8,7 +8,7 @@ import { Doc } from "../../../convex/_generated/dataModel";
 import { useAuth } from "@/components/AuthContext";
 import Link from "next/link";
 import { format } from "date-fns";
-import { Briefcase, Lock, ExternalLink, CreditCard, ArrowRight } from "lucide-react";
+import { Briefcase, Lock, ExternalLink, CreditCard, ArrowRight, MessageCircle } from "lucide-react";
 
 const GETTING_STARTED_STEPS = [
   {
@@ -128,6 +128,28 @@ export default function PortalPage(): ReactElement {
         <p className="text-gray-400">
           Track your projects, manage orders, and access your integration vault.
         </p>
+      </motion.div>
+
+      {/* Quick Message CTA - always visible */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.05 }}
+        className="mb-8"
+      >
+        <Link
+          href="/portal/support/messages"
+          className="flex items-center gap-4 bg-zinc-900 border border-zinc-800 rounded-xl p-4 lg:p-5 hover:bg-zinc-800/50 transition-all duration-300 group"
+        >
+          <div className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center flex-shrink-0 group-hover:bg-zinc-700 transition-colors">
+            <MessageCircle className="w-5 h-5 text-zinc-400" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h3 className="text-sm font-semibold text-white mb-0.5">Have a question?</h3>
+            <p className="text-xs text-gray-400">Send us a message - we are here to help with anything.</p>
+          </div>
+          <ArrowRight className="w-4 h-4 text-zinc-500 group-hover:text-white transition-colors flex-shrink-0" />
+        </Link>
       </motion.div>
 
       {/* Getting Started - only show when brand new (no projects, no orders) */}
