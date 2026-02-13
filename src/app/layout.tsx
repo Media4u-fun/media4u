@@ -4,7 +4,6 @@ import { ConvexClientProvider } from "@/components/ConvexClientProvider";
 import { ToastProvider } from "@/components/ui/toast-provider";
 import { AuthProvider } from "@/components/AuthContext";
 import { LayoutWrapper } from "@/components/layout/layout-wrapper";
-import { AnimatedMesh } from "@/components/effects/animated-mesh";
 import { GoogleAnalytics } from "@/components/analytics/google-analytics";
 import { QuickQuoteWidget } from "@/components/widgets/QuickQuoteWidget";
 

@@ -155,7 +155,6 @@ export const updatePasswordDirect = mutation({
   handler: async (ctx, { email, passwordHash }) => {
     try {
       // Query Better Auth's account table directly
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const account = await ctx.db
         .query("account" as any) // eslint-disable-line @typescript-eslint/no-explicit-any
         .filter((q: any) => q.eq(q.field("email"), email)) // eslint-disable-line @typescript-eslint/no-explicit-any

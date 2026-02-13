@@ -6,7 +6,11 @@ import { api } from "@convex/_generated/api";
 import { Id } from "@convex/_generated/dataModel";
 import { CalendarDays, Clock, X, ChevronLeft, ChevronRight } from "lucide-react";
 
-const SERVICE_TYPES = ["General Consultation"];
+const CATEGORIES = [
+  "Blog Post", "Podcast Episode", "Client Follow-Up", "Internal Reminder",
+  "Meeting", "Install Job", "Marketing Task", "Personal Development", "Other",
+];
+const PRIORITIES = ["Low", "Medium", "High"];
 
 function getMonthDays(year: number, month: number) {
   const firstDay = new Date(year, month, 1).getDay();
@@ -30,7 +34,8 @@ export default function AppointmentsPage() {
   const [viewMonth, setViewMonth] = useState(today.getMonth());
   const [viewYear, setViewYear] = useState(today.getFullYear());
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const [serviceType, setServiceType] = useState(SERVICE_TYPES[0]);
+  const [category, setCategory] = useState(CATEGORIES[0]);
+  const [priority, setPriority] = useState("Medium");
   const [notes, setNotes] = useState("");
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
   const [booking, setBooking] = useState(false);
@@ -57,7 +62,9 @@ export default function AppointmentsPage() {
       await bookAppointment({
         date: selectedDate,
         time: selectedSlot,
-        serviceType,
+        serviceType: category,
+        category,
+        priority,
         notes: notes || undefined,
       });
       setSelectedSlot(null);
@@ -186,17 +193,31 @@ export default function AppointmentsPage() {
 
               {selectedSlot && (
                 <div className="space-y-4 border-t border-zinc-800 pt-4">
-                  <div>
-                    <label className="block text-sm text-zinc-400 mb-1">Service Type</label>
-                    <select
-                      value={serviceType}
-                      onChange={(e) => setServiceType(e.target.value)}
-                      className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm"
-                    >
-                      {SERVICE_TYPES.map((s) => (
-                        <option key={s} value={s}>{s}</option>
-                      ))}
-                    </select>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-sm text-zinc-400 mb-1">Category</label>
+                      <select
+                        value={category}
+                        onChange={(e) => setCategory(e.target.value)}
+                        className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm [&>option]:bg-zinc-800 [&>option]:text-white"
+                      >
+                        {CATEGORIES.map((c) => (
+                          <option key={c} value={c}>{c}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm text-zinc-400 mb-1">Priority</label>
+                      <select
+                        value={priority}
+                        onChange={(e) => setPriority(e.target.value)}
+                        className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm [&>option]:bg-zinc-800 [&>option]:text-white"
+                      >
+                        {PRIORITIES.map((p) => (
+                          <option key={p} value={p}>{p}</option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
                   <div>
                     <label className="block text-sm text-zinc-400 mb-1">Notes (optional)</label>
@@ -241,7 +262,14 @@ export default function AppointmentsPage() {
                     })}{" "}
                     at {apt.time}
                   </p>
-                  <p className="text-zinc-400 text-sm">{apt.serviceType}</p>
+                  <p className="text-zinc-400 text-sm">{apt.category || apt.serviceType}</p>
+                  {apt.priority && (
+                    <span className={`inline-block text-xs px-2 py-0.5 rounded-full border mt-1 ${
+                      apt.priority === "High" ? "bg-red-500/20 text-red-400 border-red-500/30"
+                      : apt.priority === "Medium" ? "bg-orange-500/20 text-orange-400 border-orange-500/30"
+                      : "bg-gray-500/20 text-gray-400 border-gray-500/30"
+                    }`}>{apt.priority}</span>
+                  )}
                   {apt.notes && <p className="text-zinc-500 text-xs">{apt.notes}</p>}
                 </div>
                 <div className="flex items-center gap-2">

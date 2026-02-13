@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import { useRef } from "react";
@@ -9,7 +10,6 @@ import {
 } from "lucide-react";
 import { useQuery } from "convex/react";
 import { api } from "@convex/_generated/api";
-import { GlobeShowcase } from "@/components/sections/globe-showcase";
 
 function Reveal({ children, className = "", delay = 0 }: {
   children: React.ReactNode; className?: string; delay?: number;

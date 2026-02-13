@@ -9,6 +9,12 @@ export const bookAppointment = mutation({
     time: v.string(),
     serviceType: v.string(),
     notes: v.optional(v.string()),
+    category: v.optional(v.string()),
+    priority: v.optional(v.string()),
+    relatedProject: v.optional(v.string()),
+    title: v.optional(v.string()),
+    platform: v.optional(v.string()),
+    publishStatus: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const user = await getAuthenticatedUser(ctx);
@@ -43,6 +49,12 @@ export const bookAppointment = mutation({
       serviceType: args.serviceType,
       status: "pending",
       notes: args.notes,
+      category: args.category,
+      priority: args.priority,
+      relatedProject: args.relatedProject,
+      title: args.title,
+      platform: args.platform,
+      publishStatus: args.publishStatus,
       createdAt: now,
       updatedAt: now,
     });
@@ -145,6 +157,12 @@ export const adminBookAppointment = mutation({
     customerPhone: v.optional(v.string()),
     notes: v.optional(v.string()),
     adminNotes: v.optional(v.string()),
+    category: v.optional(v.string()),
+    priority: v.optional(v.string()),
+    relatedProject: v.optional(v.string()),
+    title: v.optional(v.string()),
+    platform: v.optional(v.string()),
+    publishStatus: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     await requireAdmin(ctx);
@@ -173,6 +191,12 @@ export const adminBookAppointment = mutation({
       status: "confirmed",
       notes: args.notes,
       adminNotes: args.adminNotes,
+      category: args.category,
+      priority: args.priority,
+      relatedProject: args.relatedProject,
+      title: args.title,
+      platform: args.platform,
+      publishStatus: args.publishStatus,
       createdAt: now,
       updatedAt: now,
     });

@@ -522,6 +522,13 @@ export default defineSchema({
     ),
     notes: v.optional(v.string()),
     adminNotes: v.optional(v.string()),
+    // Business calendar fields
+    category: v.optional(v.string()),
+    priority: v.optional(v.string()),
+    relatedProject: v.optional(v.string()),
+    title: v.optional(v.string()), // Content title for Blog/Podcast
+    platform: v.optional(v.string()), // YouTube, Spotify, etc.
+    publishStatus: v.optional(v.string()), // Draft, Scheduled, Posted
     createdAt: v.number(),
     updatedAt: v.number(),
   })

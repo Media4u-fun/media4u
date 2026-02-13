@@ -367,7 +367,7 @@ function SiteSettingsTab() {
       });
       setSaveMessage("Settings saved successfully!");
       setTimeout(() => setSaveMessage(null), 3000);
-    } catch (error) {
+    } catch {
       setSaveMessage("Failed to save settings");
     }
     setIsSaving(false);
@@ -550,7 +550,7 @@ function IntegrationsTab() {
         success: result.success,
         message: result.success ? result.message || "Email sent!" : result.error || "Failed",
       });
-    } catch (error) {
+    } catch {
       setTestResult({ success: false, message: "Failed to send test email" });
     }
     setIsSendingTest(false);
@@ -558,6 +558,7 @@ function IntegrationsTab() {
 
   useEffect(() => {
     handleCheckIntegrations();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

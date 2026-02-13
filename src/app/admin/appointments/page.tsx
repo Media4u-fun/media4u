@@ -4,7 +4,17 @@ import { useState, useMemo } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
 import { Id } from "@convex/_generated/dataModel";
-import { ChevronLeft, ChevronRight, X, MessageSquare, Plus, Clock } from "lucide-react";
+import { ChevronLeft, ChevronRight, X, MessageSquare, Plus, Clock, Tag } from "lucide-react";
+
+const CATEGORIES = [
+  "Blog Post", "Podcast Episode", "Client Follow-Up", "Internal Reminder",
+  "Meeting", "Install Job", "Marketing Task", "Personal Development", "Other",
+];
+const CONTENT_CATEGORIES = ["Blog Post", "Podcast Episode"];
+const PRIORITIES = ["Low", "Medium", "High"];
+const PUBLISH_STATUSES = ["Draft", "Scheduled", "Posted"];
+const RELATED_PROJECTS = ["Media4U", "TriVirtual", "LeadRoute", "Other"];
+const PLATFORMS = ["YouTube", "Website", "Spotify", "Apple Podcasts", "Other"];
 
 function getMonthDays(year: number, month: number) {
   const firstDay = new Date(year, month, 1).getDay();
@@ -30,7 +40,36 @@ const statusBadge: Record<string, string> = {
   cancelled: "bg-red-500/20 text-red-400 border-red-500/30",
 };
 
+const priorityBadge: Record<string, string> = {
+  Low: "bg-gray-500/20 text-gray-400 border-gray-500/30",
+  Medium: "bg-orange-500/20 text-orange-400 border-orange-500/30",
+  High: "bg-red-500/20 text-red-400 border-red-500/30",
+};
+
 type StatusFilter = "all" | "pending" | "confirmed" | "completed" | "cancelled";
+
+interface NewApt {
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
+  serviceType: string;
+  notes: string;
+  adminNotes: string;
+  time: string;
+  category: string;
+  priority: string;
+  relatedProject: string;
+  title: string;
+  platform: string;
+  publishStatus: string;
+}
+
+const emptyNewApt: NewApt = {
+  customerName: "", customerEmail: "", customerPhone: "",
+  serviceType: "General Consultation", notes: "", adminNotes: "", time: "",
+  category: "Meeting", priority: "Medium", relatedProject: "",
+  title: "", platform: "", publishStatus: "Draft",
+};
 
 export default function AdminAppointmentsPage() {
   const today = new Date();
@@ -38,10 +77,11 @@ export default function AdminAppointmentsPage() {
   const [viewYear, setViewYear] = useState(today.getFullYear());
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [noteId, setNoteId] = useState<Id<"appointments"> | null>(null);
   const [noteText, setNoteText] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
-  const [newApt, setNewApt] = useState({ customerName: "", customerEmail: "", customerPhone: "", serviceType: "General Consultation", notes: "", adminNotes: "", time: "" });
+  const [newApt, setNewApt] = useState<NewApt>({ ...emptyNewApt });
   const [addingApt, setAddingApt] = useState(false);
 
   const allAppointments = useQuery(api.appointments.getAllAppointments);
@@ -62,7 +102,6 @@ export default function AdminAppointmentsPage() {
     [viewYear, viewMonth]
   );
 
-  // Map dates to appointment counts for calendar dots
   const dateCounts = useMemo(() => {
     const map: Record<string, Record<string, number>> = {};
     if (!allAppointments) return map;
@@ -75,9 +114,11 @@ export default function AdminAppointmentsPage() {
 
   const filteredDayAppointments = useMemo(() => {
     if (!dayAppointments) return [];
-    if (statusFilter === "all") return dayAppointments;
-    return dayAppointments.filter((a) => a.status === statusFilter);
-  }, [dayAppointments, statusFilter]);
+    let filtered = dayAppointments;
+    if (statusFilter !== "all") filtered = filtered.filter((a) => a.status === statusFilter);
+    if (categoryFilter !== "all") filtered = filtered.filter((a) => (a.category || "Other") === categoryFilter);
+    return filtered;
+  }, [dayAppointments, statusFilter, categoryFilter]);
 
   const prevMonth = () => {
     if (viewMonth === 0) { setViewMonth(11); setViewYear(viewYear - 1); }
@@ -112,9 +153,15 @@ export default function AdminAppointmentsPage() {
         customerPhone: newApt.customerPhone || undefined,
         notes: newApt.notes || undefined,
         adminNotes: newApt.adminNotes || undefined,
+        category: newApt.category || undefined,
+        priority: newApt.priority || undefined,
+        relatedProject: newApt.relatedProject || undefined,
+        title: newApt.title || undefined,
+        platform: newApt.platform || undefined,
+        publishStatus: newApt.publishStatus || undefined,
       });
       setShowAddForm(false);
-      setNewApt({ customerName: "", customerEmail: "", customerPhone: "", serviceType: "General Consultation", notes: "", adminNotes: "", time: "" });
+      setNewApt({ ...emptyNewApt });
     } catch (e: unknown) {
       alert(e instanceof Error ? e.message : "Failed to add appointment");
     } finally {
@@ -122,6 +169,7 @@ export default function AdminAppointmentsPage() {
     }
   };
 
+  const isContentCategory = CONTENT_CATEGORIES.includes(newApt.category);
   const todayStr = formatDate(today.getFullYear(), today.getMonth(), today.getDate());
 
   return (
@@ -214,8 +262,8 @@ export default function AdminAppointmentsPage() {
                 </div>
               </div>
 
-              {/* Filter */}
-              <div className="flex flex-wrap gap-1 mb-4">
+              {/* Status Filter */}
+              <div className="flex flex-wrap gap-1 mb-2">
                 {(["all", "pending", "confirmed", "completed", "cancelled"] as StatusFilter[]).map((s) => (
                   <button
                     key={s}
@@ -227,6 +275,33 @@ export default function AdminAppointmentsPage() {
                     }`}
                   >
                     {s}
+                  </button>
+                ))}
+              </div>
+
+              {/* Category Filter */}
+              <div className="flex flex-wrap gap-1 mb-4">
+                <button
+                  onClick={() => setCategoryFilter("all")}
+                  className={`text-xs px-2 py-1 rounded-full border transition-colors ${
+                    categoryFilter === "all"
+                      ? "bg-cyan-500/20 border-cyan-500/30 text-cyan-400"
+                      : "border-white/10 text-gray-500 hover:text-gray-300"
+                  }`}
+                >
+                  All Types
+                </button>
+                {CATEGORIES.map((c) => (
+                  <button
+                    key={c}
+                    onClick={() => setCategoryFilter(c)}
+                    className={`text-xs px-2 py-1 rounded-full border transition-colors ${
+                      categoryFilter === c
+                        ? "bg-cyan-500/20 border-cyan-500/30 text-cyan-400"
+                        : "border-white/10 text-gray-500 hover:text-gray-300"
+                    }`}
+                  >
+                    {c}
                   </button>
                 ))}
               </div>
@@ -251,6 +326,36 @@ export default function AdminAppointmentsPage() {
                           {apt.status}
                         </span>
                       </div>
+
+                      {/* Category & metadata badges */}
+                      <div className="flex flex-wrap gap-1">
+                        {apt.category && (
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 flex items-center gap-1">
+                            <Tag className="w-2.5 h-2.5" /> {apt.category}
+                          </span>
+                        )}
+                        {apt.priority && (
+                          <span className={`text-xs px-2 py-0.5 rounded-full border ${priorityBadge[apt.priority] || priorityBadge.Low}`}>
+                            {apt.priority}
+                          </span>
+                        )}
+                        {apt.relatedProject && (
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                            {apt.relatedProject}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Content fields */}
+                      {apt.title && (
+                        <p className="text-white text-xs font-medium">{apt.title}</p>
+                      )}
+                      {(apt.platform || apt.publishStatus) && (
+                        <div className="flex gap-2 text-xs text-gray-400">
+                          {apt.platform && <span>Platform: {apt.platform}</span>}
+                          {apt.publishStatus && <span>Status: {apt.publishStatus}</span>}
+                        </div>
+                      )}
 
                       {apt.notes && (
                         <p className="text-gray-400 text-xs bg-white/5 rounded p-2">Customer: {apt.notes}</p>
@@ -334,10 +439,11 @@ export default function AdminAppointmentsPage() {
           </div>
         </div>
       )}
+
       {/* Add Appointment Modal */}
       {showAddForm && selectedDate && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="bg-[#1a1a22] border border-white/10 rounded-xl p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
+          <div className="bg-[#1a1a22] border border-white/10 rounded-xl p-6 w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
             <h3 className="text-white font-semibold mb-1">Add Appointment</h3>
             <p className="text-gray-500 text-sm mb-4">
               {new Date(selectedDate + "T00:00:00").toLocaleDateString("en-US", {
@@ -346,6 +452,21 @@ export default function AdminAppointmentsPage() {
             </p>
 
             <div className="space-y-3">
+              {/* Category */}
+              <div>
+                <label className="block text-xs text-gray-400 mb-1">Category *</label>
+                <select
+                  value={newApt.category}
+                  onChange={(e) => setNewApt({ ...newApt, category: e.target.value })}
+                  className="w-full bg-[#1a1a22] border border-white/10 rounded-lg px-3 py-2 text-white text-sm [&>option]:bg-[#1a1a22] [&>option]:text-white"
+                >
+                  {CATEGORIES.map((c) => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Customer info */}
               <div>
                 <label className="block text-xs text-gray-400 mb-1">Customer Name *</label>
                 <input
@@ -375,6 +496,8 @@ export default function AdminAppointmentsPage() {
                   />
                 </div>
               </div>
+
+              {/* Time Slot */}
               <div>
                 <label className="block text-xs text-gray-400 mb-1">Time Slot *</label>
                 {availableSlots === undefined ? (
@@ -400,16 +523,82 @@ export default function AdminAppointmentsPage() {
                   </div>
                 )}
               </div>
-              <div>
-                <label className="block text-xs text-gray-400 mb-1">Service Type</label>
-                <select
-                  value={newApt.serviceType}
-                  onChange={(e) => setNewApt({ ...newApt, serviceType: e.target.value })}
-                  className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm"
-                >
-                  <option value="General Consultation">General Consultation</option>
-                </select>
+
+              {/* Priority & Related Project - always visible */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1">Priority</label>
+                  <select
+                    value={newApt.priority}
+                    onChange={(e) => setNewApt({ ...newApt, priority: e.target.value })}
+                    className="w-full bg-[#1a1a22] border border-white/10 rounded-lg px-3 py-2 text-white text-sm [&>option]:bg-[#1a1a22] [&>option]:text-white"
+                  >
+                    {PRIORITIES.map((p) => (
+                      <option key={p} value={p}>{p}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1">Related Project</label>
+                  <select
+                    value={newApt.relatedProject}
+                    onChange={(e) => setNewApt({ ...newApt, relatedProject: e.target.value })}
+                    className="w-full bg-[#1a1a22] border border-white/10 rounded-lg px-3 py-2 text-white text-sm [&>option]:bg-[#1a1a22] [&>option]:text-white"
+                  >
+                    <option value="">None</option>
+                    {RELATED_PROJECTS.map((p) => (
+                      <option key={p} value={p}>{p}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
+
+              {/* Dynamic content fields - only for Blog/Podcast */}
+              {isContentCategory && (
+                <div className="border border-cyan-500/20 rounded-lg p-3 space-y-3 bg-cyan-500/5">
+                  <p className="text-xs text-cyan-400 font-medium">Content Details</p>
+                  <div>
+                    <label className="block text-xs text-gray-400 mb-1">
+                      {newApt.category === "Blog Post" ? "Blog Title" : "Episode Title"}
+                    </label>
+                    <input
+                      value={newApt.title}
+                      onChange={(e) => setNewApt({ ...newApt, title: e.target.value })}
+                      className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm"
+                      placeholder={newApt.category === "Blog Post" ? "VR + AI Article" : "Episode 12 - Tech Trends"}
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">Platform</label>
+                      <select
+                        value={newApt.platform}
+                        onChange={(e) => setNewApt({ ...newApt, platform: e.target.value })}
+                        className="w-full bg-[#1a1a22] border border-white/10 rounded-lg px-3 py-2 text-white text-sm [&>option]:bg-[#1a1a22] [&>option]:text-white"
+                      >
+                        <option value="">Select...</option>
+                        {PLATFORMS.map((p) => (
+                          <option key={p} value={p}>{p}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">Publish Status</label>
+                      <select
+                        value={newApt.publishStatus}
+                        onChange={(e) => setNewApt({ ...newApt, publishStatus: e.target.value })}
+                        className="w-full bg-[#1a1a22] border border-white/10 rounded-lg px-3 py-2 text-white text-sm [&>option]:bg-[#1a1a22] [&>option]:text-white"
+                      >
+                        {PUBLISH_STATUSES.map((s) => (
+                          <option key={s} value={s}>{s}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Notes */}
               <div>
                 <label className="block text-xs text-gray-400 mb-1">Customer Notes</label>
                 <textarea

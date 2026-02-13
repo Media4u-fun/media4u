@@ -10,6 +10,30 @@ export const appointmentConfig = {
   maxAdvanceBookingDays: 30,
 };
 
+// Event categories - customize per business
+export const categories = [
+  "Blog Post",
+  "Podcast Episode",
+  "Client Follow-Up",
+  "Internal Reminder",
+  "Meeting",
+  "Install Job",
+  "Marketing Task",
+  "Personal Development",
+  "Other",
+] as const;
+
+export const priorities = ["Low", "Medium", "High"] as const;
+
+export const publishStatuses = ["Draft", "Scheduled", "Posted"] as const;
+
+export const relatedProjects = ["Media4U", "TriVirtual", "LeadRoute", "Other"] as const;
+
+export const platforms = ["YouTube", "Website", "Spotify", "Apple Podcasts", "Other"] as const;
+
+// Categories that show content-specific fields (Title, Platform, Publish Status)
+export const contentCategories = ["Blog Post", "Podcast Episode"] as const;
+
 // Helper: parse "9:00 AM" to 24h hour number (9)
 export function parseHour(timeStr: string): number {
   const [time, period] = timeStr.split(" ");
