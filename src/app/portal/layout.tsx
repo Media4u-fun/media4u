@@ -15,6 +15,7 @@ import {
   Globe,
   LogOut,
   Briefcase,
+  CalendarDays,
 } from "lucide-react";
 import { PortalMobileNav } from "./portal-mobile-nav";
 
@@ -23,6 +24,7 @@ const portalNavItems = [
   { href: "/portal/projects", label: "My Projects", icon: Briefcase },
   { href: "/portal/orders", label: "Orders", icon: ClipboardList },
   { href: "/portal/subscription", label: "Subscription", icon: RefreshCw },
+  { href: "/portal/appointments", label: "Appointments", icon: CalendarDays },
   { href: "/portal/settings", label: "Settings", icon: Settings },
   { href: "/portal/support", label: "Support", icon: HelpCircle },
 ];

@@ -504,6 +504,31 @@ export default defineSchema({
     .index("by_projectId", ["projectId"])
     .index("by_created", ["createdAt"]),
 
+  // Appointments / Booking
+  appointments: defineTable({
+    userId: v.string(),
+    userName: v.string(),
+    userEmail: v.string(),
+    userPhone: v.optional(v.string()),
+    date: v.string(), // "2026-02-15"
+    time: v.string(), // "10:00 AM"
+    duration: v.number(), // minutes
+    serviceType: v.string(),
+    status: v.union(
+      v.literal("pending"),
+      v.literal("confirmed"),
+      v.literal("completed"),
+      v.literal("cancelled")
+    ),
+    notes: v.optional(v.string()),
+    adminNotes: v.optional(v.string()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_date", ["date"])
+    .index("by_userId", ["userId"])
+    .index("by_status", ["status"]),
+
   // Site Settings (global configuration)
   siteSettings: defineTable({
     key: v.string(), // e.g., "site_config"

@@ -10,6 +10,7 @@
 
 import type * as admin from "../admin.js";
 import type * as adminNotes from "../adminNotes.js";
+import type * as appointments from "../appointments.js";
 import type * as auth from "../auth.js";
 import type * as blog from "../blog.js";
 import type * as cli from "../cli.js";
@@ -22,6 +23,7 @@ import type * as emails from "../emails.js";
 import type * as http from "../http.js";
 import type * as inbox from "../inbox.js";
 import type * as leads from "../leads.js";
+import type * as lib_appointmentConfig from "../lib/appointmentConfig.js";
 import type * as lib_emailTemplates from "../lib/emailTemplates.js";
 import type * as messages from "../messages.js";
 import type * as newsletter from "../newsletter.js";
@@ -50,6 +52,7 @@ import type {
 declare const fullApi: ApiFromModules<{
   admin: typeof admin;
   adminNotes: typeof adminNotes;
+  appointments: typeof appointments;
   auth: typeof auth;
   blog: typeof blog;
   cli: typeof cli;
@@ -62,6 +65,7 @@ declare const fullApi: ApiFromModules<{
   http: typeof http;
   inbox: typeof inbox;
   leads: typeof leads;
+  "lib/appointmentConfig": typeof lib_appointmentConfig;
   "lib/emailTemplates": typeof lib_emailTemplates;
   messages: typeof messages;
   newsletter: typeof newsletter;
