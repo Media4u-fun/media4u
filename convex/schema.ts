@@ -490,6 +490,20 @@ export default defineSchema({
     .index("by_unread", ["sender", "read"])
     .index("by_created", ["createdAt"]),
 
+  // Admin Internal Notes - private notes between admins about clients/projects
+  adminNotes: defineTable({
+    content: v.string(),
+    authorId: v.string(), // Admin user ID
+    authorName: v.string(),
+    clientEmail: v.optional(v.string()), // Tag a client
+    clientName: v.optional(v.string()),
+    projectId: v.optional(v.id("projects")), // Tag a project
+    createdAt: v.number(),
+  })
+    .index("by_clientEmail", ["clientEmail"])
+    .index("by_projectId", ["projectId"])
+    .index("by_created", ["createdAt"]),
+
   // Site Settings (global configuration)
   siteSettings: defineTable({
     key: v.string(), // e.g., "site_config"
