@@ -38,6 +38,7 @@ function validateEmail(email: string): boolean {
 export function ContactForm() {
   const submitContact = useMutation(api.contactSubmissions.submitContact);
   const sendEmail = useAction(api.emails.sendContactFormEmail);
+  const sendWelcomeEmail = useAction(api.emails.sendNewsletterWelcomeEmail);
 
   const [formData, setFormData] = useState<FormData>({
     name: "",
@@ -101,12 +102,17 @@ export function ContactForm() {
 
     try {
       // Submit contact form to database
-      await submitContact({
+      const result = await submitContact({
         name: formData.name,
         email: formData.email,
         service: formData.service as string,
         message: formData.message,
       });
+
+      // Send newsletter welcome email if new subscriber
+      if (result.isNewSubscriber) {
+        sendWelcomeEmail({ email: formData.email }).catch(console.error);
+      }
 
       // Send email notification
       await sendEmail({

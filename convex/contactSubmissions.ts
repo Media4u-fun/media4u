@@ -27,6 +27,7 @@ export const submitContact = mutation({
       .withIndex("by_email", (q) => q.eq("email", normalizedEmail))
       .first();
 
+    let isNewSubscriber = false;
     if (!existing) {
       // New subscriber
       await ctx.db.insert("newsletterSubscribers", {
@@ -34,15 +35,17 @@ export const submitContact = mutation({
         subscribedAt: Date.now(),
         unsubscribed: false,
       });
+      isNewSubscriber = true;
     } else if (existing.unsubscribed) {
       // Resubscribe if they previously unsubscribed
       await ctx.db.patch(existing._id, {
         unsubscribed: false,
         subscribedAt: Date.now(),
       });
+      isNewSubscriber = true;
     }
 
-    return id;
+    return { id, isNewSubscriber };
   },
 });
 

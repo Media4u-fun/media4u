@@ -4,7 +4,7 @@ import { useState } from "react";
 import { motion } from "motion/react";
 import Link from "next/link";
 import Image from "next/image";
-import { useMutation, useQuery } from "convex/react";
+import { useAction, useMutation, useQuery } from "convex/react";
 import { Section } from "@/components/ui/section";
 import { Button } from "@/components/ui/button";
 import { api } from "@convex/_generated/api";
@@ -156,6 +156,7 @@ function BlogCard({ post, index, featured = false }: { post: BlogPost; index: nu
 
 function NewsletterSection() {
   const subscribe = useMutation(api.newsletter.subscribeToNewsletter);
+  const sendWelcomeEmail = useAction(api.emails.sendNewsletterWelcomeEmail);
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
@@ -175,6 +176,9 @@ function NewsletterSection() {
       const result = await subscribe({ email });
 
       if (result.success) {
+        if (result.newSubscription) {
+          sendWelcomeEmail({ email }).catch(console.error);
+        }
         setMessage({
           type: "success",
           text: result.newSubscription
