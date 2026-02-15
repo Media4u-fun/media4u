@@ -15,6 +15,19 @@ export const getApprovedComments = query({
   },
 });
 
+// Public: get approved comment count for a specific community member
+export const getApprovedCommentCount = query({
+  args: { memberId: v.id("communityMembers") },
+  handler: async (ctx, args) => {
+    const comments = await ctx.db
+      .query("communityComments")
+      .withIndex("by_memberId", (q) => q.eq("memberId", args.memberId))
+      .filter((q) => q.eq(q.field("approved"), true))
+      .collect();
+    return comments.length;
+  },
+});
+
 // Public: submit a new comment (pending approval)
 export const submitComment = mutation({
   args: {

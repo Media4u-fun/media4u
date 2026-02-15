@@ -1,8 +1,28 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export function middleware(_request: NextRequest) {
+// TVR domain hostnames
+const TVR_HOSTS = ["trivirtualroundtable.net", "www.trivirtualroundtable.net"];
+
+// Shared routes that both sites can access (no rewriting)
+const SHARED_PREFIXES = ["/admin", "/portal", "/api", "/login", "/signup", "/forgot-password", "/reset-password", "/_next", "/favicon.ico"];
+
+export function middleware(request: NextRequest) {
+  const hostname = request.headers.get("host")?.split(":")[0] || "";
+  const pathname = request.nextUrl.pathname;
+
+  // TVR domain routing: rewrite / -> /tvr, /about -> /tvr/about, etc.
+  if (TVR_HOSTS.includes(hostname)) {
+    const isShared = SHARED_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+    const isAlreadyTVR = pathname.startsWith("/tvr");
+
+    if (!isShared && !isAlreadyTVR) {
+      const url = request.nextUrl.clone();
+      url.pathname = `/tvr${pathname}`;
+      return NextResponse.rewrite(url);
+    }
+  }
+
   const response = NextResponse.next();
 
   // Content Security Policy header

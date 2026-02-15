@@ -22,6 +22,13 @@ const config: Config = {
           DEFAULT: "#0077B6",
           dark: "#005A8C",
         },
+        tvr: {
+          light: "#8c85ff",
+          DEFAULT: "#673de6",
+          dark: "#5025d1",
+          deeper: "#2f1c6a",
+          bg: "#1F1346",
+        },
         surface: {
           primary: "rgba(255, 255, 255, 0.03)",
           elevated: "rgba(255, 255, 255, 0.06)",

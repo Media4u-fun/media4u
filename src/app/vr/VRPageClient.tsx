@@ -321,6 +321,18 @@ function LikeButton({ memberId, likes }: { memberId: string; likes: number }) {
   );
 }
 
+// Comment count display for creator cards
+function CardCommentCount({ memberId }: { memberId: Id<"communityMembers"> }) {
+  const count = useQuery(api.communityComments.getApprovedCommentCount, { memberId });
+  if (!count) return null;
+  return (
+    <div className="flex items-center gap-1.5 text-gray-500">
+      <MessageCircle className="w-4 h-4" />
+      <span className="text-sm font-medium">{count}</span>
+    </div>
+  );
+}
+
 // Comment section for community member modal
 function CommentSection({ memberId }: { memberId: Id<"communityMembers"> }) {
   const comments = useQuery(api.communityComments.getApprovedComments, { memberId });
@@ -576,7 +588,8 @@ export default function VRPageClient() {
                         <h3 className="text-xl font-semibold text-white">{member.worldName}</h3>
                         <p className="text-sm text-brand-light mb-3">by {member.name}</p>
                       </div>
-                      <div className="ml-3 shrink-0" onClick={(e) => e.stopPropagation()}>
+                      <div className="ml-3 shrink-0 flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
+                        <CardCommentCount memberId={member._id} />
                         <LikeButton memberId={member._id} likes={member.likes || 0} />
                       </div>
                     </div>

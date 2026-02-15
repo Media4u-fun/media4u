@@ -45,7 +45,7 @@ export function QuickQuoteWidget() {
     description: "",
   });
 
-  if (pathname?.startsWith("/portal") || pathname?.startsWith("/admin")) {
+  if (pathname?.startsWith("/portal") || pathname?.startsWith("/admin") || pathname?.startsWith("/tvr")) {
     return null;
   }
 

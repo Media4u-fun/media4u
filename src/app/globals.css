@@ -15,6 +15,12 @@
   --color-brand: #0077B6;
   --color-brand-dark: #005A8C;
 
+  --color-tvr-light: #8c85ff;
+  --color-tvr: #673de6;
+  --color-tvr-dark: #5025d1;
+  --color-tvr-deeper: #2f1c6a;
+  --color-tvr-bg: #1F1346;
+
   --color-surface-primary: rgba(255, 255, 255, 0.03);
   --color-surface-elevated: rgba(255, 255, 255, 0.06);
   --color-surface-border: rgba(255, 255, 255, 0.08);
@@ -281,6 +287,34 @@ h3, h4, h5, h6 {
   text-decoration-style: none !important;
   border-bottom-width: 0 !important;
   border-bottom-style: none !important;
+}
+
+/* TVR (Tri Virtual Roundtable) theme overrides */
+.tvr-site {
+  --color-brand-light: #8c85ff;
+  --color-brand: #673de6;
+  --color-brand-dark: #5025d1;
+}
+
+.tvr-site .mesh-bg {
+  background: #1a1025;
+}
+
+.tvr-site .text-gradient-cyber {
+  background: linear-gradient(135deg, #8c85ff 0%, #673de6 50%, #5025d1 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.tvr-site .glass {
+  background: rgba(140, 133, 255, 0.03);
+  border-color: rgba(140, 133, 255, 0.08);
+}
+
+.tvr-site .glass-elevated {
+  background: rgba(140, 133, 255, 0.05);
+  border-color: rgba(140, 133, 255, 0.12);
 }
 
 .perspective-1000 {
