@@ -151,7 +151,9 @@ export default defineSchema({
     projectId: v.id("projects"),
     note: v.string(),
     createdAt: v.number(),
-    createdBy: v.optional(v.string()), // Admin who added the note
+    createdBy: v.optional(v.string()), // Who added the note (name)
+    createdByRole: v.optional(v.union(v.literal("admin"), v.literal("client"))),
+    visibleToClient: v.optional(v.boolean()), // Defaults to true if not set
   })
     .index("by_projectId", ["projectId"])
     .index("by_created", ["createdAt"]),

@@ -1,11 +1,11 @@
 "use client";
 
 import { motion } from "motion/react";
-import { useQuery } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
-import { Doc } from "../../../../convex/_generated/dataModel";
-import { useState } from "react";
-import { Search, ExternalLink, Calendar, Package, Lock, Globe, Palette, Glasses, Rocket, ArrowRight, Plus, ChevronLeft, ClipboardList } from "lucide-react";
+import { Doc, Id } from "../../../../convex/_generated/dataModel";
+import { useState, useRef, useCallback } from "react";
+import { Search, ExternalLink, Calendar, Package, Lock, Globe, Palette, Glasses, Rocket, ArrowRight, Plus, ChevronLeft, ClipboardList, MessageSquare, FileText, Upload, Download, Send } from "lucide-react";
 import Link from "next/link";
 import { ProjectWizard } from "../../start-project/project-wizard";
 import { IntakeForm } from "./IntakeForm";
@@ -146,6 +146,12 @@ function CustomDealView({ project }: { project: Doc<"projects"> }) {
 
       {/* Invoice + Subscription panels */}
       <CustomDealPanel project={project} />
+
+      {/* Notes + Files */}
+      <div className="grid lg:grid-cols-2 gap-6 mt-6">
+        <ProjectNotesSection projectId={project._id} />
+        <ProjectFilesSection projectId={project._id} />
+      </div>
     </div>
   );
 }
@@ -154,6 +160,7 @@ export default function ClientProjectsPage() {
   const projects = useQuery(api.projects.getMyProjects);
   const [searchQuery, setSearchQuery] = useState("");
   const [showWizard, setShowWizard] = useState(false);
+  const [selectedProjectId, setSelectedProjectId] = useState<Id<"projects"> | null>(null);
 
   // Separate custom deal projects from standard projects
   const customDealProjects = projects?.filter((p) => p.isCustomDeal) ?? [];
@@ -200,11 +207,35 @@ export default function ClientProjectsPage() {
             <h2 className="text-xl font-semibold text-white mb-4">Other Projects</h2>
             <div className="grid lg:grid-cols-2 gap-6">
               {standardProjects.map((project) => (
-                <StandardProjectCard key={project._id} project={project} />
+                <StandardProjectCard key={project._id} project={project} onSelect={() => setSelectedProjectId(project._id)} />
               ))}
             </div>
           </div>
         )}
+      </div>
+    );
+  }
+
+  // Show detail view for selected standard project
+  const selectedProject = selectedProjectId
+    ? projects?.find((p) => p._id === selectedProjectId)
+    : null;
+
+  if (selectedProject && !selectedProject.isCustomDeal) {
+    return (
+      <div>
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8"
+        >
+          <h1 className="text-xl lg:text-2xl font-semibold mb-2">My Projects</h1>
+          <p className="text-gray-400">View and track your projects</p>
+        </motion.div>
+        <ProjectDetailView
+          project={selectedProject}
+          onBack={() => setSelectedProjectId(null)}
+        />
       </div>
     );
   }
@@ -282,7 +313,7 @@ export default function ClientProjectsPage() {
           <div className="grid lg:grid-cols-2 gap-6">
             {filtered.length > 0 ? (
               filtered.map((project) => (
-                <StandardProjectCard key={project._id} project={project} />
+                <StandardProjectCard key={project._id} project={project} onSelect={() => setSelectedProjectId(project._id)} />
               ))
             ) : (
               <div className="col-span-2 bg-zinc-900 border border-zinc-800 rounded-xl p-8 text-center">
@@ -296,12 +327,261 @@ export default function ClientProjectsPage() {
   );
 }
 
-function StandardProjectCard({ project }: { project: Doc<"projects"> }) {
+// ── Project Notes Section ──────────────────────────────────────────────────
+function ProjectNotesSection({ projectId }: { projectId: Id<"projects"> }) {
+  const notes = useQuery(api.projects.getProjectNotesForClient, { projectId });
+  const addNote = useMutation(api.projects.addProjectNoteClient);
+  const [newNote, setNewNote] = useState("");
+  const [sending, setSending] = useState(false);
+
+  const handleAddNote = async () => {
+    if (!newNote.trim()) return;
+    setSending(true);
+    try {
+      await addNote({ projectId, note: newNote.trim() });
+      setNewNote("");
+    } finally {
+      setSending(false);
+    }
+  };
+
+  return (
+    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 lg:p-6">
+      <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+        <MessageSquare className="w-5 h-5 text-zinc-400" />
+        Project Notes
+      </h3>
+
+      {/* Add note input */}
+      <div className="flex gap-2 mb-4">
+        <input
+          type="text"
+          value={newNote}
+          onChange={(e) => setNewNote(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && handleAddNote()}
+          placeholder="Add a note..."
+          className="flex-1 px-3 py-2 rounded-lg bg-zinc-950 border border-zinc-800 text-zinc-100 placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-zinc-600 text-sm"
+        />
+        <button
+          onClick={handleAddNote}
+          disabled={sending || !newNote.trim()}
+          className="px-3 py-2 rounded-lg bg-white text-zinc-950 font-medium text-sm hover:bg-zinc-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1.5"
+        >
+          <Send className="w-3.5 h-3.5" />
+          Send
+        </button>
+      </div>
+
+      {/* Notes list */}
+      <div className="space-y-3 max-h-80 overflow-y-auto">
+        {notes === undefined ? (
+          <p className="text-sm text-zinc-500">Loading notes...</p>
+        ) : notes.length === 0 ? (
+          <p className="text-sm text-zinc-500">No notes yet. Add one above to communicate with your project team.</p>
+        ) : (
+          notes.map((note) => (
+            <div
+              key={note._id}
+              className={`p-3 rounded-lg border text-sm ${
+                note.createdByRole === "client"
+                  ? "bg-zinc-800/50 border-zinc-700"
+                  : "bg-blue-500/5 border-blue-500/20"
+              }`}
+            >
+              <div className="flex items-center justify-between mb-1">
+                <span className={`text-xs font-medium ${
+                  note.createdByRole === "client" ? "text-zinc-400" : "text-blue-400"
+                }`}>
+                  {note.createdBy ?? "Team"}
+                  {note.createdByRole === "admin" && " (Media4U)"}
+                </span>
+                <span className="text-xs text-zinc-500">
+                  {new Date(note.createdAt).toLocaleDateString()} {new Date(note.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                </span>
+              </div>
+              <p className="text-zinc-200 whitespace-pre-wrap">{note.note}</p>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── Project Files Section ──────────────────────────────────────────────────
+function ProjectFilesSection({ projectId }: { projectId: Id<"projects"> }) {
+  const files = useQuery(api.projectFiles.getProjectFilesForClient, { projectId });
+  const generateUploadUrl = useMutation(api.projectFiles.generateUploadUrlClient);
+  const saveFileMetadata = useMutation(api.projectFiles.saveFileMetadataClient);
+  const [uploading, setUploading] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleUpload = useCallback(async (fileList: FileList | null) => {
+    if (!fileList || fileList.length === 0) return;
+    setUploading(true);
+    try {
+      for (const file of Array.from(fileList)) {
+        const uploadUrl = await generateUploadUrl();
+        const result = await fetch(uploadUrl, {
+          method: "POST",
+          headers: { "Content-Type": file.type },
+          body: file,
+        });
+        const { storageId } = await result.json();
+        await saveFileMetadata({
+          projectId,
+          storageId,
+          fileName: file.name,
+          fileType: file.type,
+          fileSize: file.size,
+        });
+      }
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  }, [generateUploadUrl, saveFileMetadata, projectId]);
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
+
+  return (
+    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 lg:p-6">
+      <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+        <FileText className="w-5 h-5 text-zinc-400" />
+        Files & Documents
+      </h3>
+
+      {/* Upload area */}
+      <div
+        onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+        onDragLeave={() => setDragOver(false)}
+        onDrop={(e) => { e.preventDefault(); setDragOver(false); handleUpload(e.dataTransfer.files); }}
+        onClick={() => fileInputRef.current?.click()}
+        className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors mb-4 ${
+          dragOver ? "border-white/40 bg-zinc-800/50" : "border-zinc-700 hover:border-zinc-600"
+        }`}
+      >
+        <Upload className="w-6 h-6 text-zinc-500 mx-auto mb-2" />
+        <p className="text-sm text-zinc-400">
+          {uploading ? "Uploading..." : "Drop files here or click to upload"}
+        </p>
+        <input
+          ref={fileInputRef}
+          type="file"
+          multiple
+          className="hidden"
+          onChange={(e) => handleUpload(e.target.files)}
+        />
+      </div>
+
+      {/* File list */}
+      <div className="space-y-2 max-h-80 overflow-y-auto">
+        {files === undefined ? (
+          <p className="text-sm text-zinc-500">Loading files...</p>
+        ) : files.length === 0 ? (
+          <p className="text-sm text-zinc-500">No files yet. Upload documents, images, or assets above.</p>
+        ) : (
+          files.map((file) => (
+            <div
+              key={file._id}
+              className="flex items-center justify-between p-3 rounded-lg bg-zinc-800/50 border border-zinc-700"
+            >
+              <div className="flex-1 min-w-0 mr-3">
+                <p className="text-sm text-zinc-200 truncate">{file.fileName}</p>
+                <p className="text-xs text-zinc-500">
+                  {formatFileSize(file.fileSize)} - uploaded by {file.uploadedByName} - {new Date(file.createdAt).toLocaleDateString()}
+                </p>
+              </div>
+              {file.url && (
+                <a
+                  href={file.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-2 rounded-lg hover:bg-zinc-700 transition-colors text-zinc-400 hover:text-white flex-shrink-0"
+                >
+                  <Download className="w-4 h-4" />
+                </a>
+              )}
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── Project Detail View (shows notes + files) ──────────────────────────────
+function ProjectDetailView({ project, onBack }: { project: Doc<"projects">; onBack: () => void }) {
+  return (
+    <div>
+      <button
+        onClick={onBack}
+        className="flex items-center gap-1 text-gray-400 hover:text-white transition-colors text-sm mb-4"
+      >
+        <ChevronLeft className="w-4 h-4" />
+        Back to Projects
+      </button>
+
+      {/* Project header */}
+      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 lg:p-6 mb-6">
+        <div className="flex items-start justify-between flex-wrap gap-4">
+          <div>
+            <h2 className="text-xl font-bold text-white mb-1">{project.projectType}</h2>
+            {project.company && <p className="text-sm text-gray-400">{project.company}</p>}
+            <div className="flex items-center gap-2 mt-2">
+              <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${statusColors[project.status as ProjectStatus] ?? statusColors.new}`}>
+                {statusLabels[project.status as ProjectStatus] ?? project.status}
+              </span>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            {project.liveUrl && (
+              <a
+                href={project.liveUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-zinc-800 text-zinc-300 hover:bg-zinc-700 border border-zinc-700 transition-colors text-sm"
+              >
+                <ExternalLink className="w-4 h-4" />
+                Live Site
+              </a>
+            )}
+            <Link
+              href={`/portal/projects/${project._id}/vault`}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-zinc-800 text-zinc-300 hover:bg-zinc-700 border border-zinc-700 transition-colors text-sm"
+            >
+              <Lock className="w-4 h-4" />
+              Vault
+            </Link>
+          </div>
+        </div>
+        <p className="text-gray-300 text-sm mt-4">{project.description}</p>
+        <div className="mt-4 pt-4 border-t border-zinc-800 text-xs text-gray-500">
+          Created {new Date(project.createdAt).toLocaleDateString()}
+        </div>
+      </div>
+
+      {/* Notes + Files grid */}
+      <div className="grid lg:grid-cols-2 gap-6">
+        <ProjectNotesSection projectId={project._id} />
+        <ProjectFilesSection projectId={project._id} />
+      </div>
+    </div>
+  );
+}
+
+function StandardProjectCard({ project, onSelect }: { project: Doc<"projects">; onSelect: () => void }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 lg:p-6 transition-colors"
+      onClick={onSelect}
+      className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 lg:p-6 transition-colors cursor-pointer hover:border-zinc-700"
     >
       <div className="flex items-start justify-between mb-4">
         <div>

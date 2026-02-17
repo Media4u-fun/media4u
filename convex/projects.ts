@@ -429,12 +429,13 @@ export const getProjectNotes = query({
   },
 });
 
-// Add a note to a project
+// Add a note to a project (admin)
 export const addProjectNote = mutation({
   args: {
     projectId: v.id("projects"),
     note: v.string(),
     createdBy: v.optional(v.string()),
+    visibleToClient: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const noteId = await ctx.db.insert("projectNotes", {
@@ -442,7 +443,72 @@ export const addProjectNote = mutation({
       note: args.note,
       createdAt: Date.now(),
       createdBy: args.createdBy,
+      createdByRole: "admin",
+      visibleToClient: args.visibleToClient !== false, // Default true
     });
+    return noteId;
+  },
+});
+
+// Get notes for a project the client owns (only visible-to-client notes)
+export const getProjectNotesForClient = query({
+  args: { projectId: v.id("projects") },
+  handler: async (ctx, args) => {
+    const user = await getAuthenticatedUser(ctx);
+    if (!user) throw new Error("Authentication required");
+
+    const project = await ctx.db.get(args.projectId);
+    if (!project) throw new Error("Project not found");
+    if (project.email !== user.email) throw new Error("Permission denied");
+
+    const notes = await ctx.db
+      .query("projectNotes")
+      .withIndex("by_projectId", (q) => q.eq("projectId", args.projectId))
+      .order("desc")
+      .collect();
+
+    // Filter: show notes where visibleToClient is true or undefined (default visible)
+    return notes.filter((n) => n.visibleToClient !== false);
+  },
+});
+
+// Client adds a note to their own project
+export const addProjectNoteClient = mutation({
+  args: {
+    projectId: v.id("projects"),
+    note: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const user = await getAuthenticatedUser(ctx);
+    if (!user) throw new Error("Authentication required");
+
+    const project = await ctx.db.get(args.projectId);
+    if (!project) throw new Error("Project not found");
+    if (project.email !== user.email) throw new Error("Permission denied");
+
+    const userName = (user.name ?? user.email ?? "Client") as string;
+    const userId = (user.userId ?? user._id ?? "unknown") as string;
+
+    const noteId = await ctx.db.insert("projectNotes", {
+      projectId: args.projectId,
+      note: args.note,
+      createdAt: Date.now(),
+      createdBy: userName,
+      createdByRole: "client",
+      visibleToClient: true,
+    });
+
+    // Log client activity
+    await ctx.db.insert("clientActivity", {
+      projectId: args.projectId,
+      userId,
+      userName,
+      activityType: "note_added",
+      description: "Added a project note",
+      read: false,
+      createdAt: Date.now(),
+    });
+
     return noteId;
   },
 });

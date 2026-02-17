@@ -98,6 +98,76 @@ export const getLogoUrl = query({
   },
 });
 
+// Generate upload URL for clients (no admin required)
+export const generateUploadUrlClient = mutation({
+  handler: async (ctx) => {
+    const user = await getAuthenticatedUser(ctx);
+    if (!user) throw new Error("Authentication required");
+    return await ctx.storage.generateUploadUrl();
+  },
+});
+
+// Save file metadata (client - must own the project)
+export const saveFileMetadataClient = mutation({
+  args: {
+    projectId: v.id("projects"),
+    storageId: v.id("_storage"),
+    fileName: v.string(),
+    fileType: v.string(),
+    fileSize: v.number(),
+    description: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const user = await getAuthenticatedUser(ctx);
+    if (!user) throw new Error("Authentication required");
+
+    const project = await ctx.db.get(args.projectId);
+    if (!project) throw new Error("Project not found");
+    if (project.email !== user.email) throw new Error("Permission denied");
+
+    const uploadedByName = (user.name ?? user.email ?? "Client") as string;
+    const uploadedBy = (user.userId ?? user._id ?? "unknown") as string;
+
+    return await ctx.db.insert("projectFiles", {
+      projectId: args.projectId,
+      storageId: args.storageId,
+      fileName: args.fileName,
+      fileType: args.fileType,
+      fileSize: args.fileSize,
+      uploadedBy,
+      uploadedByName,
+      description: args.description,
+      createdAt: Date.now(),
+    });
+  },
+});
+
+// Get files for a project the client owns
+export const getProjectFilesForClient = query({
+  args: { projectId: v.id("projects") },
+  handler: async (ctx, args) => {
+    const user = await getAuthenticatedUser(ctx);
+    if (!user) throw new Error("Authentication required");
+
+    const project = await ctx.db.get(args.projectId);
+    if (!project) throw new Error("Project not found");
+    if (project.email !== user.email) throw new Error("Permission denied");
+
+    const files = await ctx.db
+      .query("projectFiles")
+      .withIndex("by_projectId", (q) => q.eq("projectId", args.projectId))
+      .order("desc")
+      .collect();
+
+    return await Promise.all(
+      files.map(async (file) => ({
+        ...file,
+        url: await ctx.storage.getUrl(file.storageId),
+      }))
+    );
+  },
+});
+
 // Update file description
 export const updateFileDescription = mutation({
   args: {
