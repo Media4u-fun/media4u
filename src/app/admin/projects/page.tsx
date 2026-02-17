@@ -42,6 +42,7 @@ export default function ProjectsAdminPage() {
   const deleteProjectNote = useMutation(api.projects.deleteProjectNote);
   const setCustomDeal = useMutation(api.projects.setCustomDeal);
   const confirmSetupInvoicePaid = useMutation(api.projects.confirmSetupInvoicePaid);
+  const resetSetupInvoiceStatus = useMutation(api.projects.resetSetupInvoiceStatus);
   const updateCustomDealAmounts = useMutation(api.projects.updateCustomDealAmounts);
 
   // Project Files
@@ -1008,6 +1009,20 @@ export default function ProjectsAdminPage() {
                             >
                               <Check className="w-3.5 h-3.5" />
                               Confirm Paid
+                            </button>
+                          )}
+
+                          {/* Reset invoice button - shows when paid/waived so admin can re-send */}
+                          {selected.setupInvoiceStatus === "paid" && (
+                            <button
+                              onClick={async () => {
+                                if (!confirm("Reset the invoice status back to pending? This lets you set a new amount and send a fresh invoice.")) return;
+                                await resetSetupInvoiceStatus({ projectId: selected._id });
+                              }}
+                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-orange-500/20 text-orange-400 hover:bg-orange-500/30 border border-orange-500/30 text-xs font-medium transition-colors"
+                            >
+                              <RotateCcw className="w-3.5 h-3.5" />
+                              Reset Invoice
                             </button>
                           )}
                         </div>

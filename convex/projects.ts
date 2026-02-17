@@ -688,6 +688,24 @@ export const markSetupInvoicePaid = mutation({
   },
 });
 
+// Admin resets setup invoice status back to pending (e.g. after waiving, to re-send later)
+export const resetSetupInvoiceStatus = mutation({
+  args: { projectId: v.id("projects") },
+  handler: async (ctx, args) => {
+    await requireAdmin(ctx);
+
+    await ctx.db.patch(args.projectId, {
+      setupInvoiceStatus: "pending",
+      setupInvoicePaid: false,
+      setupInvoiceStripeId: undefined,
+      setupInvoiceUrl: undefined,
+      updatedAt: Date.now(),
+    });
+
+    return { success: true };
+  },
+});
+
 // Admin confirms setup invoice was paid
 export const confirmSetupInvoicePaid = mutation({
   args: { projectId: v.id("projects") },
