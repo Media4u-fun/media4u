@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import { query, mutation, internalMutation } from "./_generated/server";
-import { requireAdmin } from "./auth";
+import { requireAdmin, getAuthenticatedUser } from "./auth";
 
 // Product type validator
 const productTypeValidator = v.union(v.literal("starter"), v.literal("professional"));
@@ -365,6 +365,32 @@ export const linkUserToPayments = internalMutation({
         });
       }
     }
+  },
+});
+
+// Client - cancel their own pending order
+export const cancelMyOrder = mutation({
+  args: {
+    orderId: v.id("orders"),
+  },
+  handler: async (ctx, { orderId }) => {
+    const user = await getAuthenticatedUser(ctx);
+    if (!user) throw new Error("Not authenticated");
+
+    const order = await ctx.db.get(orderId);
+    if (!order) throw new Error("Order not found");
+
+    // Only allow cancelling pending orders
+    if (order.status !== "pending") {
+      throw new Error("Only pending orders can be cancelled");
+    }
+
+    // Verify the order belongs to this user
+    if (!order.userId || order.userId !== user._id) {
+      throw new Error("Not authorized");
+    }
+
+    await ctx.db.delete(orderId);
   },
 });
 

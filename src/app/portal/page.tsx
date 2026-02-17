@@ -323,7 +323,7 @@ export default function PortalPage(): ReactElement {
                   View Project Options
                 </Link>
                 <Link
-                  href="/start-project"
+                  href="/portal/projects"
                   className="w-full sm:w-auto flex items-center justify-center gap-2 px-7 py-3.5 rounded-full border border-brand/40 text-zinc-300 hover:border-brand-light hover:text-white transition-colors text-sm font-medium whitespace-nowrap"
                 >
                   Start the Wizard

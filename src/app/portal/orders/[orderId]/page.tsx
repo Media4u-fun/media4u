@@ -7,7 +7,9 @@ import { useAuth } from "@/components/AuthContext";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { format } from "date-fns";
-import { ArrowLeft, Download, CreditCard, Calendar, Mail, User } from "lucide-react";
+import { ArrowLeft, Download, CreditCard, Calendar, Mail, User, Trash2 } from "lucide-react";
+import { useMutation } from "convex/react";
+import { useState } from "react";
 
 const PRODUCT_NAMES: Record<string, string> = {
   starter: "Starter Website Package",
@@ -32,6 +34,10 @@ export default function OrderDetailPage() {
     user?.id ? { userId: user.id } : "skip"
   );
 
+  const cancelOrder = useMutation(api.stripe.cancelMyOrder);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
+
   const order = orders?.find((o) => o._id === orderId);
 
   if (!order && orders) {
@@ -54,6 +60,17 @@ export default function OrderDetailPage() {
 
   const handlePrint = () => {
     window.print();
+  };
+
+  const handleCancel = async () => {
+    setCancelling(true);
+    try {
+      await cancelOrder({ orderId: order!._id });
+      router.push("/portal/orders");
+    } catch {
+      setCancelling(false);
+      setShowConfirm(false);
+    }
   };
 
   return (
@@ -122,13 +139,24 @@ export default function OrderDetailPage() {
             </p>
           </div>
         </div>
-        <button
-          onClick={handlePrint}
-          className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-zinc-800 text-zinc-300 hover:bg-zinc-700 transition-all border border-zinc-700 print:hidden"
-        >
-          <Download className="w-4 h-4" />
-          Print Invoice
-        </button>
+        <div className="flex gap-3 w-full sm:w-auto print:hidden">
+          {order.status === "pending" && (
+            <button
+              onClick={() => setShowConfirm(true)}
+              className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-all border border-red-500/20"
+            >
+              <Trash2 className="w-4 h-4" />
+              Cancel Order
+            </button>
+          )}
+          <button
+            onClick={handlePrint}
+            className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-zinc-800 text-zinc-300 hover:bg-zinc-700 transition-all border border-zinc-700"
+          >
+            <Download className="w-4 h-4" />
+            Print Invoice
+          </button>
+        </div>
       </div>
 
       {/* Order Status Card */}
@@ -321,6 +349,37 @@ export default function OrderDetailPage() {
         </div>
       </div>
     </div>
+
+      {/* Cancel Confirmation Modal */}
+      {showConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm print:hidden">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-zinc-900 border border-zinc-700 rounded-xl p-6 max-w-sm mx-4 w-full"
+          >
+            <h3 className="text-lg font-semibold mb-2">Cancel this order?</h3>
+            <p className="text-zinc-400 text-sm mb-6">
+              This will permanently remove this pending order. This action cannot be undone.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setShowConfirm(false)}
+                className="px-4 py-2 rounded-lg bg-zinc-800 text-zinc-300 hover:bg-zinc-700 transition-colors"
+              >
+                Keep Order
+              </button>
+              <button
+                onClick={handleCancel}
+                disabled={cancelling}
+                className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors disabled:opacity-50"
+              >
+                {cancelling ? "Cancelling..." : "Yes, Cancel"}
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </>
   );
 }
