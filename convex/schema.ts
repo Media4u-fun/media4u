@@ -174,6 +174,7 @@ export default defineSchema({
     packageType: v.optional(v.union(v.literal("starter"), v.literal("professional"))), // Links to order
     orderId: v.optional(v.id("orders")), // Link to order record
     // Custom Deal / Intake Flow
+    isPersonalProject: v.optional(v.boolean()), // Admin's own project - hidden from client portal
     isCustomDeal: v.optional(v.boolean()), // Admin-marked custom deal (intake + invoice + subscription flow)
     setupFeeAmount: v.optional(v.number()), // Custom setup fee in dollars (default 500)
     monthlyAmount: v.optional(v.number()),  // Custom monthly amount in dollars (default 149)

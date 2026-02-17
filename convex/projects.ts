@@ -55,14 +55,14 @@ export const getMyProjects = query({
       throw new Error("Authentication required");
     }
 
-    // Get projects linked to user's email
+    // Get projects linked to user's email (exclude personal/admin projects)
     const projects = await ctx.db
       .query("projects")
       .filter((q) => q.eq(q.field("email"), user.email))
       .order("desc")
       .collect();
 
-    return projects;
+    return projects.filter((p) => !p.isPersonalProject);
   },
 });
 
@@ -783,6 +783,24 @@ export const markSetupInvoicePaidByWebhook = internalMutation({
     });
 
     return { found: true };
+  },
+});
+
+// Admin toggles personal project flag
+export const setPersonalProject = mutation({
+  args: {
+    projectId: v.id("projects"),
+    isPersonalProject: v.boolean(),
+  },
+  handler: async (ctx, args) => {
+    await requireAdmin(ctx);
+
+    await ctx.db.patch(args.projectId, {
+      isPersonalProject: args.isPersonalProject,
+      updatedAt: Date.now(),
+    });
+
+    return { success: true };
   },
 });
 

@@ -41,6 +41,7 @@ export default function ProjectsAdminPage() {
   const addProjectNote = useMutation(api.projects.addProjectNote);
   const deleteProjectNote = useMutation(api.projects.deleteProjectNote);
   const setCustomDeal = useMutation(api.projects.setCustomDeal);
+  const setPersonalProject = useMutation(api.projects.setPersonalProject);
   const confirmSetupInvoicePaid = useMutation(api.projects.confirmSetupInvoicePaid);
   const resetSetupInvoiceStatus = useMutation(api.projects.resetSetupInvoiceStatus);
   const updateCustomDealAmounts = useMutation(api.projects.updateCustomDealAmounts);
@@ -839,6 +840,30 @@ export default function ProjectsAdminPage() {
                       Visit
                     </a>
                   )}
+                </div>
+              </div>
+
+              {/* Personal Project Toggle */}
+              <div className="pt-4 border-t border-white/10 mb-4">
+                <div className="glass rounded-xl p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-white">Personal Project</p>
+                      <p className="text-xs text-gray-500 mt-0.5">Your own project - hidden from client portal</p>
+                    </div>
+                    <button
+                      onClick={async () => {
+                        await setPersonalProject({ projectId: selected._id, isPersonalProject: !selected.isPersonalProject });
+                      }}
+                      className="flex items-center gap-1 text-sm"
+                    >
+                      {selected.isPersonalProject ? (
+                        <ToggleRight className="w-8 h-8 text-violet-400" />
+                      ) : (
+                        <ToggleLeft className="w-8 h-8 text-gray-500" />
+                      )}
+                    </button>
+                  </div>
                 </div>
               </div>
 
