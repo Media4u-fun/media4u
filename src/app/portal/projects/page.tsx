@@ -637,8 +637,9 @@ function StandardProjectCard({ project, onSelect }: { project: Doc<"projects">; 
         </Link>
       </div>
 
-      <div className="mt-4 pt-4 border-t border-zinc-800 text-xs text-gray-500">
-        Created {new Date(project.createdAt).toLocaleDateString()}
+      <div className="mt-4 pt-4 border-t border-zinc-800 flex items-center justify-between text-xs text-gray-500">
+        <span>Created {new Date(project.createdAt).toLocaleDateString()}</span>
+        <span className="text-zinc-500 hover:text-zinc-300 transition-colors">Click to view notes & files &rarr;</span>
       </div>
     </motion.div>
   );
