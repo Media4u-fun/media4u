@@ -15,13 +15,14 @@ import {
 } from "lucide-react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { Id } from "../../../../convex/_generated/dataModel";
 
 type Tab = "messages" | "notes";
 
 export default function AdminMessagesPage(): ReactElement {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const threadParam = searchParams?.get("thread") ?? null;
   const [activeTab, setActiveTab] = useState<Tab>(threadParam ? "messages" : "messages");
   const [activeThread, setActiveThread] = useState<string | null>(threadParam);
@@ -207,12 +208,29 @@ export default function AdminMessagesPage(): ReactElement {
               <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
                 <User className="w-4 h-4 text-gray-400" />
               </div>
-              <div>
+              <div className="flex-1">
                 <h3 className="text-sm font-semibold text-white">
                   {activeThreadData ? getThreadLabel(activeThreadData) : "Thread"}
                 </h3>
                 <p className="text-xs text-gray-500">{activeThreadData?.userEmail}</p>
               </div>
+              {activeThreadData && (
+                <button
+                  onClick={() => {
+                    const params = new URLSearchParams({
+                      newProject: "true",
+                      name: activeThreadData.userName,
+                      email: activeThreadData.userEmail || "",
+                    });
+                    router.push(`/admin/projects?${params.toString()}`);
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 transition-colors text-xs font-medium"
+                  title="Convert this conversation to a project"
+                >
+                  <Briefcase className="w-3.5 h-3.5" />
+                  Convert to Project
+                </button>
+              )}
             </div>
 
             <div className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0">

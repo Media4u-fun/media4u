@@ -68,6 +68,19 @@ export default function ProjectsAdminPage() {
       }
     }
   }, [searchParams, projects, selectedId]);
+
+  // Auto-open create form when coming from messages "Convert to Project"
+  useEffect(() => {
+    const newProject = searchParams?.get("newProject");
+    if (newProject === "true") {
+      setIsAddModalOpen(true);
+      setFormData((prev) => ({
+        ...prev,
+        name: searchParams?.get("name") || "",
+        email: searchParams?.get("email") || "",
+      }));
+    }
+  }, [searchParams]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [newNote, setNewNote] = useState("");
