@@ -121,7 +121,7 @@ export const getAllClients = query({
         request.email,
         request.name,
         request.emails,
-        request.phone,
+        undefined, // requests don't have phone field
         request.businessName,
         request.createdAt,
         request._id,
