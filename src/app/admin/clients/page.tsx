@@ -9,6 +9,7 @@ import {
   Briefcase, MessageSquare, FileText, TrendingUp,
 } from "lucide-react";
 
+// Client Directory - Consolidated view of all clients across projects, leads, requests, and contacts
 export default function ClientsPage() {
   const clients = useQuery(api.clients.getAllClients);
   const [selectedEmail, setSelectedEmail] = useState<string | null>(null);
