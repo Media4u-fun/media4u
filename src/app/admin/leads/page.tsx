@@ -53,6 +53,7 @@ export default function LeadsAdminPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState<LeadStatus | "all">("all");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isProposalModalOpen, setIsProposalModalOpen] = useState(false);
   const [uploadedPhotos, setUploadedPhotos] = useState<Id<"_storage">[]>([]);
   const [uploading, setUploading] = useState(false);
@@ -174,6 +175,26 @@ export default function LeadsAdminPage() {
     });
     setUploadedPhotos([]);
     setIsAddModalOpen(false);
+  }
+
+  async function handleEditLead(e: React.FormEvent) {
+    e.preventDefault();
+    if (!selected) return;
+
+    await updateLead({
+      id: selected._id,
+      name: formData.name,
+      businessName: formData.businessName,
+      email: formData.email,
+      phone: formData.phone,
+      location: formData.location,
+      industry: formData.industry,
+      website: formData.website,
+      source: formData.source,
+      notes: formData.notes,
+    });
+
+    setIsEditModalOpen(false);
   }
 
   async function handlePhotoUpload(e: React.ChangeEvent<HTMLInputElement>) {
@@ -511,6 +532,29 @@ export default function LeadsAdminPage() {
               <div className="flex gap-2">
                 <button
                   onClick={() => {
+                    // Pre-fill edit form with current data
+                    setFormData({
+                      name: selected.name || "",
+                      businessName: selected.businessName || "",
+                      email: selected.email || "",
+                      phone: selected.phone || "",
+                      location: selected.location || "",
+                      industry: selected.industry || "",
+                      website: selected.website || "",
+                      source: selected.source || "spotted",
+                      notes: selected.notes || "",
+                    });
+                    setIsEditModalOpen(true);
+                  }}
+                  className="px-3 py-2 lg:px-4 lg:py-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 rounded-lg transition-all flex items-center gap-2"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                  <span className="hidden lg:inline">Edit</span>
+                </button>
+                <button
+                  onClick={() => {
                     const leadData = `Business Name,Industry,Location,Owner Name,Phone,Email,Website,Status,Photos Count,Source,Notes,Created Date
 "${selected.businessName || selected.name || ""}","${selected.industry || ""}","${selected.location || ""}","${selected.name || ""}","${selected.phone || ""}","${selected.email || ""}","${selected.website || ""}","${selected.status || ""}","${selected.photos?.length || 0}","${selected.source || ""}","${(selected.notes || "").replace(/\n/g, " ").replace(/"/g, '""')}","${new Date(selected.createdAt).toLocaleDateString()}"`;
 
@@ -796,15 +840,55 @@ export default function LeadsAdminPage() {
                 />
               </div>
 
+              {/* Owner Name */}
+              <div>
+                <label className="text-sm text-neutral-400 mb-2 block">Owner Name (optional)</label>
+                <input
+                  type="text"
+                  placeholder="John Smith"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-lg text-white text-base placeholder:text-neutral-600 focus:outline-none focus:border-brand-dark"
+                  autoComplete="name"
+                />
+              </div>
+
+              {/* Email */}
+              <div>
+                <label className="text-sm text-neutral-400 mb-2 block">Email (optional)</label>
+                <input
+                  type="email"
+                  placeholder="info@business.com"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-lg text-white text-base placeholder:text-neutral-600 focus:outline-none focus:border-brand-dark"
+                  autoComplete="email"
+                />
+              </div>
+
               {/* Phone */}
               <div>
                 <label className="text-sm text-neutral-400 mb-2 block">Phone (optional)</label>
                 <input
                   type="tel"
+                  placeholder="(555) 123-4567"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-lg text-white text-base focus:outline-none focus:border-brand-dark"
+                  className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-lg text-white text-base placeholder:text-neutral-600 focus:outline-none focus:border-brand-dark"
                   autoComplete="tel"
+                />
+              </div>
+
+              {/* Website */}
+              <div>
+                <label className="text-sm text-neutral-400 mb-2 block">Website (optional)</label>
+                <input
+                  type="url"
+                  placeholder="https://business.com"
+                  value={formData.website}
+                  onChange={(e) => setFormData({ ...formData, website: e.target.value })}
+                  className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-lg text-white text-base placeholder:text-neutral-600 focus:outline-none focus:border-brand-dark"
+                  autoComplete="url"
                 />
               </div>
 
@@ -951,6 +1035,153 @@ export default function LeadsAdminPage() {
                       Send Proposal
                     </>
                   )}
+                </button>
+              </div>
+            </form>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Edit Lead Modal */}
+      {isEditModalOpen && selected && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-start lg:items-center justify-center z-50 overflow-y-auto">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-neutral-900 rounded-t-2xl lg:rounded-xl border-t lg:border border-neutral-800 p-4 lg:p-6 w-full lg:max-w-2xl mt-auto lg:mt-0 max-h-[95vh] overflow-y-auto"
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl lg:text-2xl font-bold text-white">Edit Lead</h2>
+              <button
+                onClick={() => setIsEditModalOpen(false)}
+                className="p-2 hover:bg-neutral-800 rounded-lg transition-all"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleEditLead} className="space-y-4">
+              {/* Business Name */}
+              <div>
+                <label className="text-sm text-neutral-400 mb-2 block">Business Name *</label>
+                <input
+                  type="text"
+                  value={formData.businessName}
+                  onChange={(e) => setFormData({ ...formData, businessName: e.target.value })}
+                  className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-lg text-white text-base focus:outline-none focus:border-brand-dark"
+                  required
+                />
+              </div>
+
+              {/* Industry */}
+              <div>
+                <label className="text-sm text-neutral-400 mb-2 block">Industry *</label>
+                <select
+                  value={formData.industry}
+                  onChange={(e) => setFormData({ ...formData, industry: e.target.value })}
+                  className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-lg text-white text-base focus:outline-none focus:border-brand-dark"
+                  required
+                >
+                  <option value="">Select industry...</option>
+                  {INDUSTRIES.map((industry) => (
+                    <option key={industry} value={industry}>
+                      {industry}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Location */}
+              <div>
+                <label className="text-sm text-neutral-400 mb-2 block">Location (City, State) *</label>
+                <input
+                  type="text"
+                  placeholder="Phoenix, AZ"
+                  value={formData.location}
+                  onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                  className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-lg text-white text-base placeholder:text-neutral-600 focus:outline-none focus:border-brand-dark"
+                  required
+                />
+              </div>
+
+              {/* Owner Name */}
+              <div>
+                <label className="text-sm text-neutral-400 mb-2 block">Owner Name</label>
+                <input
+                  type="text"
+                  placeholder="John Smith"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-lg text-white text-base placeholder:text-neutral-600 focus:outline-none focus:border-brand-dark"
+                />
+              </div>
+
+              {/* Email */}
+              <div>
+                <label className="text-sm text-neutral-400 mb-2 block">Email</label>
+                <input
+                  type="email"
+                  placeholder="info@business.com"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-lg text-white text-base placeholder:text-neutral-600 focus:outline-none focus:border-brand-dark"
+                />
+                {formData.email.includes('@example.com') && (
+                  <p className="text-xs text-red-400 mt-1">⚠️ This looks like a placeholder email</p>
+                )}
+              </div>
+
+              {/* Phone */}
+              <div>
+                <label className="text-sm text-neutral-400 mb-2 block">Phone</label>
+                <input
+                  type="tel"
+                  placeholder="(555) 123-4567"
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-lg text-white text-base placeholder:text-neutral-600 focus:outline-none focus:border-brand-dark"
+                />
+              </div>
+
+              {/* Website */}
+              <div>
+                <label className="text-sm text-neutral-400 mb-2 block">Website URL</label>
+                <input
+                  type="url"
+                  placeholder="https://business.com"
+                  value={formData.website}
+                  onChange={(e) => setFormData({ ...formData, website: e.target.value })}
+                  className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-lg text-white text-base placeholder:text-neutral-600 focus:outline-none focus:border-brand-dark"
+                />
+                <p className="text-xs text-neutral-500 mt-1">Paste the Vercel deployment URL here after building the site</p>
+              </div>
+
+              {/* Notes */}
+              <div>
+                <label className="text-sm text-neutral-400 mb-2 block">Notes</label>
+                <textarea
+                  value={formData.notes}
+                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                  rows={3}
+                  className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-lg text-white text-base focus:outline-none focus:border-brand-dark resize-none"
+                  placeholder="Additional notes..."
+                />
+              </div>
+
+              {/* Buttons */}
+              <div className="flex gap-3 pt-4 sticky bottom-0 bg-neutral-900 pb-2">
+                <button
+                  type="button"
+                  onClick={() => setIsEditModalOpen(false)}
+                  className="flex-1 px-4 py-4 bg-neutral-800 hover:bg-neutral-700 text-white rounded-lg transition-all text-base font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 px-4 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all text-base font-medium"
+                >
+                  Save Changes
                 </button>
               </div>
             </form>
