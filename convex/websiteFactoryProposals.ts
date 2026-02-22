@@ -136,7 +136,7 @@ export const sendProposalEmail = action({
               </table>
 
               <p style="margin: 0 0 20px 0; color: #1f2937; font-size: 16px; line-height: 1.6;">
-                <strong>What you get with your website:</strong>
+                <strong>Your custom website includes:</strong>
               </p>
               <ul style="margin: 0 0 30px 0; padding-left: 20px; color: #1f2937; font-size: 15px; line-height: 1.9;">
                 <li><strong>Custom Professional Design</strong> - Tailored to your business and industry</li>
@@ -144,13 +144,35 @@ export const sendProposalEmail = action({
                 <li><strong>Lightning Fast</strong> - Modern tech stack for quick load times</li>
                 <li><strong>Contact Form</strong> - Capture leads directly from your site</li>
                 <li><strong>SEO Ready</strong> - Optimized for Google search visibility</li>
-                <li><strong>SSL Certificate</strong> - Secure HTTPS encryption included</li>
-                <li><strong>Free Hosting (Year 1)</strong> - Fast, reliable hosting on Vercel</li>
-                <li><strong>Custom Domain Setup</strong> - We'll connect your domain (if you have one)</li>
+                <li><strong>SSL Certificate</strong> - Secure HTTPS encryption</li>
+                <li><strong>Custom Domain Setup</strong> - We'll connect your domain</li>
                 <li><strong>Analytics Integration</strong> - Track visitors and performance</li>
-                <li><strong>Lifetime Updates</strong> - Content changes and fixes included</li>
                 <li><strong>Launch in 24 Hours</strong> - Site goes live as soon as you're ready</li>
               </ul>
+
+              <!-- Hosting Upsell Box -->
+              <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #fef3c7; border-radius: 12px; margin-bottom: 30px; border: 2px solid #fbbf24;">
+                <tr>
+                  <td style="padding: 20px 24px;">
+                    <div style="margin-bottom: 12px;">
+                      <span style="display: inline-block; background-color: #f59e0b; color: #ffffff; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; padding: 4px 10px; border-radius: 4px;">Optional Add-On</span>
+                    </div>
+                    <h3 style="margin: 0 0 8px 0; color: #92400e; font-size: 18px; font-weight: 700;">Managed Hosting + Updates</h3>
+                    <p style="margin: 0 0 12px 0; color: #78350f; font-size: 14px; line-height: 1.6;">
+                      Keep your site fast, secure, and up-to-date with our managed service:
+                    </p>
+                    <ul style="margin: 0 0 12px 0; padding-left: 20px; color: #78350f; font-size: 13px; line-height: 1.7;">
+                      <li>Premium hosting on global CDN</li>
+                      <li>Unlimited content updates</li>
+                      <li>Security patches and backups</li>
+                      <li>Priority email support</li>
+                    </ul>
+                    <p style="margin: 0; color: #92400e; font-size: 15px; font-weight: 600;">
+                      Just <strong>$79/month</strong> - Cancel anytime
+                    </p>
+                  </td>
+                </tr>
+              </table>
 
               <!-- Pricing Box -->
               <table width="100%" cellpadding="0" cellspacing="0" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; margin-bottom: 30px; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);">
@@ -165,7 +187,7 @@ export const sendProposalEmail = action({
                     </div>
                     <div style="background-color: rgba(255,255,255,0.15); border-radius: 8px; padding: 16px; margin-top: 20px;">
                       <p style="margin: 0; color: #ffffff; font-size: 14px; text-align: center; line-height: 1.6;">
-                        ✓ Free hosting (Year 1) • ✓ Lifetime updates • ✓ SSL included<br/>
+                        ✓ Complete custom website • ✓ Ready to launch<br/>
                         <span style="font-size: 13px; color: #e9d5ff;">Typical agency price: $3,000-$5,000+</span>
                       </p>
                     </div>
