@@ -58,6 +58,7 @@ export default function LeadsAdminPage() {
   const [uploading, setUploading] = useState(false);
   const [sendingProposal, setSendingProposal] = useState(false);
   const [proposalData, setProposalData] = useState({
+    email: "",
     specSiteUrl: "",
     proposalPrice: 1500,
   });
@@ -109,17 +110,32 @@ export default function LeadsAdminPage() {
     e.preventDefault();
     if (!selected) return;
 
+    // Validate email
+    if (proposalData.email.includes('@example.com')) {
+      alert("Please update the email address - it looks like a placeholder.");
+      return;
+    }
+
     try {
       setSendingProposal(true);
+
+      // Update lead email if it changed
+      if (proposalData.email !== selected.email) {
+        await updateLead({
+          id: selected._id,
+          email: proposalData.email,
+        });
+      }
+
       const result = await sendProposal({
         leadId: selected._id,
         specSiteUrl: proposalData.specSiteUrl,
         proposalPrice: proposalData.proposalPrice,
       });
 
-      alert(`Proposal sent! Signup link: ${result.signupLink}`);
+      alert(`Proposal sent to ${proposalData.email}!\n\nSignup link: ${result.signupLink}`);
       setIsProposalModalOpen(false);
-      setProposalData({ specSiteUrl: "", proposalPrice: 1500 });
+      setProposalData({ email: "", specSiteUrl: "", proposalPrice: 1500 });
     } catch (error) {
       console.error("Failed to send proposal:", error);
       alert("Failed to send proposal. Check console for details.");
@@ -431,7 +447,14 @@ export default function LeadsAdminPage() {
             {(selected.status === "building" || selected.status === "presented") && (
               <div className="mb-6">
                 <button
-                  onClick={() => setIsProposalModalOpen(true)}
+                  onClick={() => {
+                    // Pre-fill email when opening modal
+                    const detectedEmail = selected.emails?.find((e: any) => e.isPrimary)?.address
+                      || selected.emails?.[0]?.address
+                      || selected.email;
+                    setProposalData(prev => ({ ...prev, email: detectedEmail || "" }));
+                    setIsProposalModalOpen(true);
+                  }}
                   className="w-full px-4 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-lg font-semibold flex items-center justify-center gap-2 transition-all"
                 >
                   <Send className="w-5 h-5" />
@@ -730,7 +753,22 @@ export default function LeadsAdminPage() {
               <div className="bg-neutral-800 rounded-lg p-4 mb-4">
                 <p className="text-sm text-neutral-400 mb-1">Sending to:</p>
                 <p className="text-white font-semibold">{selected.businessName || selected.name}</p>
-                <p className="text-sm text-neutral-400">{selected.email}</p>
+              </div>
+
+              {/* Email Address (Editable) */}
+              <div>
+                <label className="text-sm text-neutral-400 mb-2 block">Email Address *</label>
+                <input
+                  type="email"
+                  required
+                  value={proposalData.email}
+                  onChange={(e) => setProposalData({ ...proposalData, email: e.target.value })}
+                  className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-lg text-white focus:outline-none focus:border-brand-dark"
+                  placeholder="info@justdoorsinc.com"
+                />
+                {proposalData.email.includes('@example.com') && (
+                  <p className="text-xs text-red-400 mt-1">⚠️ This looks like a placeholder email - please update it</p>
+                )}
               </div>
 
               {/* Spec Site URL */}
