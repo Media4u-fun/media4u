@@ -2,7 +2,6 @@
 
 import { motion } from "motion/react";
 import { Section } from "@/components/ui/section";
-import { Button } from "@/components/ui/button";
 import { CheckCircle2, ArrowRight, Home } from "lucide-react";
 import Link from "next/link";
 
@@ -111,18 +110,20 @@ export default function ThankYouPage() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button asChild size="lg" variant="outline">
-                <Link href="/">
-                  <Home className="mr-2 h-5 w-5" />
-                  Back to Home
-                </Link>
-              </Button>
-              <Button asChild size="lg">
-                <Link href="/portfolio">
-                  View Our Work
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Link>
-              </Button>
+              <Link
+                href="/"
+                className="inline-flex items-center justify-center gap-2 px-7 py-3.5 border border-zinc-700 text-zinc-300 rounded-full text-sm font-medium hover:border-zinc-600 hover:text-white transition-colors"
+              >
+                <Home className="h-5 w-5" />
+                Back to Home
+              </Link>
+              <Link
+                href="/portfolio"
+                className="inline-flex items-center justify-center gap-2 px-7 py-3.5 bg-gradient-to-r from-brand-light to-brand-dark text-white rounded-full text-sm font-semibold hover:opacity-90 transition-opacity"
+              >
+                View Our Work
+                <ArrowRight className="h-5 w-5" />
+              </Link>
             </div>
           </motion.div>
 
