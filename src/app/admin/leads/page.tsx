@@ -299,10 +299,10 @@ export default function LeadsAdminPage() {
               <button
                 onClick={copyToClipboard}
                 className="px-3 py-2 lg:px-4 lg:py-2 bg-neutral-800 hover:bg-neutral-700 text-white rounded-lg flex items-center gap-2 transition-all text-sm lg:text-base"
-                title="Copy leads to clipboard"
+                title="Copy all leads to clipboard"
               >
                 <Copy className="w-4 h-4" />
-                <span className="hidden sm:inline">Copy</span>
+                <span className="hidden sm:inline">Copy All</span>
               </button>
               <button
                 onClick={exportToCSV}
@@ -357,6 +357,16 @@ export default function LeadsAdminPage() {
               New
             </button>
             <button
+              onClick={() => setFilterStatus("researching")}
+              className={`px-3 py-2 rounded-lg text-sm transition-all ${
+                filterStatus === "researching"
+                  ? "bg-purple-500 text-white"
+                  : "bg-neutral-800 text-neutral-400 hover:bg-neutral-700"
+              }`}
+            >
+              Researching
+            </button>
+            <button
               onClick={() => setFilterStatus("building")}
               className={`px-3 py-2 rounded-lg text-sm transition-all ${
                 filterStatus === "building"
@@ -367,6 +377,46 @@ export default function LeadsAdminPage() {
               Building
             </button>
             <button
+              onClick={() => setFilterStatus("presented")}
+              className={`px-3 py-2 rounded-lg text-sm transition-all ${
+                filterStatus === "presented"
+                  ? "bg-yellow-500 text-white"
+                  : "bg-neutral-800 text-neutral-400 hover:bg-neutral-700"
+              }`}
+            >
+              Presented
+            </button>
+            <button
+              onClick={() => setFilterStatus("contacted")}
+              className={`px-3 py-2 rounded-lg text-sm transition-all ${
+                filterStatus === "contacted"
+                  ? "bg-cyan-500 text-white"
+                  : "bg-neutral-800 text-neutral-400 hover:bg-neutral-700"
+              }`}
+            >
+              Contacted
+            </button>
+            <button
+              onClick={() => setFilterStatus("qualified")}
+              className={`px-3 py-2 rounded-lg text-sm transition-all ${
+                filterStatus === "qualified"
+                  ? "bg-indigo-500 text-white"
+                  : "bg-neutral-800 text-neutral-400 hover:bg-neutral-700"
+              }`}
+            >
+              Qualified
+            </button>
+            <button
+              onClick={() => setFilterStatus("converted")}
+              className={`px-3 py-2 rounded-lg text-sm transition-all ${
+                filterStatus === "converted"
+                  ? "bg-green-500 text-white"
+                  : "bg-neutral-800 text-neutral-400 hover:bg-neutral-700"
+              }`}
+            >
+              Converted
+            </button>
+            <button
               onClick={() => setFilterStatus("won")}
               className={`px-3 py-2 rounded-lg text-sm transition-all ${
                 filterStatus === "won"
@@ -375,6 +425,16 @@ export default function LeadsAdminPage() {
               }`}
             >
               Won
+            </button>
+            <button
+              onClick={() => setFilterStatus("lost")}
+              className={`px-3 py-2 rounded-lg text-sm transition-all ${
+                filterStatus === "lost"
+                  ? "bg-red-500 text-white"
+                  : "bg-neutral-800 text-neutral-400 hover:bg-neutral-700"
+              }`}
+            >
+              Lost
             </button>
           </div>
         </div>
@@ -448,13 +508,35 @@ export default function LeadsAdminPage() {
                   </p>
                 )}
               </div>
-              <button
-                onClick={() => handleDelete(selected._id)}
-                className="px-3 py-2 lg:px-4 lg:py-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg transition-all flex items-center gap-2"
-              >
-                <Trash2 className="w-4 h-4" />
-                <span className="hidden lg:inline">Delete</span>
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    const leadData = `Business Name,Industry,Location,Owner Name,Phone,Email,Website,Status,Photos Count,Source,Notes,Created Date
+"${selected.businessName || selected.name || ""}","${selected.industry || ""}","${selected.location || ""}","${selected.name || ""}","${selected.phone || ""}","${selected.email || ""}","${selected.website || ""}","${selected.status || ""}","${selected.photos?.length || 0}","${selected.source || ""}","${(selected.notes || "").replace(/\n/g, " ").replace(/"/g, '""')}","${new Date(selected.createdAt).toLocaleDateString()}"`;
+
+                    navigator.clipboard.writeText(leadData)
+                      .then(() => {
+                        alert(`✅ ${selected.businessName || selected.name} copied to clipboard!`);
+                      })
+                      .catch((err) => {
+                        console.error("Failed to copy:", err);
+                        alert("Failed to copy. Please try again.");
+                      });
+                  }}
+                  className="px-3 py-2 lg:px-4 lg:py-2 bg-neutral-800 hover:bg-neutral-700 text-white rounded-lg transition-all flex items-center gap-2"
+                  title="Copy this lead"
+                >
+                  <Copy className="w-4 h-4" />
+                  <span className="hidden lg:inline">Copy</span>
+                </button>
+                <button
+                  onClick={() => handleDelete(selected._id)}
+                  className="px-3 py-2 lg:px-4 lg:py-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg transition-all flex items-center gap-2"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  <span className="hidden lg:inline">Delete</span>
+                </button>
+              </div>
             </div>
 
             {/* Status Dropdown */}

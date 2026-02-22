@@ -157,7 +157,7 @@ export const checkIntegrations = action({
       resend: !!process.env.RESEND_API_KEY,
       stripe: !!process.env.STRIPE_SECRET_KEY,
       convex: true, // Always true if this runs
-      googleAnalytics: !!process.env.NEXT_PUBLIC_GA_ID,
+      googleAnalytics: !!process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID,
       fromEmail: process.env.FROM_EMAIL || "Not set",
       siteUrl: process.env.SITE_URL || process.env.NEXT_PUBLIC_SITE_URL || "Not set",
     };
