@@ -38,7 +38,7 @@ function Hero() {
                 <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 to-pink-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 <div className="relative p-6">
                   <img
-                    src="/ChatGPT Image Feb 21, 2026, 10_32_48 PM.png"
+                    src="/ChatGPT Image Feb 21, 2026, 10_59_07 PM.png"
                     alt="Try Before You Buy - Free Website Build"
                     className="w-full h-auto rounded-lg shadow-2xl group-hover:scale-105 transition-transform duration-300 mb-6"
                   />
