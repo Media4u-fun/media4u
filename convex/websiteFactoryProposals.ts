@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { action, internalMutation, mutation, query } from "./_generated/server";
+import { action, internalMutation, query } from "./_generated/server";
 import { api } from "./_generated/api";
 
 // Generate a unique proposal token for a lead

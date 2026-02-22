@@ -6,7 +6,8 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
 import { useState, useRef } from "react";
 import { Id } from "@convex/_generated/dataModel";
-import { Search, Plus, X, Upload, Trash2, Image as ImageIcon, Building2, MapPin, Globe, Phone, Mail, Camera, Download } from "lucide-react";
+import { Search, Plus, X, Upload, Trash2, Image as ImageIcon, Building2, MapPin, Globe, Phone, Mail, Camera, Download, Send, ExternalLink } from "lucide-react";
+import { useAction } from "convex/react";
 
 type LeadStatus = "new" | "researching" | "building" | "presented" | "contacted" | "qualified" | "converted" | "won" | "lost";
 
@@ -52,8 +53,16 @@ export default function LeadsAdminPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState<LeadStatus | "all">("all");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isProposalModalOpen, setIsProposalModalOpen] = useState(false);
   const [uploadedPhotos, setUploadedPhotos] = useState<Id<"_storage">[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [sendingProposal, setSendingProposal] = useState(false);
+  const [proposalData, setProposalData] = useState({
+    specSiteUrl: "",
+    proposalPrice: 1500,
+  });
+
+  const sendProposal = useAction(api.websiteFactoryProposals.sendProposalEmail);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -93,6 +102,29 @@ export default function LeadsAdminPage() {
     if (confirm("Delete this lead? This cannot be undone.")) {
       await deleteLead({ id });
       setSelectedId(null);
+    }
+  }
+
+  async function handleSendProposal(e: React.FormEvent) {
+    e.preventDefault();
+    if (!selected) return;
+
+    try {
+      setSendingProposal(true);
+      const result = await sendProposal({
+        leadId: selected._id,
+        specSiteUrl: proposalData.specSiteUrl,
+        proposalPrice: proposalData.proposalPrice,
+      });
+
+      alert(`Proposal sent! Signup link: ${result.signupLink}`);
+      setIsProposalModalOpen(false);
+      setProposalData({ specSiteUrl: "", proposalPrice: 1500 });
+    } catch (error) {
+      console.error("Failed to send proposal:", error);
+      alert("Failed to send proposal. Check console for details.");
+    } finally {
+      setSendingProposal(false);
     }
   }
 
@@ -395,6 +427,35 @@ export default function LeadsAdminPage() {
               </select>
             </div>
 
+            {/* Send Proposal Button - for leads in "building" or later status */}
+            {(selected.status === "building" || selected.status === "presented") && (
+              <div className="mb-6">
+                <button
+                  onClick={() => setIsProposalModalOpen(true)}
+                  className="w-full px-4 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-lg font-semibold flex items-center justify-center gap-2 transition-all"
+                >
+                  <Send className="w-5 h-5" />
+                  {selected.proposalSentAt ? "Resend Proposal" : "Send Proposal Email"}
+                </button>
+                {selected.proposalSentAt && (
+                  <p className="text-xs text-neutral-500 mt-2 text-center">
+                    Last sent: {new Date(selected.proposalSentAt).toLocaleDateString()}
+                  </p>
+                )}
+                {selected.specSiteUrl && (
+                  <a
+                    href={selected.specSiteUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block text-center text-sm text-purple-400 hover:text-purple-300 mt-2 flex items-center justify-center gap-1"
+                  >
+                    <ExternalLink className="w-3 h-3" />
+                    View Spec Site
+                  </a>
+                )}
+              </div>
+            )}
+
             {/* Contact Info */}
             <div className="bg-neutral-900 rounded-lg p-4 lg:p-6 mb-6">
               <h3 className="text-lg font-semibold text-white mb-4">Contact Information</h3>
@@ -639,6 +700,104 @@ export default function LeadsAdminPage() {
                   className="flex-1 px-4 py-4 bg-brand-dark hover:bg-brand-dark/80 text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed text-base font-medium"
                 >
                   {uploading ? "Uploading..." : "Add Lead"}
+                </button>
+              </div>
+            </form>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Send Proposal Modal */}
+      {isProposalModalOpen && selected && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-neutral-900 rounded-xl border border-neutral-800 p-6 w-full max-w-md"
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-white">Send Proposal</h2>
+              <button
+                onClick={() => setIsProposalModalOpen(false)}
+                className="text-neutral-400 hover:text-white transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSendProposal} className="space-y-4">
+              {/* Business Info */}
+              <div className="bg-neutral-800 rounded-lg p-4 mb-4">
+                <p className="text-sm text-neutral-400 mb-1">Sending to:</p>
+                <p className="text-white font-semibold">{selected.businessName || selected.name}</p>
+                <p className="text-sm text-neutral-400">{selected.email}</p>
+              </div>
+
+              {/* Spec Site URL */}
+              <div>
+                <label className="text-sm text-neutral-400 mb-2 block">Spec Site URL *</label>
+                <input
+                  type="url"
+                  required
+                  value={proposalData.specSiteUrl}
+                  onChange={(e) => setProposalData({ ...proposalData, specSiteUrl: e.target.value })}
+                  className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-lg text-white focus:outline-none focus:border-brand-dark"
+                  placeholder="https://just-doors-inc.vercel.app"
+                />
+                <p className="text-xs text-neutral-500 mt-1">The live preview URL they&apos;ll see</p>
+              </div>
+
+              {/* Price */}
+              <div>
+                <label className="text-sm text-neutral-400 mb-2 block">Proposal Price *</label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400">$</span>
+                  <input
+                    type="number"
+                    required
+                    min="0"
+                    step="100"
+                    value={proposalData.proposalPrice}
+                    onChange={(e) => setProposalData({ ...proposalData, proposalPrice: parseInt(e.target.value) })}
+                    className="w-full pl-8 pr-4 py-3 bg-neutral-800 border border-neutral-700 rounded-lg text-white focus:outline-none focus:border-brand-dark"
+                  />
+                </div>
+                <p className="text-xs text-neutral-500 mt-1">One-time payment amount</p>
+              </div>
+
+              {/* Preview */}
+              <div className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20 rounded-lg p-4">
+                <p className="text-xs text-neutral-400 mb-2">Email will include:</p>
+                <ul className="text-sm text-neutral-300 space-y-1">
+                  <li>✨ Live preview button</li>
+                  <li>💰 Pricing card (${proposalData.proposalPrice?.toLocaleString()})</li>
+                  <li>🔗 Signup link to claim site</li>
+                  <li>📧 Professional Media4U branding</li>
+                </ul>
+              </div>
+
+              {/* Buttons */}
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setIsProposalModalOpen(false)}
+                  className="flex-1 px-4 py-3 bg-neutral-800 hover:bg-neutral-700 text-white rounded-lg transition-all font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={sendingProposal}
+                  className="flex-1 px-4 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed font-medium flex items-center justify-center gap-2"
+                >
+                  {sendingProposal ? (
+                    <>Sending...</>
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4" />
+                      Send Proposal
+                    </>
+                  )}
                 </button>
               </div>
             </form>
