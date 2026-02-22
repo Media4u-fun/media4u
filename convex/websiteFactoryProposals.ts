@@ -136,29 +136,39 @@ export const sendProposalEmail = action({
               </table>
 
               <p style="margin: 0 0 20px 0; color: #1f2937; font-size: 16px; line-height: 1.6;">
-                <strong>What's included:</strong>
+                <strong>What you get with your website:</strong>
               </p>
-              <ul style="margin: 0 0 30px 0; padding-left: 20px; color: #1f2937; font-size: 16px; line-height: 1.8;">
-                <li>Professional design tailored to your business</li>
-                <li>Mobile-friendly and fast-loading</li>
-                <li>Contact form integrated</li>
-                <li>Ready to launch in 24 hours</li>
+              <ul style="margin: 0 0 30px 0; padding-left: 20px; color: #1f2937; font-size: 15px; line-height: 1.9;">
+                <li><strong>Custom Professional Design</strong> - Tailored to your business and industry</li>
+                <li><strong>Mobile-Optimized</strong> - Looks perfect on phones, tablets, and desktops</li>
+                <li><strong>Lightning Fast</strong> - Modern tech stack for quick load times</li>
+                <li><strong>Contact Form</strong> - Capture leads directly from your site</li>
+                <li><strong>SEO Ready</strong> - Optimized for Google search visibility</li>
+                <li><strong>SSL Certificate</strong> - Secure HTTPS encryption included</li>
+                <li><strong>Free Hosting (Year 1)</strong> - Fast, reliable hosting on Vercel</li>
+                <li><strong>Custom Domain Setup</strong> - We'll connect your domain (if you have one)</li>
+                <li><strong>Analytics Integration</strong> - Track visitors and performance</li>
+                <li><strong>Lifetime Updates</strong> - Content changes and fixes included</li>
+                <li><strong>Launch in 24 Hours</strong> - Site goes live as soon as you're ready</li>
               </ul>
 
               <!-- Pricing Box -->
-              <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f9fafb; border-radius: 12px; margin-bottom: 30px; border: 2px solid #e5e7eb;">
+              <table width="100%" cellpadding="0" cellspacing="0" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; margin-bottom: 30px; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);">
                 <tr>
-                  <td style="padding: 24px;">
+                  <td style="padding: 30px 24px;">
                     <div style="text-align: center; margin-bottom: 16px;">
-                      <div style="font-size: 14px; color: #6b7280; text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px; margin-bottom: 8px;">Special Offer</div>
-                      <div style="font-size: 48px; font-weight: 700; color: #667eea; line-height: 1;">
+                      <div style="font-size: 13px; color: #e9d5ff; text-transform: uppercase; font-weight: 600; letter-spacing: 1px; margin-bottom: 12px;">🎉 Special Launch Offer</div>
+                      <div style="font-size: 56px; font-weight: 800; color: #ffffff; line-height: 1; text-shadow: 0 2px 8px rgba(0,0,0,0.2);">
                         $${args.proposalPrice.toLocaleString()}
                       </div>
-                      <div style="font-size: 14px; color: #6b7280; margin-top: 4px;">One-time payment</div>
+                      <div style="font-size: 15px; color: #e9d5ff; margin-top: 8px; font-weight: 500;">One-time payment • No monthly fees</div>
                     </div>
-                    <p style="margin: 0; color: #6b7280; font-size: 14px; text-align: center; line-height: 1.5;">
-                      Includes hosting, SSL certificate, and future updates
-                    </p>
+                    <div style="background-color: rgba(255,255,255,0.15); border-radius: 8px; padding: 16px; margin-top: 20px;">
+                      <p style="margin: 0; color: #ffffff; font-size: 14px; text-align: center; line-height: 1.6;">
+                        ✓ Free hosting (Year 1) • ✓ Lifetime updates • ✓ SSL included<br/>
+                        <span style="font-size: 13px; color: #e9d5ff;">Typical agency price: $3,000-$5,000+</span>
+                      </p>
+                    </div>
                   </td>
                 </tr>
               </table>
