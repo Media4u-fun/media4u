@@ -26,6 +26,7 @@ import {
   CalendarDays,
   ExternalLink,
   Users,
+  Target,
 } from "lucide-react";
 
 const adminNavItems = [
@@ -35,6 +36,7 @@ const adminNavItems = [
   { href: "/admin/notifications", label: "Client Updates", icon: Bell, countKey: "clientActivity" },
   { href: "/admin/messages", label: "Messages", icon: MessageCircle, countKey: "messages" },
   { href: "/admin/clients", label: "Clients", icon: Users, countKey: null },
+  { href: "/admin/leads", label: "Leads", icon: Target, countKey: null },
   { href: "/admin/projects", label: "Projects", icon: Briefcase, countKey: null },
   { href: "/admin/newsletter", label: "Newsletter", icon: Mail, countKey: null },
   { href: "/admin/blog", label: "Blog Posts", icon: FileText, countKey: null },

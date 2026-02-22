@@ -176,9 +176,10 @@ export default defineSchema({
     .index("by_email", ["email"])
     .index("by_userId", ["userId"]),
 
-  // Leads - potential customers for outbound sales
+  // Leads - potential customers for outbound sales & Website Factory
   leads: defineTable({
-    name: v.string(),
+    name: v.string(), // Business owner name
+    businessName: v.optional(v.string()), // Business name (separate from owner name)
     email: v.string(), // Legacy single email (kept for backwards compatibility)
     emails: v.optional(v.array(v.object({
       address: v.string(),
@@ -200,18 +201,27 @@ export default defineSchema({
       zip: v.optional(v.string()),
       country: v.optional(v.string()),
     })),
+    location: v.optional(v.string()), // Quick location field: "Phoenix, AZ" or "Scottsdale, AZ"
     company: v.optional(v.string()),
     website: v.optional(v.string()),
+    // Website Factory - Industry tracking
+    industry: v.optional(v.string()), // "Door Company", "Pool Service", "Barbershop", "Pest Control", etc.
+    // Website Factory - Photo uploads
+    photos: v.optional(v.array(v.id("_storage"))), // Array of Convex storage IDs for uploaded images
     // Client categorization
     tags: v.optional(v.array(v.string())),
     preferredContact: v.optional(v.union(v.literal("email"), v.literal("phone"), v.literal("text"))),
     timezone: v.optional(v.string()),
-    source: v.string(), // e.g., "referral", "website", "trade show", "cold outreach"
+    source: v.string(), // e.g., "referral", "website", "trade show", "cold outreach", "spotted"
     status: v.union(
       v.literal("new"),
+      v.literal("researching"),  // Website Factory: AI is researching
+      v.literal("building"),     // Website Factory: Site is being built
+      v.literal("presented"),    // Website Factory: Site shown to lead
       v.literal("contacted"),
       v.literal("qualified"),
       v.literal("converted"),
+      v.literal("won"),          // Website Factory: They bought the site
       v.literal("lost")
     ),
     notes: v.string(),
@@ -220,6 +230,7 @@ export default defineSchema({
   })
     .index("by_status", ["status"])
     .index("by_email", ["email"])
+    .index("by_industry", ["industry"])
     .index("by_created", ["createdAt"]),
 
   // Project Notes - timestamped notes for projects
