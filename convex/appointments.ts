@@ -2,6 +2,7 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { requireAdmin, getAuthenticatedUser } from "./auth";
 import { appointmentConfig, generateTimeSlots } from "./lib/appointmentConfig";
+import { api } from "./_generated/api";
 
 export const bookAppointment = mutation({
   args: {
@@ -38,10 +39,13 @@ export const bookAppointment = mutation({
     if (conflict) throw new Error("This time slot is already booked");
 
     const now = Date.now();
-    return await ctx.db.insert("appointments", {
+    const userName = userRole?.name ?? user.name ?? "Unknown";
+    const userEmail = userRole?.email ?? user.email ?? "";
+
+    const appointmentId = await ctx.db.insert("appointments", {
       userId: user._id,
-      userName: userRole?.name ?? user.name ?? "Unknown",
-      userEmail: userRole?.email ?? user.email ?? "",
+      userName,
+      userEmail,
       userPhone: "",
       date: args.date,
       time: args.time,
@@ -58,6 +62,16 @@ export const bookAppointment = mutation({
       createdAt: now,
       updatedAt: now,
     });
+
+    // Notify admin via email
+    await ctx.scheduler.runAfter(0, api.emails.notifyAdminClientActivity, {
+      clientName: userName,
+      clientEmail: userEmail,
+      activityType: "appointment_booked",
+      description: `Booked ${args.serviceType} on ${args.date} at ${args.time}`,
+    });
+
+    return appointmentId;
   },
 });
 
@@ -143,6 +157,14 @@ export const cancelAppointment = mutation({
     await ctx.db.patch(args.appointmentId, {
       status: "cancelled",
       updatedAt: Date.now(),
+    });
+
+    // Notify admin via email
+    await ctx.scheduler.runAfter(0, api.emails.notifyAdminClientActivity, {
+      clientName: appointment.userName,
+      clientEmail: appointment.userEmail,
+      activityType: "appointment_cancelled",
+      description: `Cancelled ${appointment.serviceType} on ${appointment.date} at ${appointment.time}`,
     });
   },
 });

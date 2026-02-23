@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { requireAdmin, getAuthenticatedUser } from "./auth";
+import { api } from "./_generated/api";
 
 // Get all files for a project
 export const getProjectFiles = query({
@@ -128,7 +129,7 @@ export const saveFileMetadataClient = mutation({
     const uploadedByName = (user.name ?? user.email ?? "Client") as string;
     const uploadedBy = (user.userId ?? user._id ?? "unknown") as string;
 
-    return await ctx.db.insert("projectFiles", {
+    const fileId = await ctx.db.insert("projectFiles", {
       projectId: args.projectId,
       storageId: args.storageId,
       fileName: args.fileName,
@@ -139,6 +140,17 @@ export const saveFileMetadataClient = mutation({
       description: args.description,
       createdAt: Date.now(),
     });
+
+    // Notify admin via email
+    await ctx.scheduler.runAfter(0, api.emails.notifyAdminClientActivity, {
+      clientName: uploadedByName,
+      clientEmail: user.email ?? "",
+      projectName: project.name ?? project.company ?? "Unknown Project",
+      activityType: "file_uploaded",
+      description: `Uploaded file: ${args.fileName}`,
+    });
+
+    return fileId;
   },
 });
 

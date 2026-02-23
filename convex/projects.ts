@@ -1,7 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query, internalMutation } from "./_generated/server";
 import { requireAdmin, getAuthenticatedUser } from "./auth";
-import { internal } from "./_generated/api";
+import { api, internal } from "./_generated/api";
 import { Id } from "./_generated/dataModel";
 
 // Get projects that have setup invoices (for billing invoices tab)
@@ -509,6 +509,15 @@ export const addProjectNoteClient = mutation({
       createdAt: Date.now(),
     });
 
+    // Notify admin via email
+    await ctx.scheduler.runAfter(0, api.emails.notifyAdminClientActivity, {
+      clientName: userName,
+      clientEmail: user.email ?? "",
+      projectName: project.name ?? project.company ?? "Unknown Project",
+      activityType: "note_added",
+      description: args.note.substring(0, 200),
+    });
+
     return noteId;
   },
 });
@@ -591,6 +600,15 @@ export const updateIntegrationVault = mutation({
         read: false,
         createdAt: Date.now(),
       });
+
+      // Notify admin via email
+      await ctx.scheduler.runAfter(0, api.emails.notifyAdminClientActivity, {
+        clientName: userName,
+        clientEmail: user.email ?? "",
+        projectName: project.name ?? project.company ?? "Unknown Project",
+        activityType: "vault_updated",
+        description: "Updated integration vault credentials",
+      });
     }
 
     return { success: true };
@@ -654,6 +672,15 @@ export const submitIntake = mutation({
       createdAt: Date.now(),
     });
 
+    // Notify admin via email
+    await ctx.scheduler.runAfter(0, api.emails.notifyAdminClientActivity, {
+      clientName: userName,
+      clientEmail: user.email ?? "",
+      projectName: project.name ?? project.company ?? "Unknown Project",
+      activityType: "intake_submitted",
+      description: "Submitted project intake form with branding and goals",
+    });
+
     return { success: true };
   },
 });
@@ -685,6 +712,15 @@ export const markSetupInvoicePaid = mutation({
       description: "Marked $500 setup invoice as paid - awaiting admin verification",
       read: false,
       createdAt: Date.now(),
+    });
+
+    // Notify admin via email
+    await ctx.scheduler.runAfter(0, api.emails.notifyAdminClientActivity, {
+      clientName: userName,
+      clientEmail: user.email ?? "",
+      projectName: project.name ?? project.company ?? "Unknown Project",
+      activityType: "invoice_paid",
+      description: "Marked setup invoice as paid - needs your verification",
     });
 
     return { success: true };

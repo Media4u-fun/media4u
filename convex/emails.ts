@@ -367,3 +367,72 @@ export const notifyAdminNewSignup = action({
     }
   },
 });
+
+// Notify admin when a client takes action in their portal
+export const notifyAdminClientActivity = action({
+  args: {
+    clientName: v.string(),
+    clientEmail: v.string(),
+    projectName: v.optional(v.string()),
+    activityType: v.string(),
+    description: v.string(),
+  },
+  handler: async (ctx, args) => {
+    if (!RESEND_API_KEY) {
+      console.error("RESEND_API_KEY not configured - skipping notification");
+      return { success: false };
+    }
+
+    const activityLabels: Record<string, string> = {
+      note_added: "Added a Project Note",
+      intake_submitted: "Submitted Intake Form",
+      vault_updated: "Updated Integration Vault",
+      file_uploaded: "Uploaded a File",
+      appointment_booked: "Booked an Appointment",
+      appointment_cancelled: "Cancelled an Appointment",
+      invoice_paid: "Marked Invoice as Paid",
+    };
+
+    const label = activityLabels[args.activityType] || args.activityType;
+
+    try {
+      const html = emailBaseTemplate(`
+        ${emailHeading("Client Portal Activity")}
+        ${emailParagraph(`<strong>${args.clientName}</strong> just took an action in their portal.`)}
+        ${emailDivider()}
+        ${emailInfoBox("Activity", label)}
+        ${emailInfoBox("Client", args.clientName)}
+        ${emailInfoBox("Email", args.clientEmail)}
+        ${args.projectName ? emailInfoBox("Project", args.projectName) : ""}
+        ${emailInfoBox("Details", args.description)}
+        ${emailInfoBox("Time", new Date().toLocaleString("en-US", { timeZone: "America/Phoenix" }))}
+        ${emailDivider()}
+        ${emailButton("View in Admin Panel", "https://media4u.fun/admin/projects")}
+      `);
+
+      const response = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${RESEND_API_KEY}`,
+        },
+        body: JSON.stringify({
+          from: FROM_EMAIL,
+          to: "devland@media4u.fun",
+          subject: `Client Activity: ${args.clientName} - ${label}`,
+          html,
+        }),
+      });
+
+      if (!response.ok) {
+        console.error("Failed to send client activity notification:", response.statusText);
+        return { success: false };
+      }
+
+      return { success: true };
+    } catch (error) {
+      console.error("Error sending client activity notification:", error);
+      return { success: false };
+    }
+  },
+});
