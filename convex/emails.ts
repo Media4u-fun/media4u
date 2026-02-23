@@ -267,3 +267,103 @@ export const sendProjectRequestEmail = action({
     }
   },
 });
+
+// Notify admin when someone subscribes to the newsletter
+export const notifyAdminNewSubscriber = action({
+  args: {
+    email: v.string(),
+  },
+  handler: async (ctx, args) => {
+    if (!RESEND_API_KEY) {
+      console.error("RESEND_API_KEY not configured - skipping notification");
+      return { success: false };
+    }
+
+    try {
+      const html = emailBaseTemplate(`
+        ${emailHeading("New Newsletter Subscriber")}
+        ${emailParagraph("Someone just subscribed to your newsletter.")}
+        ${emailDivider()}
+        ${emailInfoBox("Email", args.email)}
+        ${emailInfoBox("Subscribed At", new Date().toLocaleString("en-US", { timeZone: "America/Phoenix" }))}
+        ${emailDivider()}
+        ${emailButton("View Subscribers", "https://media4u.fun/admin/newsletter")}
+      `);
+
+      const response = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${RESEND_API_KEY}`,
+        },
+        body: JSON.stringify({
+          from: FROM_EMAIL,
+          to: "devland@media4u.fun",
+          subject: `New Newsletter Subscriber: ${args.email}`,
+          html,
+        }),
+      });
+
+      if (!response.ok) {
+        console.error("Failed to send subscriber notification:", response.statusText);
+        return { success: false };
+      }
+
+      return { success: true };
+    } catch (error) {
+      console.error("Error sending subscriber notification:", error);
+      return { success: false };
+    }
+  },
+});
+
+// Notify admin when a new user account is created
+export const notifyAdminNewSignup = action({
+  args: {
+    email: v.string(),
+    name: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    if (!RESEND_API_KEY) {
+      console.error("RESEND_API_KEY not configured - skipping notification");
+      return { success: false };
+    }
+
+    try {
+      const html = emailBaseTemplate(`
+        ${emailHeading("New User Account Created")}
+        ${emailParagraph("Someone just signed up for an account on your site.")}
+        ${emailDivider()}
+        ${args.name ? emailInfoBox("Name", args.name) : ""}
+        ${emailInfoBox("Email", args.email)}
+        ${emailInfoBox("Signed Up At", new Date().toLocaleString("en-US", { timeZone: "America/Phoenix" }))}
+        ${emailDivider()}
+        ${emailButton("View in Admin Panel", "https://media4u.fun/admin")}
+      `);
+
+      const response = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${RESEND_API_KEY}`,
+        },
+        body: JSON.stringify({
+          from: FROM_EMAIL,
+          to: "devland@media4u.fun",
+          subject: `New Account Signup: ${args.name || args.email}`,
+          html,
+        }),
+      });
+
+      if (!response.ok) {
+        console.error("Failed to send signup notification:", response.statusText);
+        return { success: false };
+      }
+
+      return { success: true };
+    } catch (error) {
+      console.error("Error sending signup notification:", error);
+      return { success: false };
+    }
+  },
+});

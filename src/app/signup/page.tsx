@@ -6,6 +6,8 @@ import { motion } from "motion/react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
+import { useAction } from "convex/react";
+import { api } from "@convex/_generated/api";
 
 export default function SignupPage() {
   const [email, setEmail] = useState("");
@@ -15,6 +17,7 @@ export default function SignupPage() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const notifyAdminSignup = useAction(api.emails.notifyAdminNewSignup);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -46,6 +49,7 @@ export default function SignupPage() {
       { email, password, name },
       {
         onSuccess: () => {
+          notifyAdminSignup({ email, name }).catch(console.error);
           router.push("/portal");
         },
         onError: (ctx: { error: { message?: string } }) => {

@@ -39,6 +39,7 @@ export function ContactForm() {
   const submitContact = useMutation(api.contactSubmissions.submitContact);
   const sendEmail = useAction(api.emails.sendContactFormEmail);
   const sendWelcomeEmail = useAction(api.emails.sendNewsletterWelcomeEmail);
+  const notifyAdminSubscriber = useAction(api.emails.notifyAdminNewSubscriber);
 
   const [formData, setFormData] = useState<FormData>({
     name: "",
@@ -112,6 +113,7 @@ export function ContactForm() {
       // Send newsletter welcome email if new subscriber
       if (result.isNewSubscriber) {
         sendWelcomeEmail({ email: formData.email }).catch(console.error);
+        notifyAdminSubscriber({ email: formData.email }).catch(console.error);
       }
 
       // Send email notification

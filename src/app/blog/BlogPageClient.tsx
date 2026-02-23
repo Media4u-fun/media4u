@@ -157,6 +157,7 @@ function BlogCard({ post, index, featured = false }: { post: BlogPost; index: nu
 function NewsletterSection() {
   const subscribe = useMutation(api.newsletter.subscribeToNewsletter);
   const sendWelcomeEmail = useAction(api.emails.sendNewsletterWelcomeEmail);
+  const notifyAdmin = useAction(api.emails.notifyAdminNewSubscriber);
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
@@ -178,6 +179,7 @@ function NewsletterSection() {
       if (result.success) {
         if (result.newSubscription) {
           sendWelcomeEmail({ email }).catch(console.error);
+          notifyAdmin({ email }).catch(console.error);
         }
         setMessage({
           type: "success",
