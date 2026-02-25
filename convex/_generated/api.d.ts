@@ -11,6 +11,7 @@
 import type * as admin from "../admin.js";
 import type * as adminNotes from "../adminNotes.js";
 import type * as appointments from "../appointments.js";
+import type * as assignments from "../assignments.js";
 import type * as auth from "../auth.js";
 import type * as blog from "../blog.js";
 import type * as cli from "../cli.js";
@@ -26,6 +27,7 @@ import type * as emailReplies from "../emailReplies.js";
 import type * as emails from "../emails.js";
 import type * as http from "../http.js";
 import type * as inbox from "../inbox.js";
+import type * as jobs from "../jobs.js";
 import type * as leads from "../leads.js";
 import type * as lib_appointmentConfig from "../lib/appointmentConfig.js";
 import type * as lib_emailTemplates from "../lib/emailTemplates.js";
@@ -44,6 +46,7 @@ import type * as seed from "../seed.js";
 import type * as settings from "../settings.js";
 import type * as stripe from "../stripe.js";
 import type * as support from "../support.js";
+import type * as techLocations from "../techLocations.js";
 import type * as users from "../users.js";
 import type * as vr from "../vr.js";
 import type * as websiteFactoryProposals from "../websiteFactoryProposals.js";
@@ -58,6 +61,7 @@ declare const fullApi: ApiFromModules<{
   admin: typeof admin;
   adminNotes: typeof adminNotes;
   appointments: typeof appointments;
+  assignments: typeof assignments;
   auth: typeof auth;
   blog: typeof blog;
   cli: typeof cli;
@@ -73,6 +77,7 @@ declare const fullApi: ApiFromModules<{
   emails: typeof emails;
   http: typeof http;
   inbox: typeof inbox;
+  jobs: typeof jobs;
   leads: typeof leads;
   "lib/appointmentConfig": typeof lib_appointmentConfig;
   "lib/emailTemplates": typeof lib_emailTemplates;
@@ -91,6 +96,7 @@ declare const fullApi: ApiFromModules<{
   settings: typeof settings;
   stripe: typeof stripe;
   support: typeof support;
+  techLocations: typeof techLocations;
   users: typeof users;
   vr: typeof vr;
   websiteFactoryProposals: typeof websiteFactoryProposals;
