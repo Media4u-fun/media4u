@@ -5,7 +5,7 @@ import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { authClient } from "@/lib/auth-client";
 
-type UserRole = "admin" | "user" | "client";
+type UserRole = "admin" | "user" | "client" | "lead_tech" | "assistant_tech";
 
 interface User {
   id: string;

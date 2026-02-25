@@ -92,7 +92,7 @@ export default function TechLayout({ children }: { children: ReactNode }) {
           const Icon = link.icon;
           const isActive =
             pathname === link.href ||
-            (link.href !== "/tech" && pathname.startsWith(link.href));
+            (link.href !== "/tech" && pathname?.startsWith(link.href));
           return (
             <Link
               key={link.href}
