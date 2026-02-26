@@ -1,5 +1,38 @@
-import { query } from "./_generated/server";
+import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+
+// Bulk assign jobs from Route Planner
+export const bulkAssignJobs = mutation({
+  args: {
+    assignments: v.array(
+      v.object({
+        jobId: v.id("jobs"),
+        assignedDate: v.string(),
+        routeOrder: v.number(),
+      })
+    ),
+    leadTechId: v.string(),
+    assistantTechId: v.optional(v.string()),
+  },
+  handler: async (ctx, { assignments, leadTechId, assistantTechId }) => {
+    let count = 0;
+    for (const item of assignments) {
+      // Create assignment record
+      await ctx.db.insert("assignments", {
+        jobId: item.jobId,
+        leadTechId,
+        assistantTechId: assistantTechId || undefined,
+        routeOrder: item.routeOrder,
+        assignedDate: item.assignedDate,
+      });
+
+      // Update job status to assigned
+      await ctx.db.patch(item.jobId, { status: "assigned" });
+      count++;
+    }
+    return { count };
+  },
+});
 
 // Get a tech's daily route - all jobs assigned to them for a given date, sorted by routeOrder
 export const getTechRoute = query({

@@ -1,5 +1,17 @@
-import { mutation } from "./_generated/server";
+import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+
+// Get all unassigned jobs grouped by state/city for the Route Planner
+export const getUnassignedJobsByRegion = query({
+  handler: async (ctx) => {
+    const jobs = await ctx.db
+      .query("jobs")
+      .withIndex("by_status", (q) => q.eq("status", "unassigned"))
+      .collect();
+
+    return jobs;
+  },
+});
 
 // Update job status (tech can change their own job status)
 export const updateJobStatus = mutation({
