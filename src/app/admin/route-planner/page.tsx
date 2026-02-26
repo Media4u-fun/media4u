@@ -374,8 +374,8 @@ export default function RoutePlannerPage() {
                   >
                     <option value="">Select a tech...</option>
                     {techs.map((t) => (
-                      <option key={t.userId} value={t.userId}>
-                        {t.displayName || t.name || t.email} ({t.role === "lead_tech" ? "Lead" : "Assistant"})
+                      <option key={t._id} value={t._id}>
+                        {t.name || t.email} ({t.role === "lead_tech" ? "Lead" : "Assistant"})
                       </option>
                     ))}
                   </select>
@@ -393,10 +393,10 @@ export default function RoutePlannerPage() {
                   >
                     <option value="">None</option>
                     {techs
-                      .filter((t) => t.userId !== leadTechId)
+                      .filter((t) => t._id !== leadTechId)
                       .map((t) => (
-                        <option key={t.userId} value={t.userId}>
-                          {t.displayName || t.name || t.email} ({t.role === "lead_tech" ? "Lead" : "Assistant"})
+                        <option key={t._id} value={t._id}>
+                          {t.name || t.email} ({t.role === "lead_tech" ? "Lead" : "Assistant"})
                         </option>
                       ))}
                   </select>
