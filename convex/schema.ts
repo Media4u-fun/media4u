@@ -8,7 +8,7 @@ export default defineSchema({
   // User roles (for admin access - separate from Better Auth user table)
   userRoles: defineTable({
     userId: v.string(), // Better Auth user ID
-    role: v.union(v.literal("admin"), v.literal("user"), v.literal("lead_tech"), v.literal("assistant_tech")),
+    role: v.union(v.literal("admin"), v.literal("user")),
     email: v.optional(v.string()), // User's email (captured during signup)
     name: v.optional(v.string()), // User's name (captured during signup)
     displayName: v.optional(v.string()), // Admin-set display name (overrides name)
@@ -678,58 +678,6 @@ export default defineSchema({
     .index("by_date", ["date"])
     .index("by_userId", ["userId"])
     .index("by_status", ["status"]),
-
-  // Jobs - field service jobs for technicians
-  jobs: defineTable({
-    storeNumber: v.string(),
-    address: v.string(),
-    city: v.string(),
-    state: v.string(),
-    zip: v.string(),
-    jobType: v.optional(v.string()),
-    scheduledDate: v.string(), // "2026-02-25"
-    status: v.union(
-      v.literal("unassigned"),
-      v.literal("assigned"),
-      v.literal("in_progress"),
-      v.literal("waiting_pickup"),
-      v.literal("completed"),
-      v.literal("cancelled")
-    ),
-    notes: v.optional(v.string()),
-    serviceTicketNumber: v.optional(v.string()),
-    description: v.optional(v.string()),
-    specialInstructions: v.optional(v.string()),
-    startTime: v.optional(v.string()),
-    latitude: v.optional(v.number()),
-    longitude: v.optional(v.number()),
-    createdAt: v.number(),
-  })
-    .index("by_scheduledDate", ["scheduledDate"])
-    .index("by_status", ["status"]),
-
-  // Assignments - links jobs to technicians with route ordering
-  assignments: defineTable({
-    jobId: v.id("jobs"),
-    leadTechId: v.string(),
-    assistantTechId: v.optional(v.string()),
-    routeOrder: v.number(),
-    assignedDate: v.string(), // "2026-02-25"
-  })
-    .index("by_jobId", ["jobId"])
-    .index("by_leadTechId_date", ["leadTechId", "assignedDate"])
-    .index("by_assistantTechId_date", ["assistantTechId", "assignedDate"]),
-
-  // Tech Locations - real-time GPS tracking for field techs
-  techLocations: defineTable({
-    techId: v.string(),
-    techName: v.string(),
-    jobId: v.optional(v.id("jobs")),
-    latitude: v.number(),
-    longitude: v.number(),
-    timestamp: v.number(),
-  })
-    .index("by_techId", ["techId"]),
 
   // Site Settings (global configuration)
   siteSettings: defineTable({

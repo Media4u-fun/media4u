@@ -132,7 +132,7 @@ export const getUserRole = query({
 export const setUserRole = mutation({
   args: {
     userId: v.string(),
-    role: v.union(v.literal("admin"), v.literal("user"), v.literal("lead_tech"), v.literal("assistant_tech")),
+    role: v.union(v.literal("admin"), v.literal("user")),
   },
   handler: async (ctx, { userId, role }) => {
     // Verify caller is admin

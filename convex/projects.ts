@@ -37,7 +37,11 @@ export const getProjectsWithInvoices = query({
 // Get all projects (admin only - sorted by creation date, newest first)
 export const getAllProjects = query({
   handler: async (ctx) => {
-    await requireAdmin(ctx);
+    try {
+      await requireAdmin(ctx);
+    } catch {
+      return [];
+    }
 
     const projects = await ctx.db
       .query("projects")
@@ -52,7 +56,7 @@ export const getMyProjects = query({
   handler: async (ctx) => {
     const user = await getAuthenticatedUser(ctx);
     if (!user) {
-      throw new Error("Authentication required");
+      return [];
     }
 
     // Get projects linked to user's email (exclude personal/admin projects)

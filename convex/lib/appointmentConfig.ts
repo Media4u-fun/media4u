@@ -27,7 +27,7 @@ export const priorities = ["Low", "Medium", "High"] as const;
 
 export const publishStatuses = ["Draft", "Scheduled", "Posted"] as const;
 
-export const relatedProjects = ["Media4U", "TriVirtual", "LeadRoute", "Other"] as const;
+export const relatedProjects = ["Media4U", "TriVirtual", "Other"] as const;
 
 export const platforms = ["YouTube", "Website", "Spotify", "Apple Podcasts", "Other"] as const;
 

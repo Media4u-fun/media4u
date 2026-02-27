@@ -9,7 +9,8 @@
       "Bash(gh repo create:*)",
       "Bash(git commit:*)",
       "Bash(git push:*)",
-      "Bash(npx convex deploy:*)"
+      "Bash(npx convex deploy:*)",
+      "Bash(cd \"C:/Users/devla/OneDrive/Desktop/claud/leadroute\" && npx convex codegen 2>&1)"
     ]
   },
   "enableAllProjectMcpServers": true,

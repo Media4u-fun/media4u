@@ -74,7 +74,7 @@ export default function PortalPage(): ReactElement {
     user?.id ? { userId: user.id } : "skip"
   );
 
-  const projects = useQuery(api.projects.getMyProjects);
+  const projects = useQuery(api.projects.getMyProjects, user ? {} : "skip");
 
   const handlePayNow = async (packageType: "starter" | "professional", projectId: string) => {
     try {

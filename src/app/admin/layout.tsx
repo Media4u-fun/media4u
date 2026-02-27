@@ -27,7 +27,6 @@ import {
   ExternalLink,
   Users,
   Target,
-  Route,
 } from "lucide-react";
 
 const adminNavItems = [
@@ -44,7 +43,6 @@ const adminNavItems = [
   { href: "/admin/portfolio", label: "Portfolio", icon: ImageIcon, countKey: null },
   { href: "/admin/vr", label: "VR Community", icon: Glasses, countKey: null },
   { href: "/admin/appointments", label: "Appointments", icon: CalendarDays, countKey: null },
-  { href: "/admin/route-planner", label: "Route Planner", icon: Route, countKey: null },
   { href: "/admin/community", label: "Community", icon: Globe, countKey: "community" },
   { href: "/admin/settings", label: "Settings", icon: Settings, countKey: null },
 ];
