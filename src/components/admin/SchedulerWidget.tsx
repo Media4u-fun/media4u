@@ -256,33 +256,33 @@ export default function SchedulerWidget() {
             <p className="text-xs text-gray-500 mb-3">
               Example: &quot;Call Amanda Monday at 2pm, remind me 30 mins before&quot;
             </p>
-            <div className="flex gap-2">
-              <div className="flex-1 relative">
+            <div className="flex flex-col gap-2">
+              <div className="flex gap-2">
                 <input
                   type="text"
                   value={inputText}
                   onChange={(e) => setInputText(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleQuickAdd()}
                   placeholder="Type or speak your event..."
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-brand/50 pr-10"
+                  className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-brand/50"
                   autoFocus
                 />
+                <button
+                  onClick={handleVoice}
+                  className={`p-3 rounded-xl border transition-all flex-shrink-0 ${
+                    isListening
+                      ? "bg-red-500/20 border-red-500/40 text-red-400 animate-pulse"
+                      : "bg-white/5 border-white/10 text-gray-400 hover:text-white hover:border-white/20"
+                  }`}
+                  title="Voice input"
+                >
+                  {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+                </button>
               </div>
-              <button
-                onClick={handleVoice}
-                className={`p-2.5 rounded-xl border transition-all ${
-                  isListening
-                    ? "bg-red-500/20 border-red-500/40 text-red-400 animate-pulse"
-                    : "bg-white/5 border-white/10 text-gray-400 hover:text-white hover:border-white/20"
-                }`}
-                title="Voice input"
-              >
-                {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
-              </button>
               <button
                 onClick={handleQuickAdd}
                 disabled={isProcessing || !inputText.trim()}
-                className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-brand hover:bg-brand/90 text-white text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full flex items-center justify-center gap-1.5 px-4 py-3 rounded-xl bg-brand hover:bg-brand/90 text-white text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isProcessing ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -291,7 +291,7 @@ export default function SchedulerWidget() {
                 ) : (
                   <Plus className="w-4 h-4" />
                 )}
-                {isProcessing ? "Thinking..." : success ? "Added!" : "Add"}
+                {isProcessing ? "AI is thinking..." : success ? "Added!" : "Add Event"}
               </button>
             </div>
             {error && (
