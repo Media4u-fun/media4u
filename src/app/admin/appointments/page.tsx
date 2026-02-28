@@ -1264,6 +1264,7 @@ export default function AdminCalendarPage() {
     setSyncResult("");
     let success = 0;
     let failed = 0;
+    let lastError = "";
     for (const appt of allAppointments) {
       try {
         const res = await fetch("/api/google-calendar/create-event", {
@@ -1278,15 +1279,24 @@ export default function AdminCalendarPage() {
             category: appt.category,
           }),
         });
-        if (res.ok) success++;
-        else failed++;
-      } catch {
+        if (res.ok) {
+          success++;
+        } else {
+          failed++;
+          if (!lastError) {
+            const body = await res.json().catch(() => ({}));
+            lastError = body.error ?? `HTTP ${res.status}`;
+          }
+        }
+      } catch (e) {
         failed++;
+        if (!lastError) lastError = e instanceof Error ? e.message : "network error";
       }
     }
     setSyncing(false);
-    setSyncResult(`Done - ${success} synced${failed > 0 ? `, ${failed} failed` : ""}`);
-    setTimeout(() => setSyncResult(""), 5000);
+    const msg = `Done - ${success} synced${failed > 0 ? `, ${failed} failed` : ""}${lastError ? ` (${lastError})` : ""}`;
+    setSyncResult(msg);
+    setTimeout(() => setSyncResult(""), 10000);
   };
 
   // Status actions
