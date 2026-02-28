@@ -68,7 +68,7 @@ function EventRow({ event, showDate = false }: { event: Appointment; showDate?: 
   const catColor = categoryColors[event.category ?? "Other"] ?? "text-gray-400";
 
   return (
-    <div className="flex items-center gap-3 py-2.5 px-3 rounded-xl hover:bg-white/5 transition-colors group">
+    <Link href="/admin/appointments" className="flex items-center gap-3 py-2.5 px-3 rounded-xl hover:bg-white/10 transition-colors group cursor-pointer">
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium text-white truncate">{label}</p>
         <div className="flex items-center gap-2 mt-0.5">
@@ -86,7 +86,7 @@ function EventRow({ event, showDate = false }: { event: Appointment; showDate?: 
           {event.priority}
         </span>
       )}
-    </div>
+    </Link>
   );
 }
 
@@ -319,7 +319,7 @@ export default function SchedulerWidget() {
       {/* Three columns */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Today */}
-        <div className="glass-elevated rounded-2xl p-4">
+        <Link href="/admin/appointments" className="glass-elevated rounded-2xl p-4 block hover:ring-1 hover:ring-white/10 transition-all">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-semibold text-white flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-green-400 inline-block" />
@@ -336,10 +336,10 @@ export default function SchedulerWidget() {
               {todayEvents.map((e) => <EventRow key={e._id} event={e as Appointment} />)}
             </div>
           )}
-        </div>
+        </Link>
 
         {/* Overdue */}
-        <div className="glass-elevated rounded-2xl p-4">
+        <Link href="/admin/appointments" className="glass-elevated rounded-2xl p-4 block hover:ring-1 hover:ring-white/10 transition-all">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-semibold text-white flex items-center gap-2">
               <AlertTriangle className={`w-4 h-4 ${overdueCount > 0 ? "text-red-400" : "text-gray-500"}`} />
@@ -360,10 +360,10 @@ export default function SchedulerWidget() {
               {overdueEvents.slice(0, 5).map((e) => <EventRow key={e._id} event={e as Appointment} showDate />)}
             </div>
           )}
-        </div>
+        </Link>
 
         {/* Next 7 Days */}
-        <div className="glass-elevated rounded-2xl p-4">
+        <Link href="/admin/appointments" className="glass-elevated rounded-2xl p-4 block hover:ring-1 hover:ring-white/10 transition-all">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-semibold text-white flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-brand-light inline-block" />
@@ -380,7 +380,7 @@ export default function SchedulerWidget() {
               {upcomingEvents.slice(0, 5).map((e) => <EventRow key={e._id} event={e as Appointment} showDate />)}
             </div>
           )}
-        </div>
+        </Link>
       </div>
     </div>
   );
