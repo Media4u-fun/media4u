@@ -1231,6 +1231,21 @@ export default function AdminCalendarPage() {
         relatedProject: form.relatedProject || undefined,
         createdFrom: "calendar",
       });
+
+      // Push to Google Calendar silently
+      fetch("/api/google-calendar/create-event", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: form.title,
+          date,
+          time: form.time || "9:00 AM",
+          duration: 60,
+          notes: form.notes,
+          category: form.category,
+        }),
+      }).catch(() => null);
+
       setShowAdd(false);
     } catch (e: unknown) {
       alert(e instanceof Error ? e.message : "Failed to add event");
