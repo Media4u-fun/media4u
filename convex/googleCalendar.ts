@@ -5,11 +5,11 @@ import { requireAdmin } from "./auth";
 export const saveTokens = mutation({
   args: {
     accessToken: v.optional(v.string()),
-    refreshToken: v.string(),
+    refreshToken: v.optional(v.string()),
     expiryDate: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    await requireAdmin(ctx);
+    // No auth required - called from server OAuth callback that has no browser session.
     const existing = await ctx.db
       .query("googleTokens")
       .withIndex("by_key", (q) => q.eq("key", "main"))
@@ -18,7 +18,8 @@ export const saveTokens = mutation({
     if (existing) {
       await ctx.db.patch(existing._id, {
         accessToken: args.accessToken,
-        refreshToken: args.refreshToken,
+        // Only overwrite refreshToken if Google sent a new one
+        ...(args.refreshToken ? { refreshToken: args.refreshToken } : {}),
         expiryDate: args.expiryDate,
         updatedAt: Date.now(),
       });
@@ -26,7 +27,7 @@ export const saveTokens = mutation({
       await ctx.db.insert("googleTokens", {
         key: "main",
         accessToken: args.accessToken,
-        refreshToken: args.refreshToken,
+        refreshToken: args.refreshToken ?? "",
         expiryDate: args.expiryDate,
         updatedAt: Date.now(),
       });

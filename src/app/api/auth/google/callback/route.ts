@@ -27,16 +27,11 @@ export async function GET(req: NextRequest) {
 
     const { tokens } = await oauth2Client.getToken(code);
 
-    if (!tokens.refresh_token) {
-      return NextResponse.redirect(
-        new URL("/admin/settings?google=no_refresh_token", req.url)
-      );
-    }
-
-    // Save tokens to Convex
+    // Save tokens to Convex - refreshToken is optional because Google only
+    // sends it on the first authorization. On repeat auths, the existing one is kept.
     await convex.mutation(api.googleCalendar.saveTokens, {
       accessToken: tokens.access_token ?? undefined,
-      refreshToken: tokens.refresh_token,
+      refreshToken: tokens.refresh_token ?? undefined,
       expiryDate: tokens.expiry_date ?? undefined,
     });
 
