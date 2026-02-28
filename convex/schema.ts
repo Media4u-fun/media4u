@@ -680,6 +680,15 @@ export default defineSchema({
     .index("by_userId", ["userId"])
     .index("by_status", ["status"]),
 
+  // Google Calendar tokens
+  googleTokens: defineTable({
+    key: v.string(), // always "main"
+    accessToken: v.optional(v.string()),
+    refreshToken: v.string(),
+    expiryDate: v.optional(v.number()),
+    updatedAt: v.number(),
+  }).index("by_key", ["key"]),
+
   // Site Settings (global configuration)
   siteSettings: defineTable({
     key: v.string(), // e.g., "site_config"

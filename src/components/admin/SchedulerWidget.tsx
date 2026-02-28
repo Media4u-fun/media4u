@@ -140,6 +140,20 @@ export default function SchedulerWidget() {
         createdFrom: "quick-add",
       });
 
+      // Push to Google Calendar (silently - don't block if it fails)
+      fetch("/api/google-calendar/create-event", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: parsed.title,
+          date: parsed.date,
+          time: parsed.time,
+          duration: parsed.duration,
+          notes: parsed.notes,
+          category: parsed.category,
+        }),
+      }).catch(() => null);
+
       setSuccess(true);
       setInputText("");
       setTimeout(() => {
