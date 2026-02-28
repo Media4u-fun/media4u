@@ -99,6 +99,7 @@ export default function SchedulerWidget() {
 
   const [showQuickAdd, setShowQuickAdd] = useState(false);
   const [inputText, setInputText] = useState("");
+  const [reminderMinutes, setReminderMinutes] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -138,6 +139,7 @@ export default function SchedulerWidget() {
         notes: parsed.notes,
         duration: parsed.duration,
         createdFrom: "quick-add",
+        reminderMinutes: reminderMinutes || undefined,
       });
 
       // Push to Google Calendar (silently - don't block if it fails)
@@ -272,6 +274,18 @@ export default function SchedulerWidget() {
               Example: &quot;Call Amanda Monday at 2pm, remind me 30 mins before&quot;
             </p>
             <div className="flex flex-col gap-2">
+              <select
+                value={reminderMinutes}
+                onChange={(e) => setReminderMinutes(Number(e.target.value))}
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand/50"
+              >
+                <option value={0}>No reminder</option>
+                <option value={15}>Remind 15 min before</option>
+                <option value={30}>Remind 30 min before</option>
+                <option value={60}>Remind 1 hour before</option>
+                <option value={180}>Remind 3 hours before</option>
+                <option value={1440}>Remind 1 day before</option>
+              </select>
               <div className="flex gap-2">
                 <input
                   type="text"

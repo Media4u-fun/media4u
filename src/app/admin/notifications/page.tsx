@@ -6,7 +6,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
 import { useState } from "react";
 import { Id } from "@convex/_generated/dataModel";
-import { Bell, CheckCheck, Eye, ExternalLink, Trash2, Filter } from "lucide-react";
+import { Bell, CheckCheck, Eye, ExternalLink, Trash2, Filter, CalendarDays } from "lucide-react";
 import Link from "next/link";
 
 type ActivityType = "vault_updated" | "note_added" | "project_updated";
@@ -30,6 +30,14 @@ export default function NotificationsPage() {
   const markAllAsRead = useMutation(api.clientActivity.markAllAsRead);
   const deleteActivity = useMutation(api.clientActivity.deleteActivity);
 
+  // Reminders tab
+  const reminders = useQuery(api.adminNotifications.getAll, convexIsAdmin === true ? {} : "skip");
+  const markReminderRead = useMutation(api.adminNotifications.markAsRead);
+  const markAllRemindersRead = useMutation(api.adminNotifications.markAllAsRead);
+  const deleteReminder = useMutation(api.adminNotifications.deleteNotification);
+  const remindersUnread = reminders?.filter((r) => !r.isRead).length || 0;
+
+  const [tab, setTab] = useState<"client" | "reminders">("client");
   const [filter, setFilter] = useState<"all" | "unread" | "read">("all");
 
   const filteredActivities = activities?.filter((activity) => {
@@ -58,6 +66,82 @@ export default function NotificationsPage() {
 
   return (
     <div>
+      {/* Tab switcher */}
+      <div className="flex gap-2 mb-6">
+        <button
+          onClick={() => setTab("client")}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${tab === "client" ? "bg-brand/20 text-brand-light border border-brand/40" : "text-gray-400 hover:text-white bg-white/5 border border-white/10"}`}
+        >
+          <Bell className="w-4 h-4" />
+          Client Updates
+        </button>
+        <button
+          onClick={() => setTab("reminders")}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${tab === "reminders" ? "bg-brand/20 text-brand-light border border-brand/40" : "text-gray-400 hover:text-white bg-white/5 border border-white/10"}`}
+        >
+          <CalendarDays className="w-4 h-4" />
+          Reminders
+          {remindersUnread > 0 && (
+            <span className="bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 min-w-[18px] text-center">{remindersUnread}</span>
+          )}
+        </button>
+      </div>
+
+      {/* Reminders tab */}
+      {tab === "reminders" && (
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold text-white">Calendar Reminders</h2>
+            {remindersUnread > 0 && (
+              <button
+                onClick={() => markAllRemindersRead()}
+                className="px-4 py-2 rounded-lg bg-brand-light/20 text-brand-light hover:bg-brand-light/30 border border-brand-light/50 text-sm font-medium flex items-center gap-2 transition-all"
+              >
+                <CheckCheck className="w-4 h-4" />
+                Mark All Read
+              </button>
+            )}
+          </div>
+          {!reminders || reminders.length === 0 ? (
+            <div className="glass-elevated rounded-2xl p-8 text-center text-gray-500">
+              <CalendarDays className="w-10 h-10 mx-auto mb-3 opacity-30" />
+              <p>No reminders yet. Set a reminder when adding a calendar event.</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {reminders.map((r) => (
+                <div key={r._id} className={`glass-elevated rounded-xl p-4 flex items-start gap-3 border ${r.isRead ? "border-white/5 opacity-60" : "border-brand/30"}`}>
+                  <div className="text-2xl mt-0.5">🔔</div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-white">{r.title}</p>
+                    <p className="text-xs text-gray-400 mt-0.5">{r.message}</p>
+                    <p className="text-xs text-gray-600 mt-1">{new Date(r.createdAt).toLocaleString()}</p>
+                  </div>
+                  <div className="flex gap-2 flex-shrink-0">
+                    {!r.isRead && (
+                      <button onClick={() => markReminderRead({ notificationId: r._id })} title="Mark read" className="p-1.5 rounded-lg hover:bg-white/10 text-gray-400 hover:text-green-400">
+                        <Eye className="w-4 h-4" />
+                      </button>
+                    )}
+                    {r.appointmentId && (
+                      <Link href="/admin/appointments" title="View event" className="p-1.5 rounded-lg hover:bg-white/10 text-gray-400 hover:text-brand-light">
+                        <ExternalLink className="w-4 h-4" />
+                      </Link>
+                    )}
+                    <button onClick={() => deleteReminder({ notificationId: r._id })} title="Delete" className="p-1.5 rounded-lg hover:bg-white/10 text-gray-400 hover:text-red-400">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Client Updates tab */}
+      {tab === "client" && (
+      <div>
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
@@ -237,6 +321,8 @@ export default function NotificationsPage() {
           </div>
         )}
       </div>
+      </div>
+      )}
     </div>
   );
 }

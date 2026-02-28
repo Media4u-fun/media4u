@@ -42,7 +42,7 @@ const adminNavItems = [
   { href: "/admin/blog", label: "Blog Posts", icon: FileText, countKey: null },
   { href: "/admin/portfolio", label: "Portfolio", icon: ImageIcon, countKey: null },
   { href: "/admin/vr", label: "VR Community", icon: Glasses, countKey: null },
-  { href: "/admin/appointments", label: "Calendar", icon: CalendarDays, countKey: null },
+  { href: "/admin/appointments", label: "Calendar", icon: CalendarDays, countKey: "calendar" },
   { href: "/admin/community", label: "Community", icon: Globe, countKey: "community" },
   { href: "/admin/settings", label: "Settings", icon: Settings, countKey: null },
 ];
@@ -58,12 +58,14 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   const communityRequests = useQuery(api.community.getInviteRequests);
   const clientActivityCount = useQuery(api.clientActivity.getUnreadCount);
   const messagesUnreadCount = useQuery(api.messages.getUnreadCountForAdmin);
+  const adminNotificationsCount = useQuery(api.adminNotifications.getUnreadCount);
 
   const counts: Record<string, number> = {
     inbox: inboxNewCount || 0,
     clientActivity: clientActivityCount || 0,
     messages: messagesUnreadCount || 0,
     community: communityRequests?.filter((r) => r.status === "pending").length || 0,
+    calendar: adminNotificationsCount || 0,
   };
 
   const totalBadgeCount = Object.values(counts).reduce((sum, c) => sum + c, 0);

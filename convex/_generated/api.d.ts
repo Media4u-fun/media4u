@@ -10,6 +10,7 @@
 
 import type * as admin from "../admin.js";
 import type * as adminNotes from "../adminNotes.js";
+import type * as adminNotifications from "../adminNotifications.js";
 import type * as appointments from "../appointments.js";
 import type * as auth from "../auth.js";
 import type * as blog from "../blog.js";
@@ -41,6 +42,7 @@ import type * as projectFiles from "../projectFiles.js";
 import type * as projectRequests from "../projectRequests.js";
 import type * as projects from "../projects.js";
 import type * as quoteRequests from "../quoteRequests.js";
+import type * as reminders from "../reminders.js";
 import type * as seed from "../seed.js";
 import type * as settings from "../settings.js";
 import type * as stripe from "../stripe.js";
@@ -58,6 +60,7 @@ import type {
 declare const fullApi: ApiFromModules<{
   admin: typeof admin;
   adminNotes: typeof adminNotes;
+  adminNotifications: typeof adminNotifications;
   appointments: typeof appointments;
   auth: typeof auth;
   blog: typeof blog;
@@ -89,6 +92,7 @@ declare const fullApi: ApiFromModules<{
   projectRequests: typeof projectRequests;
   projects: typeof projects;
   quoteRequests: typeof quoteRequests;
+  reminders: typeof reminders;
   seed: typeof seed;
   settings: typeof settings;
   stripe: typeof stripe;

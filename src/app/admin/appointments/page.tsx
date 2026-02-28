@@ -215,6 +215,7 @@ interface NewEventForm {
   notes: string;
   adminNotes: string;
   relatedProject: string;
+  reminderMinutes: number;
 }
 
 const emptyForm: NewEventForm = {
@@ -225,6 +226,7 @@ const emptyForm: NewEventForm = {
   notes: "",
   adminNotes: "",
   relatedProject: "",
+  reminderMinutes: 0,
 };
 
 // ---------------------------------------------------------------------------
@@ -1075,6 +1077,23 @@ function AddEventModal({ defaultDate, onClose, onSave, saving }: AddEventModalPr
               placeholder="Private notes..."
             />
           </div>
+
+          {/* Reminder */}
+          <div>
+            <label className="block text-xs text-gray-400 mb-1">Reminder</label>
+            <select
+              value={form.reminderMinutes}
+              onChange={(e) => setForm({ ...form, reminderMinutes: Number(e.target.value) })}
+              className="w-full bg-[#1a1a22] border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-white/30"
+            >
+              <option value={0}>No reminder</option>
+              <option value={15}>15 minutes before</option>
+              <option value={30}>30 minutes before</option>
+              <option value={60}>1 hour before</option>
+              <option value={180}>3 hours before</option>
+              <option value={1440}>1 day before</option>
+            </select>
+          </div>
         </div>
 
         <div className="flex gap-2 justify-end mt-5">
@@ -1233,6 +1252,7 @@ export default function AdminCalendarPage() {
         notes: form.notes || undefined,
         relatedProject: form.relatedProject || undefined,
         createdFrom: "calendar",
+        reminderMinutes: form.reminderMinutes || undefined,
       });
 
       // Push to Google Calendar silently

@@ -673,12 +673,28 @@ export default defineSchema({
     platform: v.optional(v.string()), // YouTube, Spotify, etc.
     publishStatus: v.optional(v.string()), // Draft, Scheduled, Posted
     createdFrom: v.optional(v.string()), // "manual", "quick-add", "voice"
+    // Reminders
+    reminderMinutes: v.optional(v.number()), // minutes before event to remind (15, 30, 60, 1440)
+    reminderSent: v.optional(v.boolean()),
+    reminderScheduledId: v.optional(v.string()), // Convex scheduled function ID
     createdAt: v.number(),
     updatedAt: v.number(),
   })
     .index("by_date", ["date"])
     .index("by_userId", ["userId"])
     .index("by_status", ["status"]),
+
+  // Admin bell notifications (appointment reminders, system alerts)
+  adminNotifications: defineTable({
+    type: v.string(), // "appointment_reminder"
+    title: v.string(),
+    message: v.string(),
+    appointmentId: v.optional(v.id("appointments")),
+    isRead: v.boolean(),
+    createdAt: v.number(),
+  })
+    .index("by_read", ["isRead"])
+    .index("by_created", ["createdAt"]),
 
   // Google Calendar tokens
   googleTokens: defineTable({
