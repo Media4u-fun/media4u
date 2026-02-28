@@ -1243,6 +1243,22 @@ export default function AdminCalendarPage() {
   const handleSaveAdd = async (form: NewEventForm, date: string) => {
     setSavingAdd(true);
     try {
+      // Calculate reminder timestamp in the browser so timezone is correct
+      let reminderAt: number | undefined;
+      if (form.reminderMinutes && form.time) {
+        const [y, mo, d] = date.split("-").map(Number);
+        const match = form.time.match(/(\d+):(\d+)\s*(AM|PM)/i);
+        if (match) {
+          let h = parseInt(match[1]);
+          const min = parseInt(match[2]);
+          const period = match[3].toUpperCase();
+          if (period === "PM" && h !== 12) h += 12;
+          if (period === "AM" && h === 12) h = 0;
+          const eventMs = new Date(y, mo - 1, d, h, min).getTime();
+          reminderAt = eventMs - form.reminderMinutes * 60 * 1000;
+        }
+      }
+
       await quickAdd({
         date,
         time: form.time || "All Day",
@@ -1253,6 +1269,7 @@ export default function AdminCalendarPage() {
         relatedProject: form.relatedProject || undefined,
         createdFrom: "calendar",
         reminderMinutes: form.reminderMinutes || undefined,
+        reminderAt,
       });
 
       // Push to Google Calendar silently

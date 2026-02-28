@@ -130,6 +130,22 @@ export default function SchedulerWidget() {
         return;
       }
 
+      // Calculate reminder timestamp in the browser so timezone is correct
+      let reminderAt: number | undefined;
+      if (reminderMinutes && parsed.time) {
+        const [y, mo, d] = parsed.date.split("-").map(Number);
+        const match = parsed.time.match(/(\d+):(\d+)\s*(AM|PM)/i);
+        if (match) {
+          let h = parseInt(match[1]);
+          const min = parseInt(match[2]);
+          const period = match[3].toUpperCase();
+          if (period === "PM" && h !== 12) h += 12;
+          if (period === "AM" && h === 12) h = 0;
+          const eventMs = new Date(y, mo - 1, d, h, min).getTime();
+          reminderAt = eventMs - reminderMinutes * 60 * 1000;
+        }
+      }
+
       await quickAdd({
         date: parsed.date,
         time: parsed.time,
@@ -140,6 +156,7 @@ export default function SchedulerWidget() {
         duration: parsed.duration,
         createdFrom: "quick-add",
         reminderMinutes: reminderMinutes || undefined,
+        reminderAt,
       });
 
       // Push to Google Calendar (silently - don't block if it fails)

@@ -4,19 +4,6 @@ import { requireAdmin, getAuthenticatedUser } from "./auth";
 import { appointmentConfig, generateTimeSlots } from "./lib/appointmentConfig";
 import { api, internal } from "./_generated/api";
 
-// Helper: parse "2026-03-15" + "2:00 PM" into a UTC timestamp
-function appointmentTimestamp(date: string, time: string): number {
-  const [year, month, day] = date.split("-").map(Number);
-  const match = time.match(/(\d+):(\d+)\s*(AM|PM)/i);
-  if (!match) return Date.now();
-  let hours = parseInt(match[1]);
-  const minutes = parseInt(match[2]);
-  const period = match[3].toUpperCase();
-  if (period === "PM" && hours !== 12) hours += 12;
-  if (period === "AM" && hours === 12) hours = 0;
-  // Use America/New_York offset approximation (-5 hrs = 18000000 ms)
-  return new Date(year, month - 1, day, hours, minutes).getTime();
-}
 
 export const bookAppointment = mutation({
   args: {
@@ -291,6 +278,7 @@ export const adminQuickAddAppointment = mutation({
     relatedProject: v.optional(v.string()),
     createdFrom: v.optional(v.string()),
     reminderMinutes: v.optional(v.number()),
+    reminderAt: v.optional(v.number()), // UTC ms timestamp calculated by the browser
   },
   handler: async (ctx, args) => {
     await requireAdmin(ctx);
@@ -315,23 +303,18 @@ export const adminQuickAddAppointment = mutation({
       updatedAt: now,
     });
 
-    // Schedule reminder if requested
-    if (args.reminderMinutes && args.reminderMinutes > 0) {
-      const eventTime = appointmentTimestamp(args.date, args.time);
-      const reminderTime = eventTime - args.reminderMinutes * 60 * 1000;
-      const delay = reminderTime - now;
-      if (delay > 0) {
-        const scheduledId = await ctx.scheduler.runAt(reminderTime, internal.reminders.sendReminder, {
-          appointmentId,
-          title: args.title,
-          date: args.date,
-          time: args.time,
-          category: args.category,
-          notes: args.notes,
-          reminderMinutes: args.reminderMinutes,
-        });
-        await ctx.db.patch(appointmentId, { reminderScheduledId: scheduledId as unknown as string });
-      }
+    // Schedule reminder using the browser-calculated timestamp (correct local timezone)
+    if (args.reminderAt && args.reminderAt > now) {
+      const scheduledId = await ctx.scheduler.runAt(args.reminderAt, internal.reminders.sendReminder, {
+        appointmentId,
+        title: args.title,
+        date: args.date,
+        time: args.time,
+        category: args.category,
+        notes: args.notes,
+        reminderMinutes: args.reminderMinutes ?? 30,
+      });
+      await ctx.db.patch(appointmentId, { reminderScheduledId: scheduledId as unknown as string });
     }
 
     return appointmentId;
