@@ -159,16 +159,27 @@ export default function SchedulerWidget() {
       return;
     }
 
-    const SpeechRecognition =
-      (window as unknown as { SpeechRecognition?: new () => SpeechRecognition; webkitSpeechRecognition?: new () => SpeechRecognition }).SpeechRecognition ||
-      (window as unknown as { webkitSpeechRecognition?: new () => SpeechRecognition }).webkitSpeechRecognition;
+    type SpeechRecognitionConstructor = new () => {
+      lang: string;
+      interimResults: boolean;
+      onstart: (() => void) | null;
+      onend: (() => void) | null;
+      onerror: (() => void) | null;
+      onresult: ((event: { results: { [key: number]: { [key: number]: { transcript: string } } } }) => void) | null;
+      start: () => void;
+    };
 
-    if (!SpeechRecognition) {
+    const SR = (
+      (window as unknown as { SpeechRecognition?: SpeechRecognitionConstructor }).SpeechRecognition ||
+      (window as unknown as { webkitSpeechRecognition?: SpeechRecognitionConstructor }).webkitSpeechRecognition
+    );
+
+    if (!SR) {
       setError("Voice input not supported in this browser. Try Chrome.");
       return;
     }
 
-    const recognition = new SpeechRecognition();
+    const recognition = new SR();
     recognition.lang = "en-US";
     recognition.interimResults = false;
 
@@ -178,7 +189,7 @@ export default function SchedulerWidget() {
       setIsListening(false);
       setError("Could not hear you. Try again.");
     };
-    recognition.onresult = (event: SpeechRecognitionEvent) => {
+    recognition.onresult = (event) => {
       const transcript = event.results[0][0].transcript;
       setInputText(transcript);
     };
