@@ -943,6 +943,7 @@ interface AddEventModalProps {
 function AddEventModal({ defaultDate, onClose, onSave, saving }: AddEventModalProps) {
   const [form, setForm] = useState<NewEventForm>({ ...emptyForm });
   const [date, setDate] = useState(defaultDate);
+  const allProjects = useQuery(api.projects.getAllProjects, {});
 
   const canSave = form.title.trim().length > 0 && date.length > 0;
 
@@ -1180,10 +1181,6 @@ export default function AdminCalendarPage() {
   const convexIsAdmin = useQuery(api.auth.isAdmin);
   const allAppointments = useQuery(
     api.appointments.getAllAppointments,
-    convexIsAdmin === true ? {} : "skip"
-  );
-  const allProjects = useQuery(
-    api.projects.getAllProjects,
     convexIsAdmin === true ? {} : "skip"
   );
   const quickAdd = useMutation(api.appointments.adminQuickAddAppointment);
