@@ -134,7 +134,6 @@ const PRIORITY_COLORS: Record<string, string> = {
 };
 
 const PRIORITIES = ["Low", "Normal", "High", "Critical"] as const;
-const RELATED_PROJECTS = ["Media4U", "TriVirtual", "LeadRoute", "Other"] as const;
 
 const STATUS_BADGE: Record<string, string> = {
   pending: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
@@ -1043,9 +1042,9 @@ function AddEventModal({ defaultDate, onClose, onSave, saving }: AddEventModalPr
               className="w-full bg-[#1a1a22] border border-white/10 rounded-lg px-3 py-2 text-white text-sm [&>option]:bg-[#1a1a22] [&>option]:text-white focus:outline-none"
             >
               <option value="">None</option>
-              {RELATED_PROJECTS.map((p) => (
-                <option key={p} value={p}>
-                  {p}
+              {(allProjects ?? []).map((p) => (
+                <option key={p._id} value={p.name}>
+                  {p.name}{p.projectType ? ` - ${p.projectType}` : ""}
                 </option>
               ))}
             </select>
@@ -1181,6 +1180,10 @@ export default function AdminCalendarPage() {
   const convexIsAdmin = useQuery(api.auth.isAdmin);
   const allAppointments = useQuery(
     api.appointments.getAllAppointments,
+    convexIsAdmin === true ? {} : "skip"
+  );
+  const allProjects = useQuery(
+    api.projects.getAllProjects,
     convexIsAdmin === true ? {} : "skip"
   );
   const quickAdd = useMutation(api.appointments.adminQuickAddAppointment);
