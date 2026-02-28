@@ -18,6 +18,7 @@ import {
   MessageSquare,
   CheckCircle,
   XCircle,
+  RefreshCw,
 } from "lucide-react";
 
 // ---------------------------------------------------------------------------
@@ -1174,6 +1175,8 @@ export default function AdminCalendarPage() {
   const [showAdd, setShowAdd] = useState(false);
   const [addDefaultDate, setAddDefaultDate] = useState(todayStr);
   const [savingAdd, setSavingAdd] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+  const [syncResult, setSyncResult] = useState("");
   const [noteModalId, setNoteModalId] = useState<Id<"appointments"> | null>(null);
   const [noteModalInitial, setNoteModalInitial] = useState("");
 
@@ -1254,6 +1257,38 @@ export default function AdminCalendarPage() {
     }
   };
 
+  // Bulk sync all appointments to Google Calendar
+  const handleSyncAll = async () => {
+    if (!allAppointments || allAppointments.length === 0) return;
+    setSyncing(true);
+    setSyncResult("");
+    let success = 0;
+    let failed = 0;
+    for (const appt of allAppointments) {
+      try {
+        const res = await fetch("/api/google-calendar/create-event", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            title: appt.title || appt.serviceType,
+            date: appt.date,
+            time: appt.time || "9:00 AM",
+            duration: 60,
+            notes: appt.notes,
+            category: appt.category,
+          }),
+        });
+        if (res.ok) success++;
+        else failed++;
+      } catch {
+        failed++;
+      }
+    }
+    setSyncing(false);
+    setSyncResult(`Done - ${success} synced${failed > 0 ? `, ${failed} failed` : ""}`);
+    setTimeout(() => setSyncResult(""), 5000);
+  };
+
   // Status actions
   const handleComplete = async (id: Id<"appointments">) => {
     await updateStatus({ appointmentId: id, status: "completed" });
@@ -1312,6 +1347,17 @@ export default function AdminCalendarPage() {
               </button>
             ))}
           </div>
+
+          {/* Sync to Google Calendar */}
+          <button
+            onClick={handleSyncAll}
+            disabled={syncing || !allAppointments?.length}
+            title="Push all events to Google Calendar"
+            className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 text-sm font-medium transition-colors disabled:opacity-50"
+          >
+            <RefreshCw className={`w-4 h-4 ${syncing ? "animate-spin" : ""}`} />
+            {syncing ? "Syncing..." : syncResult || "Sync Google"}
+          </button>
 
           {/* Add Event */}
           <button
