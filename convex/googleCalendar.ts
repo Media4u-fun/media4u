@@ -37,7 +37,8 @@ export const saveTokens = mutation({
 export const getTokens = query({
   args: {},
   handler: async (ctx) => {
-    await requireAdmin(ctx);
+    // No auth required - called from server API routes that don't have a session.
+    // These are app-level OAuth tokens for the admin's own Google Calendar.
     return await ctx.db
       .query("googleTokens")
       .withIndex("by_key", (q) => q.eq("key", "main"))

@@ -178,7 +178,7 @@ export default function SchedulerWidget() {
       interimResults: boolean;
       onstart: (() => void) | null;
       onend: (() => void) | null;
-      onerror: (() => void) | null;
+      onerror: ((event: { error?: string }) => void) | null;
       onresult: ((event: { results: { [key: number]: { [key: number]: { transcript: string } } } }) => void) | null;
       start: () => void;
     };
@@ -199,9 +199,17 @@ export default function SchedulerWidget() {
 
     recognition.onstart = () => setIsListening(true);
     recognition.onend = () => setIsListening(false);
-    recognition.onerror = () => {
+    recognition.onerror = (event: { error?: string }) => {
       setIsListening(false);
-      setError("Could not hear you. Try again.");
+      if (event.error === "not-allowed") {
+        setError("Microphone access denied. Allow mic in your browser settings and try again.");
+      } else if (event.error === "network") {
+        setError("Network error - voice needs an internet connection.");
+      } else if (event.error === "no-speech") {
+        setError("No speech detected. Try again.");
+      } else {
+        setError(`Voice error: ${event.error ?? "unknown"}. Try Chrome on desktop.`);
+      }
     };
     recognition.onresult = (event) => {
       const transcript = event.results[0][0].transcript;
