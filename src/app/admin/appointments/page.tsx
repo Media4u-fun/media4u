@@ -84,10 +84,11 @@ export default function AdminAppointmentsPage() {
   const [newApt, setNewApt] = useState<NewApt>({ ...emptyNewApt });
   const [addingApt, setAddingApt] = useState(false);
 
-  const allAppointments = useQuery(api.appointments.getAllAppointments);
+  const convexIsAdmin = useQuery(api.auth.isAdmin);
+  const allAppointments = useQuery(api.appointments.getAllAppointments, convexIsAdmin === true ? {} : "skip");
   const dayAppointments = useQuery(
     api.appointments.getAppointmentsByDate,
-    selectedDate ? { date: selectedDate } : "skip"
+    convexIsAdmin === true && selectedDate ? { date: selectedDate } : "skip"
   );
   const availableSlots = useQuery(
     api.appointments.getAvailableSlots,

@@ -36,6 +36,7 @@ const statusColors: Record<string, string> = {
 };
 
 export default function CommunityAdminPage() {
+  const convexIsAdmin = useQuery(api.auth.isAdmin);
   const [activeTab, setActiveTab] = useState<TabType>("requests");
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
 
@@ -44,7 +45,7 @@ export default function CommunityAdminPage() {
   const pendingRequestsCount = inviteRequests?.filter(r => r.status === "pending").length || 0;
 
   // Get pending comments count for badge
-  const pendingComments = useQuery(api.communityComments.getPendingComments);
+  const pendingComments = useQuery(api.communityComments.getPendingComments, convexIsAdmin === true ? {} : "skip");
   const pendingCommentsCount = pendingComments?.length || 0;
 
   return (

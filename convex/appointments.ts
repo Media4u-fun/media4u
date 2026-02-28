@@ -225,6 +225,82 @@ export const adminBookAppointment = mutation({
   },
 });
 
+// Dashboard widget queries
+export const getTodayAppointments = query({
+  args: {},
+  handler: async (ctx) => {
+    await requireAdmin(ctx);
+    const today = new Date().toISOString().split("T")[0];
+    return await ctx.db
+      .query("appointments")
+      .withIndex("by_date", (q) => q.eq("date", today))
+      .collect();
+  },
+});
+
+export const getOverdueAppointments = query({
+  args: {},
+  handler: async (ctx) => {
+    await requireAdmin(ctx);
+    const today = new Date().toISOString().split("T")[0];
+    const all = await ctx.db.query("appointments").collect();
+    return all.filter(
+      (a) => a.date < today && a.status !== "completed" && a.status !== "cancelled"
+    );
+  },
+});
+
+export const getUpcomingAppointments = query({
+  args: {},
+  handler: async (ctx) => {
+    await requireAdmin(ctx);
+    const today = new Date().toISOString().split("T")[0];
+    const sevenDaysOut = new Date();
+    sevenDaysOut.setDate(sevenDaysOut.getDate() + 7);
+    const sevenDaysStr = sevenDaysOut.toISOString().split("T")[0];
+    const all = await ctx.db.query("appointments").collect();
+    return all
+      .filter((a) => a.date > today && a.date <= sevenDaysStr && a.status !== "cancelled")
+      .sort((a, b) => a.date.localeCompare(b.date));
+  },
+});
+
+export const adminQuickAddAppointment = mutation({
+  args: {
+    date: v.string(),
+    time: v.string(),
+    title: v.string(),
+    category: v.optional(v.string()),
+    priority: v.optional(v.string()),
+    notes: v.optional(v.string()),
+    duration: v.optional(v.number()),
+    relatedProject: v.optional(v.string()),
+    createdFrom: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    await requireAdmin(ctx);
+    const now = Date.now();
+    return await ctx.db.insert("appointments", {
+      userId: "admin-quick-add",
+      userName: "Admin",
+      userEmail: "",
+      userPhone: "",
+      date: args.date,
+      time: args.time,
+      duration: args.duration ?? 60,
+      serviceType: args.category ?? "Internal",
+      status: "confirmed",
+      notes: args.notes,
+      category: args.category,
+      priority: args.priority ?? "Normal",
+      relatedProject: args.relatedProject,
+      title: args.title,
+      createdAt: now,
+      updatedAt: now,
+    });
+  },
+});
+
 export const getAvailableSlots = query({
   args: { date: v.string() },
   handler: async (ctx, args) => {

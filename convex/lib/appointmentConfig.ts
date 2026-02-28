@@ -12,18 +12,22 @@ export const appointmentConfig = {
 
 // Event categories - customize per business
 export const categories = [
+  "Client Call",
+  "Install / Field Job",
+  "Podcast",
   "Blog Post",
-  "Podcast Episode",
-  "Client Follow-Up",
-  "Internal Reminder",
+  "Follow-Up",
+  "Family / Personal",
+  "Admin / Finance",
+  "Build Task",
+  "Reminder Only",
+  "Deadline",
   "Meeting",
-  "Install Job",
   "Marketing Task",
-  "Personal Development",
   "Other",
 ] as const;
 
-export const priorities = ["Low", "Medium", "High"] as const;
+export const priorities = ["Low", "Normal", "High", "Critical"] as const;
 
 export const publishStatuses = ["Draft", "Scheduled", "Posted"] as const;
 

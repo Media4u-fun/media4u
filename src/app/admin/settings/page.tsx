@@ -84,8 +84,9 @@ export default function AdminSettingsPage() {
 }
 
 function UserManagementTab() {
-  const users = useQuery(api.admin.getAllUsers);
-  const userRoles = useQuery(api.admin.getAllUserRoles);
+  const convexIsAdmin = useQuery(api.auth.isAdmin);
+  const users = useQuery(api.admin.getAllUsers, convexIsAdmin === true ? {} : "skip");
+  const userRoles = useQuery(api.admin.getAllUserRoles, convexIsAdmin === true ? {} : "skip");
   const setUserRole = useMutation(api.auth.setUserRole);
   const addUserByEmail = useMutation(api.admin.addUserByEmail);
   const updateUserName = useMutation(api.admin.updateUserName);
@@ -319,7 +320,8 @@ function UserManagementTab() {
 }
 
 function SiteSettingsTab() {
-  const settings = useQuery(api.settings.getSettings);
+  const convexIsAdmin = useQuery(api.auth.isAdmin);
+  const settings = useQuery(api.settings.getSettings, convexIsAdmin === true ? {} : "skip");
   const updateSettings = useMutation(api.settings.updateSettings);
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
@@ -693,9 +695,10 @@ function IntegrationItem({ name, status, description }: { name: string; status: 
 }
 
 function SystemSettingsTab() {
-  const settings = useQuery(api.settings.getSettings);
+  const convexIsAdmin = useQuery(api.auth.isAdmin);
+  const settings = useQuery(api.settings.getSettings, convexIsAdmin === true ? {} : "skip");
   const updateSettings = useMutation(api.settings.updateSettings);
-  const exportData = useQuery(api.settings.exportData, { dataType: "contacts" });
+  const exportData = useQuery(api.settings.exportData, convexIsAdmin === true ? { dataType: "contacts" } : "skip");
   const [exportType, setExportType] = useState<"contacts" | "newsletter" | "leads" | "projects" | "community">("contacts");
   const [isExporting, setIsExporting] = useState(false);
 

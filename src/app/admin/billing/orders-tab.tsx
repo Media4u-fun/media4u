@@ -30,12 +30,15 @@ const PRODUCT_NAMES: Record<string, string> = {
 };
 
 export function OrdersTab() {
+  const convexIsAdmin = useQuery(api.auth.isAdmin);
   const [filterStatus, setFilterStatus] = useState<OrderStatus | "all">("all");
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const orders = useQuery(
     api.stripe.getAllOrders,
-    filterStatus !== "all" ? { status: filterStatus } : {}
+    convexIsAdmin === true
+      ? (filterStatus !== "all" ? { status: filterStatus } : {})
+      : "skip"
   );
 
   const deleteOrder = useMutation(api.stripe.deleteOrder);

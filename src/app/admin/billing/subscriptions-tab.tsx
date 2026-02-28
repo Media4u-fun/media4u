@@ -25,12 +25,15 @@ const STATUS_LABELS: Record<SubscriptionStatus, string> = {
 };
 
 export function SubscriptionsTab() {
+  const convexIsAdmin = useQuery(api.auth.isAdmin);
   const [filterStatus, setFilterStatus] = useState<SubscriptionStatus | "all">("all");
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const subscriptions = useQuery(
     api.stripe.getAllSubscriptions,
-    filterStatus !== "all" ? { status: filterStatus } : {}
+    convexIsAdmin === true
+      ? (filterStatus !== "all" ? { status: filterStatus } : {})
+      : "skip"
   );
 
   const selected = subscriptions?.find((s: Doc<"subscriptions">) => s._id === selectedId);

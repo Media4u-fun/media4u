@@ -24,7 +24,8 @@ const activityColors: Record<ActivityType, string> = {
 };
 
 export default function NotificationsPage() {
-  const activities = useQuery(api.clientActivity.getAllActivities);
+  const convexIsAdmin = useQuery(api.auth.isAdmin);
+  const activities = useQuery(api.clientActivity.getAllActivities, convexIsAdmin === true ? {} : "skip");
   const markAsRead = useMutation(api.clientActivity.markAsRead);
   const markAllAsRead = useMutation(api.clientActivity.markAllAsRead);
   const deleteActivity = useMutation(api.clientActivity.deleteActivity);

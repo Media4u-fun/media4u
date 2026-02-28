@@ -38,6 +38,8 @@ export default function AdminMessagesPage(): ReactElement {
   const [noteProjectId, setNoteProjectId] = useState("");
   const [isAddingNote, setIsAddingNote] = useState(false);
 
+  const convexIsAdmin = useQuery(api.auth.isAdmin);
+
   // Messages queries
   const threads = useQuery(api.messages.getAllThreads);
   const messages = useQuery(
@@ -48,7 +50,7 @@ export default function AdminMessagesPage(): ReactElement {
   const markRead = useMutation(api.messages.markThreadRead);
 
   // Notes queries
-  const notes = useQuery(api.adminNotes.getAllNotes);
+  const notes = useQuery(api.adminNotes.getAllNotes, convexIsAdmin === true ? {} : "skip");
   const addNote = useMutation(api.adminNotes.addNote);
   const deleteNote = useMutation(api.adminNotes.deleteNote);
 

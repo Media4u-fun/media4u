@@ -30,10 +30,11 @@ function formatAmount(inv: { setupFeeAmount?: number; budget?: string }) {
 }
 
 export function InvoicesTab() {
+  const convexIsAdmin = useQuery(api.auth.isAdmin);
   const [filterStatus, setFilterStatus] = useState<InvoiceStatus | "all">("all");
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  const invoices = useQuery(api.projects.getProjectsWithInvoices);
+  const invoices = useQuery(api.projects.getProjectsWithInvoices, convexIsAdmin === true ? {} : "skip");
   const confirmPaid = useMutation(api.projects.confirmSetupInvoicePaid);
 
   const filtered = invoices?.filter((inv) => {

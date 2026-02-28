@@ -23,6 +23,7 @@ import {
   Globe,
   Mail,
 } from "lucide-react";
+import SchedulerWidget from "@/components/admin/SchedulerWidget";
 
 export default function AdminDashboard() {
   const inboxItems = useQuery(api.inbox.getInboxItems);
@@ -208,6 +209,15 @@ export default function AdminDashboard() {
             →
           </div>
         </Link>
+      </motion.div>
+
+      {/* Scheduler Widget */}
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+      >
+        <SchedulerWidget />
       </motion.div>
 
       {/* Stats Grid */}

@@ -672,6 +672,7 @@ export default defineSchema({
     title: v.optional(v.string()), // Content title for Blog/Podcast
     platform: v.optional(v.string()), // YouTube, Spotify, etc.
     publishStatus: v.optional(v.string()), // Draft, Scheduled, Posted
+    createdFrom: v.optional(v.string()), // "manual", "quick-add", "voice"
     createdAt: v.number(),
     updatedAt: v.number(),
   })
