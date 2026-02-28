@@ -201,14 +201,16 @@ export default function SchedulerWidget() {
     recognition.onend = () => setIsListening(false);
     recognition.onerror = (event: { error?: string }) => {
       setIsListening(false);
-      if (event.error === "not-allowed") {
-        setError("Microphone access denied. Allow mic in your browser settings and try again.");
+      if (event.error === "not-allowed" || event.error === "permission-denied") {
+        setError("Mic blocked. Click the lock icon in your address bar, reset permissions, reload the page, then try again.");
+      } else if (event.error === "audio-capture") {
+        setError("No microphone found. Check that your mic is plugged in.");
       } else if (event.error === "network") {
         setError("Network error - voice needs an internet connection.");
       } else if (event.error === "no-speech") {
-        setError("No speech detected. Try again.");
+        setError("No speech detected. Speak closer to the mic and try again.");
       } else {
-        setError(`Voice error: ${event.error ?? "unknown"}. Try Chrome on desktop.`);
+        setError(`Voice error (${event.error ?? "unknown"}). Try Chrome on desktop.`);
       }
     };
     recognition.onresult = (event) => {
@@ -216,7 +218,12 @@ export default function SchedulerWidget() {
       setInputText(transcript);
     };
 
-    recognition.start();
+    try {
+      recognition.start();
+    } catch (err) {
+      setIsListening(false);
+      setError(`Could not start voice: ${err instanceof Error ? err.message : "unknown error"}`);
+    }
   }
 
   return (
