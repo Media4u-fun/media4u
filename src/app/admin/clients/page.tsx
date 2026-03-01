@@ -28,6 +28,66 @@ function fmtDate(str: string) {
   return new Date(str + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
+function ProjectInvoiceRow({ project }: { project: Record<string, unknown> }) {
+  const confirmPaid = useMutation(api.projects.confirmSetupInvoicePaid);
+  const [marking, setMarking] = useState(false);
+  const [done, setDone] = useState(false);
+
+  const isPaid = project.setupInvoiceStatus === "paid" || done;
+
+  async function handleMarkPaid() {
+    setMarking(true);
+    try {
+      await confirmPaid({ projectId: project._id as string });
+      setDone(true);
+    } catch {
+      // silent - user can retry
+    } finally {
+      setMarking(false);
+    }
+  }
+
+  return (
+    <div className="p-3 rounded-lg bg-white/[0.03] border border-white/8">
+      <div className="flex items-start justify-between gap-2 mb-2">
+        <p className="text-sm font-medium text-white">{project.projectType as string}</p>
+        {!isPaid && (
+          <button
+            onClick={handleMarkPaid}
+            disabled={marking}
+            className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-green-500/10 text-green-400 hover:bg-green-500/20 border border-green-500/30 text-xs font-medium transition-all disabled:opacity-50 flex-shrink-0"
+          >
+            {marking ? <Loader2 className="w-3 h-3 animate-spin" /> : <CheckCircle className="w-3 h-3" />}
+            {marking ? "Saving..." : "Mark Paid"}
+          </button>
+        )}
+      </div>
+      <div className="flex flex-wrap gap-2 text-xs">
+        {project.setupInvoiceStripeId ? (
+          <span className={`px-2 py-0.5 rounded-full border ${isPaid ? "bg-green-500/20 text-green-400 border-green-500/30" : "bg-yellow-500/20 text-yellow-400 border-yellow-500/30"}`}>
+            Setup: {isPaid ? "paid" : (project.setupInvoiceStatus ? String(project.setupInvoiceStatus) : "pending")}
+          </span>
+        ) : null}
+        {project.setupFeeAmount ? (
+          <span className="px-2 py-0.5 rounded-full border bg-white/5 border-white/10 text-gray-400">
+            ${project.setupFeeAmount as number}
+          </span>
+        ) : null}
+        {project.setupInvoiceUrl && !isPaid ? (
+          <a
+            href={project.setupInvoiceUrl as string}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-2 py-0.5 rounded-full border bg-brand-light/10 text-brand-light border-brand-light/20 hover:bg-brand-light/20 transition-all"
+          >
+            View Invoice
+          </a>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
 const PRIORITY_CONFIG: Record<string, { label: string; color: string; bg: string; border: string; Icon: LucideIcon }> = {
   urgent: { label: "Urgent", color: "text-red-400",    bg: "bg-red-500/20",    border: "border-red-500/30",    Icon: Flame },
   high:   { label: "High",   color: "text-orange-400", bg: "bg-orange-500/20", border: "border-orange-500/30", Icon: ArrowUp },
@@ -570,21 +630,7 @@ export default function ClientsPage() {
                             {d.projects.filter((p: Record<string, unknown>) => p.setupInvoiceStripeId || p.paymentInvoiceStripeId).length > 0 && (
                               <Section title="Project Invoices" count={d.projects.filter((p: Record<string, unknown>) => p.setupInvoiceStripeId || p.paymentInvoiceStripeId).length} color="text-cyan-400" Icon={FileText}>
                                 {d.projects.filter((p: Record<string, unknown>) => p.setupInvoiceStripeId || p.paymentInvoiceStripeId).map((p: Record<string, unknown>, i: number) => (
-                                  <div key={i} className="p-3 rounded-lg bg-white/[0.03] border border-white/8">
-                                    <p className="text-sm font-medium text-white mb-1">{p.projectType as string}</p>
-                                    <div className="flex gap-3 text-xs">
-                                      {p.setupInvoiceStripeId ? (
-                                        <span className={`px-2 py-0.5 rounded-full border ${p.setupInvoiceStatus === "paid" ? "bg-green-500/20 text-green-400 border-green-500/30" : "bg-yellow-500/20 text-yellow-400 border-yellow-500/30"}`}>
-                                          Setup: {p.setupInvoiceStatus ? String(p.setupInvoiceStatus) : "pending"}
-                                        </span>
-                                      ) : null}
-                                      {p.paymentInvoiceStripeId ? (
-                                        <span className={`px-2 py-0.5 rounded-full border ${p.paymentInvoiceStatus === "paid" ? "bg-green-500/20 text-green-400 border-green-500/30" : "bg-yellow-500/20 text-yellow-400 border-yellow-500/30"}`}>
-                                          Payment: {p.paymentInvoiceStatus ? String(p.paymentInvoiceStatus) : "pending"}
-                                        </span>
-                                      ) : null}
-                                    </div>
-                                  </div>
+                                  <ProjectInvoiceRow key={i} project={p} />
                                 ))}
                               </Section>
                             )}

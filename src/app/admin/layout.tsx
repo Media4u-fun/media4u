@@ -28,25 +28,143 @@ import {
   ExternalLink,
   Users,
   Target,
+  ChevronDown,
 } from "lucide-react";
 
-const adminNavItems = [
-  { href: "/admin", label: "Dashboard", icon: LayoutDashboard, countKey: null },
-  { href: "/admin/inbox", label: "Inbox", icon: Inbox, countKey: "inbox" },
-  { href: "/admin/billing", label: "Billing", icon: CreditCard, countKey: null },
-  { href: "/admin/notifications", label: "Client Updates", icon: Bell, countKey: "clientActivity" },
-  { href: "/admin/messages", label: "Messages", icon: MessageCircle, countKey: "messages" },
-  { href: "/admin/clients", label: "Clients", icon: Users, countKey: null },
-  { href: "/admin/leads", label: "Leads", icon: Target, countKey: null },
-  { href: "/admin/projects", label: "Projects", icon: Briefcase, countKey: null },
-  { href: "/admin/newsletter", label: "Newsletter", icon: Mail, countKey: null },
-  { href: "/admin/blog", label: "Blog Posts", icon: FileText, countKey: null },
-  { href: "/admin/portfolio", label: "Portfolio", icon: ImageIcon, countKey: null },
-  { href: "/admin/vr", label: "VR Community", icon: Glasses, countKey: null },
-  { href: "/admin/appointments", label: "Calendar", icon: CalendarDays, countKey: "calendar" },
-  { href: "/admin/community", label: "Community", icon: Globe, countKey: "community" },
-  { href: "/admin/settings", label: "Settings", icon: Settings, countKey: null },
+type NavItem = {
+  href: string;
+  label: string;
+  icon: React.ElementType;
+  countKey: string | null;
+};
+
+type NavGroup = {
+  label: string;
+  items: NavItem[];
+};
+
+const navGroups: NavGroup[] = [
+  {
+    label: "Business",
+    items: [
+      { href: "/admin/inbox", label: "Inbox", icon: Inbox, countKey: "inbox" },
+      { href: "/admin/messages", label: "Messages", icon: MessageCircle, countKey: "messages" },
+      { href: "/admin/notifications", label: "Client Updates", icon: Bell, countKey: "clientActivity" },
+      { href: "/admin/billing", label: "Billing", icon: CreditCard, countKey: null },
+    ],
+  },
+  {
+    label: "Clients & Sales",
+    items: [
+      { href: "/admin/clients", label: "Clients", icon: Users, countKey: null },
+      { href: "/admin/leads", label: "Leads", icon: Target, countKey: null },
+      { href: "/admin/projects", label: "Projects", icon: Briefcase, countKey: null },
+    ],
+  },
+  {
+    label: "Content",
+    items: [
+      { href: "/admin/blog", label: "Blog Posts", icon: FileText, countKey: null },
+      { href: "/admin/newsletter", label: "Newsletter", icon: Mail, countKey: null },
+      { href: "/admin/portfolio", label: "Portfolio", icon: ImageIcon, countKey: null },
+    ],
+  },
+  {
+    label: "Community",
+    items: [
+      { href: "/admin/vr", label: "VR Community", icon: Glasses, countKey: null },
+      { href: "/admin/community", label: "Community", icon: Globe, countKey: "community" },
+    ],
+  },
+  {
+    label: "Tools",
+    items: [
+      { href: "/admin/appointments", label: "Calendar", icon: CalendarDays, countKey: "calendar" },
+      { href: "/admin/settings", label: "Settings", icon: Settings, countKey: null },
+    ],
+  },
 ];
+
+function NavGroup({
+  group,
+  pathname,
+  counts,
+}: {
+  group: NavGroup;
+  pathname: string;
+  counts: Record<string, number>;
+}) {
+  const isGroupActive = group.items.some((item) => pathname === item.href || pathname.startsWith(item.href + "/"));
+  const [open, setOpen] = useState(isGroupActive);
+
+  // Auto-open if navigating to a page in this group
+  useEffect(() => {
+    if (isGroupActive) setOpen(true);
+  }, [isGroupActive]);
+
+  const groupBadge = group.items.reduce((sum, item) => sum + (item.countKey ? counts[item.countKey] ?? 0 : 0), 0);
+
+  return (
+    <div>
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 group ${
+          isGroupActive ? "text-white" : "text-gray-500 hover:text-gray-300"
+        }`}
+      >
+        <span className="text-xs font-semibold uppercase tracking-wider flex-1 text-left">
+          {group.label}
+        </span>
+        {groupBadge > 0 && !open && (
+          <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">
+            {groupBadge > 99 ? "99+" : groupBadge}
+          </span>
+        )}
+        <ChevronDown
+          className={`w-3.5 h-3.5 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+        />
+      </button>
+
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2, ease: "easeInOut" }}
+            className="overflow-hidden"
+          >
+            <div className="ml-2 pl-2 border-l border-white/10 mt-1 mb-1 space-y-0.5">
+              {group.items.map((item) => {
+                const isActive = pathname === item.href;
+                const count = item.countKey ? counts[item.countKey] ?? 0 : 0;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 ${
+                      isActive
+                        ? "bg-white/10 text-white border border-white/20"
+                        : "text-gray-400 hover:text-white hover:bg-white/5"
+                    }`}
+                  >
+                    <item.icon className="w-4 h-4 flex-shrink-0" />
+                    <span className="font-medium flex-1 text-sm">{item.label}</span>
+                    {count > 0 && (
+                      <span className="min-w-[20px] h-5 px-1.5 rounded-full bg-red-500 text-white text-xs font-bold flex items-center justify-center">
+                        {count > 99 ? "99+" : count}
+                      </span>
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   const { isAuthenticated, isLoading, isAdmin, signOut } = useAuth();
@@ -54,7 +172,6 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // Fetch notification counts
   const inboxNewCount = useQuery(api.inbox.getInboxNewCount);
   const communityRequests = useQuery(api.community.getInviteRequests);
   const clientActivityCount = useQuery(api.clientActivity.getUnreadCount);
@@ -71,23 +188,14 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
   const totalBadgeCount = Object.values(counts).reduce((sum, c) => sum + c, 0);
 
-  // Close sidebar on route change (mobile)
   useEffect(() => {
     setSidebarOpen(false);
   }, [pathname]);
 
   useEffect(() => {
     if (isLoading) return;
-
-    if (!isAuthenticated) {
-      router.push("/login");
-      return;
-    }
-
-    if (!isAdmin) {
-      router.push("/");
-      return;
-    }
+    if (!isAuthenticated) { router.push("/login"); return; }
+    if (!isAdmin) { router.push("/"); return; }
   }, [isAuthenticated, isAdmin, isLoading, router]);
 
   if (isLoading) {
@@ -101,14 +209,13 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     );
   }
 
-  if (!isAuthenticated || !isAdmin) {
-    return null;
-  }
+  if (!isAuthenticated || !isAdmin) return null;
 
   const sidebarContent = (
     <>
-      <div className="mb-8 lg:mb-12">
-        <div className="flex items-center justify-between lg:justify-center mb-6">
+      {/* Logo */}
+      <div className="mb-6">
+        <div className="flex items-center justify-between lg:justify-center mb-4">
           <Link href="/" className="flex items-center justify-center">
             <Image
               src="/media4u-logo.png"
@@ -130,36 +237,32 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         <p className="text-xs text-gray-500 uppercase tracking-wider text-center">Admin Panel</p>
       </div>
 
-      <nav className="space-y-1 mb-8 lg:mb-12">
-        {adminNavItems.map((item) => {
-          const isActive = pathname === item.href;
-          const count = item.countKey ? counts[item.countKey] : 0;
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 ${
-                isActive
-                  ? "bg-white/10 text-white border border-white/20"
-                  : "text-gray-400 hover:text-white hover:bg-white/5"
-              }`}
-            >
-              <item.icon className="w-5 h-5 flex-shrink-0" />
-              <span className="font-medium flex-1 text-sm">{item.label}</span>
-              {count > 0 && (
-                <span className="min-w-[20px] h-5 px-1.5 rounded-full bg-red-500 text-white text-xs font-bold flex items-center justify-center">
-                  {count > 99 ? "99+" : count}
-                </span>
-              )}
-            </Link>
-          );
-        })}
+      {/* Dashboard - always visible */}
+      <nav className="mb-2">
+        <Link
+          href="/admin"
+          className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 ${
+            pathname === "/admin"
+              ? "bg-white/10 text-white border border-white/20"
+              : "text-gray-400 hover:text-white hover:bg-white/5"
+          }`}
+        >
+          <LayoutDashboard className="w-5 h-5 flex-shrink-0" />
+          <span className="font-medium text-sm">Dashboard</span>
+        </Link>
+      </nav>
+
+      {/* Grouped nav */}
+      <nav className="space-y-1 mb-6">
+        {navGroups.map((group) => (
+          <NavGroup key={group.label} group={group} pathname={pathname} counts={counts} />
+        ))}
       </nav>
 
       {/* Client Sites */}
-      <div className="mb-8 lg:mb-12">
-        <p className="text-xs text-gray-500 uppercase tracking-wider mb-3 px-3">Client Sites</p>
-        <nav className="space-y-1">
+      <div className="mb-6">
+        <p className="text-xs text-gray-500 uppercase tracking-wider mb-2 px-3">Client Sites</p>
+        <nav className="space-y-0.5">
           {[
             { label: "At Ease Pest", url: "https://ateasepestsolution.com/admin", color: "bg-purple-500" },
           ].map((site) => (
@@ -168,7 +271,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
               href={site.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all duration-200"
+              className="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all duration-200"
             >
               <span className={`w-2 h-2 rounded-full ${site.color} flex-shrink-0`} />
               <span className="font-medium flex-1 text-sm">{site.label}</span>
