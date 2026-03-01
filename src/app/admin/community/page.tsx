@@ -66,7 +66,7 @@ export default function CommunityAdminPage() {
           { label: "Pending Requests", value: pendingRequestsCount, icon: UserPlus, color: "text-yellow-400" },
           { label: "Pending Comments", value: pendingCommentsCount, icon: MessageCircle, color: "text-orange-400" },
           { label: "Total Requests", value: inviteRequests?.length ?? 0, icon: Users, color: "text-brand-light" },
-          { label: "Approved", value: inviteRequests?.filter(r => r.status === "approved").length ?? 0, icon: CheckCircle, color: "text-emerald-400" },
+          { label: "Invited", value: inviteRequests?.filter(r => r.status === "invited").length ?? 0, icon: CheckCircle, color: "text-emerald-400" },
         ].map((s) => (
           <div key={s.label} className="glass-elevated rounded-xl p-4 border border-white/10">
             <div className="flex items-center gap-2 mb-1">

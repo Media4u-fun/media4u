@@ -359,7 +359,7 @@ export default function AdminMessagesPage(): ReactElement {
         className="grid grid-cols-3 gap-4 mb-6">
         {[
           { label: "Threads", value: threads?.length ?? 0, color: "text-brand-light" },
-          { label: "Unread", value: threads?.filter((t: { unreadByAdmin?: boolean }) => t.unreadByAdmin).length ?? 0, color: "text-yellow-400" },
+          { label: "Unread", value: threads?.filter((t) => t.unreadCount > 0).length ?? 0, color: "text-yellow-400" },
           { label: "Notes", value: notes?.length ?? 0, color: "text-blue-400" },
         ].map((s) => (
           <div key={s.label} className="glass-elevated rounded-xl p-4 border border-white/10">
