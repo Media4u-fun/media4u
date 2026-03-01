@@ -1208,7 +1208,7 @@ const STATUS_COLUMNS = [
 ] as const;
 
 type TaskDoc = {
-  _id: string;
+  _id: Id<"tasks">;
   title: string;
   notes?: string;
   priority: "low" | "medium" | "high" | "urgent";
@@ -1226,8 +1226,8 @@ type TaskBoardProps = {
   tasks: TaskDoc[];
   projects: ProjectOption[];
   onCreateTask: (args: { title: string; notes?: string; priority: "low" | "medium" | "high" | "urgent"; category: string; dueDate?: string; projectId?: Id<"projects"> }) => Promise<unknown>;
-  onUpdateStatus: (args: { id: string; status: "todo" | "in_progress" | "done" }) => Promise<unknown>;
-  onDeleteTask: (args: { id: string }) => Promise<unknown>;
+  onUpdateStatus: (args: { id: Id<"tasks">; status: "todo" | "in_progress" | "done" }) => Promise<unknown>;
+  onDeleteTask: (args: { id: Id<"tasks"> }) => Promise<unknown>;
 };
 
 function TaskBoard({ tasks, projects, onCreateTask, onUpdateStatus, onDeleteTask }: TaskBoardProps) {
@@ -1399,7 +1399,7 @@ function TaskBoard({ tasks, projects, onCreateTask, onUpdateStatus, onDeleteTask
 
                         {/* Badges row */}
                         <div className="flex items-center gap-1.5 flex-wrap mb-2">
-                          <span className={`inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded-md ${p.bg} ${p.text} border ${p.border}`}>
+                          <span className={`inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded-md ${p.bg} ${p.color} border ${p.border}`}>
                             <PIcon className="w-2.5 h-2.5" />{p.label}
                           </span>
                           <span className="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded-md bg-white/5 text-gray-400 border border-white/8">

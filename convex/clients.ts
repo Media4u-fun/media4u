@@ -287,7 +287,7 @@ export const getClientDetails = query({
       tasks,
       activity: sortedActivity,
       summary: {
-        totalRevenue: projects.reduce((sum, p) => sum + ((p.totalCost as number) || 0), 0),
+        totalRevenue: projects.reduce((sum, p) => sum + (((p as Record<string, unknown>).totalCost as number) || 0), 0),
         paidOrdersCount: orders.filter((o) => o.status === "paid").length,
         activeSubscriptionsCount: subscriptions.filter((s) => s.status === "active").length,
         openTasksCount: tasks.filter((t) => t.status !== "done").length,

@@ -13,6 +13,7 @@ import {
   CircleCheck, CircleDot, Circle, Flame, ArrowUp, ArrowRight, ArrowDown,
 } from "lucide-react";
 import EditClientModal from "@/components/admin/EditClientModal";
+import type { LucideIcon } from "lucide-react";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -26,14 +27,14 @@ function fmtDate(str: string) {
   return new Date(str + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
-const PRIORITY_CONFIG: Record<string, { label: string; color: string; bg: string; border: string; Icon: React.ElementType }> = {
+const PRIORITY_CONFIG: Record<string, { label: string; color: string; bg: string; border: string; Icon: LucideIcon }> = {
   urgent: { label: "Urgent", color: "text-red-400",    bg: "bg-red-500/20",    border: "border-red-500/30",    Icon: Flame },
   high:   { label: "High",   color: "text-orange-400", bg: "bg-orange-500/20", border: "border-orange-500/30", Icon: ArrowUp },
   medium: { label: "Medium", color: "text-yellow-400", bg: "bg-yellow-500/20", border: "border-yellow-500/30", Icon: ArrowRight },
   low:    { label: "Low",    color: "text-blue-400",   bg: "bg-blue-500/20",   border: "border-blue-500/30",   Icon: ArrowDown },
 };
 
-const STATUS_CONFIG: Record<string, { label: string; color: string; Icon: React.ElementType }> = {
+const STATUS_CONFIG: Record<string, { label: string; color: string; Icon: LucideIcon }> = {
   todo:        { label: "To Do",       color: "text-gray-400",    Icon: Circle },
   in_progress: { label: "In Progress", color: "text-cyan-400",    Icon: CircleDot },
   done:        { label: "Done",        color: "text-emerald-400", Icon: CircleCheck },
@@ -52,7 +53,7 @@ const PROJECT_STATUS_COLORS: Record<string, string> = {
 
 type Tab = "overview" | "projects" | "billing" | "communications" | "tasks" | "activity";
 
-const TABS: { key: Tab; label: string; Icon: React.ElementType }[] = [
+const TABS: { key: Tab; label: string; Icon: LucideIcon }[] = [
   { key: "overview",        label: "Overview",       Icon: Star },
   { key: "projects",        label: "Projects",       Icon: Briefcase },
   { key: "billing",         label: "Billing",        Icon: DollarSign },
@@ -422,7 +423,7 @@ export default function ClientsPage() {
                                         {p.status as string}
                                       </span>
                                     </div>
-                                    {p.description && <p className="text-xs text-gray-500 line-clamp-2">{p.description as string}</p>}
+                                    {p.description ? <p className="text-xs text-gray-500 line-clamp-2">{String(p.description)}</p> : null}
                                     <div className="flex items-center gap-3 text-xs text-gray-600">
                                       {(p.totalCost as number) > 0 && <span className="text-green-400">${(p.totalCost as number).toLocaleString()}</span>}
                                       <span>{fmt(p.createdAt as number)}</span>
@@ -525,16 +526,16 @@ export default function ClientsPage() {
                                   <div key={i} className="p-3 rounded-lg bg-white/[0.03] border border-white/8">
                                     <p className="text-sm font-medium text-white mb-1">{p.projectType as string}</p>
                                     <div className="flex gap-3 text-xs">
-                                      {p.setupInvoiceStripeId && (
+                                      {p.setupInvoiceStripeId ? (
                                         <span className={`px-2 py-0.5 rounded-full border ${p.setupInvoiceStatus === "paid" ? "bg-green-500/20 text-green-400 border-green-500/30" : "bg-yellow-500/20 text-yellow-400 border-yellow-500/30"}`}>
-                                          Setup: {p.setupInvoiceStatus as string || "pending"}
+                                          Setup: {p.setupInvoiceStatus ? String(p.setupInvoiceStatus) : "pending"}
                                         </span>
-                                      )}
-                                      {p.paymentInvoiceStripeId && (
+                                      ) : null}
+                                      {p.paymentInvoiceStripeId ? (
                                         <span className={`px-2 py-0.5 rounded-full border ${p.paymentInvoiceStatus === "paid" ? "bg-green-500/20 text-green-400 border-green-500/30" : "bg-yellow-500/20 text-yellow-400 border-yellow-500/30"}`}>
-                                          Payment: {p.paymentInvoiceStatus as string || "pending"}
+                                          Payment: {p.paymentInvoiceStatus ? String(p.paymentInvoiceStatus) : "pending"}
                                         </span>
-                                      )}
+                                      ) : null}
                                     </div>
                                   </div>
                                 ))}
@@ -633,9 +634,9 @@ export default function ClientsPage() {
                                                 </span>
                                                 <p className={`text-sm text-white truncate ${task.status === "done" ? "line-through text-gray-500" : ""}`}>{task.title as string}</p>
                                               </div>
-                                              {task.dueDate && (
-                                                <span className="text-xs text-gray-600 shrink-0 ml-2">{task.dueDate as string}</span>
-                                              )}
+                                              {task.dueDate ? (
+                                                <span className="text-xs text-gray-600 shrink-0 ml-2">{String(task.dueDate)}</span>
+                                              ) : null}
                                             </div>
                                           );
                                         })}
@@ -718,7 +719,7 @@ export default function ClientsPage() {
 // ---------------------------------------------------------------------------
 
 function Section({ title, count, color, Icon, children }: {
-  title: string; count: number; color: string; Icon: React.ElementType; children: React.ReactNode;
+  title: string; count: number; color: string; Icon: LucideIcon; children: React.ReactNode;
 }) {
   const [open, setOpen] = useState(true);
   return (
@@ -754,7 +755,7 @@ function RecordRow({ title, subtitle, date, badge, badgeColor }: {
   );
 }
 
-function EmptyState({ icon: Icon, label }: { icon: React.ElementType; label: string }) {
+function EmptyState({ icon: Icon, label }: { icon: LucideIcon; label: string }) {
   return (
     <div className="text-center py-10">
       <Icon className="w-10 h-10 mx-auto mb-2 text-gray-700 opacity-50" />
