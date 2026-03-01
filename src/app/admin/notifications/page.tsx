@@ -66,6 +66,27 @@ export default function NotificationsPage() {
 
   return (
     <div>
+      <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
+        <h1 className="text-2xl sm:text-4xl font-display font-bold mb-2">Notifications</h1>
+        <p className="text-gray-400">Client updates and admin reminders</p>
+      </motion.div>
+
+      {/* Stats */}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
+        className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        {[
+          { label: "Unread Updates", value: unreadCount, color: "text-yellow-400" },
+          { label: "Total Updates", value: activities?.length ?? 0, color: "text-brand-light" },
+          { label: "Unread Reminders", value: remindersUnread, color: "text-orange-400" },
+          { label: "Total Reminders", value: reminders?.length ?? 0, color: "text-blue-400" },
+        ].map((s) => (
+          <div key={s.label} className="glass-elevated rounded-xl p-4 border border-white/10">
+            <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">{s.label}</p>
+            <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
+          </div>
+        ))}
+      </motion.div>
+
       {/* Tab switcher */}
       <div className="flex gap-2 mb-6">
         <button

@@ -354,6 +354,21 @@ export default function AdminMessagesPage(): ReactElement {
         <p className="text-gray-400 text-sm">View and reply to client messages, or leave internal notes for your team.</p>
       </motion.div>
 
+      {/* Stats */}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
+        className="grid grid-cols-3 gap-4 mb-6">
+        {[
+          { label: "Threads", value: threads?.length ?? 0, color: "text-brand-light" },
+          { label: "Unread", value: threads?.filter((t: { unreadByAdmin?: boolean }) => t.unreadByAdmin).length ?? 0, color: "text-yellow-400" },
+          { label: "Notes", value: notes?.length ?? 0, color: "text-blue-400" },
+        ].map((s) => (
+          <div key={s.label} className="glass-elevated rounded-xl p-4 border border-white/10">
+            <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">{s.label}</p>
+            <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
+          </div>
+        ))}
+      </motion.div>
+
       {tabHeader}
 
       {/* Add Note Button */}

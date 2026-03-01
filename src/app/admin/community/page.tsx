@@ -53,10 +53,29 @@ export default function CommunityAdminPage() {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="mb-8"
+        className="mb-6"
       >
         <h1 className="text-2xl sm:text-4xl font-display font-bold mb-2">VR Multiverse Community</h1>
         <p className="text-gray-400">Manage invites and community members</p>
+      </motion.div>
+
+      {/* Stats */}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
+        className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        {[
+          { label: "Pending Requests", value: pendingRequestsCount, icon: UserPlus, color: "text-yellow-400" },
+          { label: "Pending Comments", value: pendingCommentsCount, icon: MessageCircle, color: "text-orange-400" },
+          { label: "Total Requests", value: inviteRequests?.length ?? 0, icon: Users, color: "text-brand-light" },
+          { label: "Approved", value: inviteRequests?.filter(r => r.status === "approved").length ?? 0, icon: CheckCircle, color: "text-emerald-400" },
+        ].map((s) => (
+          <div key={s.label} className="glass-elevated rounded-xl p-4 border border-white/10">
+            <div className="flex items-center gap-2 mb-1">
+              <s.icon className={`w-4 h-4 ${s.color}`} />
+              <p className="text-xs text-gray-500 uppercase tracking-wider">{s.label}</p>
+            </div>
+            <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
+          </div>
+        ))}
       </motion.div>
 
       {/* Tabs */}

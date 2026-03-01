@@ -215,7 +215,7 @@ export default function PortfolioAdminPage() {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+        className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
       >
         <div>
           <h1 className="text-2xl sm:text-4xl font-display font-bold mb-2">Portfolio Projects</h1>
@@ -227,6 +227,22 @@ export default function PortfolioAdminPage() {
         >
           + New Project
         </button>
+      </motion.div>
+
+      {/* Stats */}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
+        className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        {[
+          { label: "Total", value: projects?.length ?? 0, color: "text-brand-light" },
+          { label: "Web", value: projects?.filter((p: any) => p.category === "web").length ?? 0, color: "text-blue-400" },
+          { label: "VR", value: projects?.filter((p: any) => p.category === "vr").length ?? 0, color: "text-purple-400" },
+          { label: "Integrated", value: projects?.filter((p: any) => p.category === "integrated").length ?? 0, color: "text-emerald-400" },
+        ].map((s) => (
+          <div key={s.label} className="glass-elevated rounded-xl p-4 border border-white/10">
+            <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">{s.label}</p>
+            <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
+          </div>
+        ))}
       </motion.div>
 
       {/* Category Filter */}

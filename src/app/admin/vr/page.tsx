@@ -310,10 +310,10 @@ export default function VRAdminPage() {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+        className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
       >
         <div>
-          <h1 className="text-2xl sm:text-4xl font-display font-bold mb-2">VR Community</h1>
+          <h1 className="text-2xl sm:text-4xl font-display font-bold mb-2">VR Experiences</h1>
           <p className="text-gray-400">Create and manage VR properties and destinations</p>
         </div>
         <button
@@ -322,6 +322,22 @@ export default function VRAdminPage() {
         >
           + New Experience
         </button>
+      </motion.div>
+
+      {/* Stats */}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
+        className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        {[
+          { label: "Total", value: experiences?.length ?? 0, color: "text-brand-light" },
+          { label: "Properties", value: experiences?.filter((e: any) => e.type === "property").length ?? 0, color: "text-blue-400" },
+          { label: "Destinations", value: experiences?.filter((e: any) => e.type === "destination").length ?? 0, color: "text-purple-400" },
+          { label: "Featured", value: experiences?.filter((e: any) => e.featured).length ?? 0, color: "text-yellow-400" },
+        ].map((s) => (
+          <div key={s.label} className="glass-elevated rounded-xl p-4 border border-white/10">
+            <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">{s.label}</p>
+            <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
+          </div>
+        ))}
       </motion.div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
