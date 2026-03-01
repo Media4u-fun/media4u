@@ -1602,6 +1602,8 @@ export default function AdminCalendarPage() {
   const quickAdd = useMutation(api.appointments.adminQuickAddAppointment);
   const updateStatus = useMutation(api.appointments.updateStatus);
   const addAdminNote = useMutation(api.appointments.addAdminNote);
+  const clearNotifications = useMutation(api.adminNotifications.markAllAsRead);
+  const notifCount = useQuery(api.adminNotifications.getUnreadCount);
 
   const appointments = (allAppointments ?? []) as AppointmentDoc[];
 
@@ -1788,6 +1790,17 @@ export default function AdminCalendarPage() {
               </button>
             ))}
           </div>
+
+          {/* Clear Notifications */}
+          {(notifCount ?? 0) > 0 && (
+            <button
+              onClick={() => clearNotifications()}
+              className="flex items-center gap-2 px-3 py-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 text-sm font-medium transition-colors"
+            >
+              <X className="w-4 h-4" />
+              Clear {notifCount} Alert{(notifCount ?? 0) > 1 ? "s" : ""}
+            </button>
+          )}
 
           {/* Sync to Google Calendar */}
           <button
