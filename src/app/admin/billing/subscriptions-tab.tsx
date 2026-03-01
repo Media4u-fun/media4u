@@ -240,7 +240,7 @@ export function SubscriptionsTab() {
                 </p>
                 <p className="text-xs text-gray-400 truncate">
                   {(subscription as SubscriptionDoc).planName || getPlanName(subscription.stripePriceId)}
-                  {(subscription as SubscriptionDoc).planAmount ? ` - $${((subscription as SubscriptionDoc).planAmount / 100).toFixed(0)}/mo` : ""}
+                  {(subscription as SubscriptionDoc).planAmount ? ` - $${(((subscription as SubscriptionDoc).planAmount ?? 0) / 100).toFixed(0)}/mo` : ""}
                 </p>
                 <div className="flex items-center justify-between mt-2">
                   <span
@@ -288,7 +288,7 @@ export function SubscriptionsTab() {
                 </p>
                 {(selected as SubscriptionDoc).planAmount && (
                   <p className="text-2xl font-bold text-green-400 mt-1">
-                    ${((selected as SubscriptionDoc).planAmount / 100).toFixed(0)}<span className="text-sm text-gray-400 font-normal">/mo</span>
+                    ${(((selected as SubscriptionDoc).planAmount ?? 0) / 100).toFixed(0)}<span className="text-sm text-gray-400 font-normal">/mo</span>
                   </p>
                 )}
               </div>

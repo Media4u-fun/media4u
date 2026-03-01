@@ -622,7 +622,7 @@ export default function ClientsPage() {
                                     </div>
                                     <div className="flex items-center gap-2">
                                       {sub.planAmount && (
-                                        <span className="text-sm font-bold text-green-400">${((sub.planAmount as number) / 100).toFixed(0)}/mo</span>
+                                        <span className="text-sm font-bold text-green-400">${(Number(sub.planAmount) / 100).toFixed(0)}/mo</span>
                                       )}
                                       <span className={`text-xs px-2 py-0.5 rounded-full border ${sub.status === "active" ? "bg-green-500/20 text-green-400 border-green-500/30" : "bg-gray-500/20 text-gray-400 border-gray-500/30"}`}>
                                         {sub.status as string}
