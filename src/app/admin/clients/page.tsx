@@ -183,7 +183,7 @@ export default function ClientsPage() {
             { label: "Active Leads",     value: clients?.filter((c) => c.leadIds.length > 0).length ?? 0,               color: "text-yellow-400" },
             { label: "Total Interactions", value: clients?.reduce((s, c) => s + c.totalInteractions, 0) ?? 0,           color: "text-green-400" },
           ].map((stat) => (
-            <div key={stat.label} className="glass-elevated rounded-xl p-4">
+            <div key={stat.label} className="glass-elevated rounded-xl p-4 border border-white/10">
               <p className="text-xs uppercase tracking-wider text-gray-500 mb-1">{stat.label}</p>
               <p className={`text-2xl font-bold ${stat.color}`}>{stat.value}</p>
             </div>
