@@ -29,6 +29,9 @@ import {
 import SchedulerWidget from "@/components/admin/SchedulerWidget";
 
 export default function AdminDashboard() {
+  const convexIsAdmin = useQuery(api.auth.isAdmin);
+  const isAdmin = convexIsAdmin === true;
+
   const inboxItems = useQuery(api.inbox.getInboxItems);
   const subscriberCount = useQuery(api.newsletter.getSubscriberCount, {});
   const blogPosts = useQuery(api.blog.getAllPosts, {});
@@ -37,8 +40,8 @@ export default function AdminDashboard() {
   const communityRequests = useQuery(api.community.getInviteRequests);
   const clientProjects = useQuery(api.projects.getAllProjects);
   const vrExperiences = useQuery(api.vr.getAllExperiences);
-  const allOrders = useQuery(api.stripe.getAllOrders, {});
-  const allSubscriptions = useQuery(api.stripe.getAllSubscriptions, {});
+  const allOrders = useQuery(api.stripe.getAllOrders, isAdmin ? {} : "skip");
+  const allSubscriptions = useQuery(api.stripe.getAllSubscriptions, isAdmin ? {} : "skip");
   const allLeads = useQuery(api.leads.getAllLeads);
 
   function calculateTrend(items: any[] | undefined) {
