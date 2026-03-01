@@ -37,6 +37,7 @@ function getPlanName(stripePriceId: string): string {
 }
 
 type Toast = { type: "success" | "error"; message: string };
+type SubscriptionDoc = Doc<"subscriptions"> & { planName?: string; planAmount?: number };
 
 export function SubscriptionsTab() {
   const convexIsAdmin = useQuery(api.auth.isAdmin);
@@ -237,7 +238,10 @@ export function SubscriptionsTab() {
                 <p className="font-semibold text-white text-sm truncate">
                   {subscription.customerEmail}
                 </p>
-                <p className="text-xs text-gray-400 truncate">{getPlanName(subscription.stripePriceId)}</p>
+                <p className="text-xs text-gray-400 truncate">
+                  {(subscription as SubscriptionDoc).planName || getPlanName(subscription.stripePriceId)}
+                  {(subscription as SubscriptionDoc).planAmount ? ` - $${((subscription as SubscriptionDoc).planAmount / 100).toFixed(0)}/mo` : ""}
+                </p>
                 <div className="flex items-center justify-between mt-2">
                   <span
                     className={`text-xs font-medium px-2 py-1 rounded border ${STATUS_COLORS[subscription.status as SubscriptionStatus]}`}
@@ -279,7 +283,14 @@ export function SubscriptionsTab() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs uppercase tracking-wider text-gray-500 mb-1">Subscription</p>
-                <p className="text-xl font-semibold text-white">{getPlanName(selected.stripePriceId)}</p>
+                <p className="text-xl font-semibold text-white">
+                  {(selected as SubscriptionDoc).planName || getPlanName(selected.stripePriceId)}
+                </p>
+                {(selected as SubscriptionDoc).planAmount && (
+                  <p className="text-2xl font-bold text-green-400 mt-1">
+                    ${((selected as SubscriptionDoc).planAmount / 100).toFixed(0)}<span className="text-sm text-gray-400 font-normal">/mo</span>
+                  </p>
+                )}
               </div>
               <span
                 className={`px-3 py-1 rounded-lg text-sm font-medium border ${STATUS_COLORS[selected.status as SubscriptionStatus]}`}

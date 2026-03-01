@@ -78,6 +78,8 @@ export default defineSchema({
     currentPeriodEnd: v.number(),
     cancelAtPeriodEnd: v.boolean(),
     customerEmail: v.string(),
+    planName: v.optional(v.string()),
+    planAmount: v.optional(v.number()),
     createdAt: v.number(),
     updatedAt: v.number(),
   })

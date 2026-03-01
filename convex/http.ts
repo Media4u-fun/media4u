@@ -111,10 +111,11 @@ http.route({
           if (subscriptionId && invoice.billing_reason === "subscription_create") {
             // New subscription - create record using invoice period
             const subId = typeof subscriptionId === "string" ? subscriptionId : subscriptionId.id;
-            // Get price ID from line item pricing
+            // Get price ID and amount from line item pricing
             const lineItem = invoice.lines.data[0];
             const priceId = lineItem?.pricing?.price_details?.price;
             const priceIdStr = typeof priceId === "string" ? priceId : priceId?.id ?? "";
+            const planAmount = typeof lineItem?.amount === "number" ? lineItem.amount : undefined;
 
             await ctx.runMutation(internal.stripe.createSubscription, {
               userId: subscriptionDetails?.metadata?.userId || undefined,
@@ -126,6 +127,7 @@ http.route({
               currentPeriodEnd: invoice.period_end * 1000,
               cancelAtPeriodEnd: false,
               customerEmail: invoice.customer_email ?? "",
+              planAmount,
             });
           }
           break;

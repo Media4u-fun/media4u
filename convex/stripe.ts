@@ -145,6 +145,8 @@ export const createSubscription = internalMutation({
     currentPeriodEnd: v.number(),
     cancelAtPeriodEnd: v.boolean(),
     customerEmail: v.string(),
+    planName: v.optional(v.string()),
+    planAmount: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     // Check if subscription already exists
@@ -440,7 +442,7 @@ export const syncSubscriptionsFromStripe = action({
       data: Array<{
         id: string;
         customer: { id: string; email: string };
-        items: { data: Array<{ price: { id: string } }> };
+        items: { data: Array<{ price: { id: string; unit_amount: number | null; nickname: string | null } }> };
         status: string;
         current_period_start: number;
         current_period_end: number;
@@ -452,7 +454,10 @@ export const syncSubscriptionsFromStripe = action({
     let synced = 0;
     for (const sub of data.data) {
       const customerEmail = sub.customer?.email ?? "";
-      const priceId = sub.items?.data?.[0]?.price?.id ?? "";
+      const priceItem = sub.items?.data?.[0]?.price;
+      const priceId = priceItem?.id ?? "";
+      const planAmount = priceItem?.unit_amount ?? undefined;
+      const planName = priceItem?.nickname ?? undefined;
       await ctx.runMutation(api.stripe.upsertSubscription, {
         stripeSubscriptionId: sub.id,
         stripeCustomerId: sub.customer.id,
@@ -463,6 +468,8 @@ export const syncSubscriptionsFromStripe = action({
         cancelAtPeriodEnd: sub.cancel_at_period_end,
         customerEmail,
         createdAt: sub.created * 1000,
+        planName,
+        planAmount,
       });
       synced++;
     }
@@ -483,6 +490,8 @@ export const upsertSubscription = mutation({
     cancelAtPeriodEnd: v.boolean(),
     customerEmail: v.string(),
     createdAt: v.number(),
+    planName: v.optional(v.string()),
+    planAmount: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     await requireAdmin(ctx);
@@ -502,6 +511,8 @@ export const upsertSubscription = mutation({
         currentPeriodEnd: args.currentPeriodEnd,
         cancelAtPeriodEnd: args.cancelAtPeriodEnd,
         customerEmail: args.customerEmail,
+        planName: args.planName,
+        planAmount: args.planAmount,
         updatedAt: Date.now(),
       });
       return existing._id;
