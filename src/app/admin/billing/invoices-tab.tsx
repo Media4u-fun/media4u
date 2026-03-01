@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
 import { format } from "date-fns";
-import { ArrowLeft, CheckCircle, ExternalLink, FileText, FolderOpen, X, AlertCircle, Loader2 } from "lucide-react";
+import { ArrowLeft, CheckCircle, ExternalLink, FileText, FolderOpen, X, AlertCircle, Loader2, Download, Search } from "lucide-react";
 
 type Toast = { type: "success" | "error"; message: string };
 import Link from "next/link";
@@ -31,9 +31,35 @@ function formatAmount(inv: { setupFeeAmount?: number; budget?: string }) {
   return inv.budget ?? "N/A";
 }
 
+function exportCSV(invoices: Record<string, unknown>[]) {
+  const headers = ["Name", "Email", "Company", "Project Type", "Amount", "Status", "Date"];
+  const rows = invoices.map((inv) => [
+    inv.name as string,
+    inv.email as string,
+    (inv.company as string) ?? "",
+    inv.projectType as string,
+    inv.setupFeeAmount ? `$${inv.setupFeeAmount}` : (inv.budget as string) ?? "N/A",
+    (inv.setupInvoiceStatus as string) ?? "pending",
+    format(new Date(inv.createdAt as number), "yyyy-MM-dd"),
+  ]);
+
+  const csv = [headers, ...rows]
+    .map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(","))
+    .join("\n");
+
+  const blob = new Blob([csv], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `invoices-${format(new Date(), "yyyy-MM-dd")}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 export function InvoicesTab() {
   const convexIsAdmin = useQuery(api.auth.isAdmin);
   const [filterStatus, setFilterStatus] = useState<InvoiceStatus | "all">("all");
+  const [search, setSearch] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [isMarking, setIsMarking] = useState(false);
   const [toast, setToast] = useState<Toast | null>(null);
@@ -47,8 +73,13 @@ export function InvoicesTab() {
   }
 
   const filtered = invoices?.filter((inv) => {
-    if (filterStatus === "all") return true;
-    return inv.setupInvoiceStatus === filterStatus;
+    const matchesStatus = filterStatus === "all" || inv.setupInvoiceStatus === filterStatus;
+    const q = search.toLowerCase();
+    const matchesSearch = !q ||
+      (inv.name as string)?.toLowerCase().includes(q) ||
+      (inv.email as string)?.toLowerCase().includes(q) ||
+      (inv.company as string)?.toLowerCase().includes(q);
+    return matchesStatus && matchesSearch;
   });
 
   const selected = filtered?.find((inv) => inv._id === selectedId);
@@ -77,21 +108,46 @@ export function InvoicesTab() {
         )}
       </AnimatePresence>
 
-      {/* Filters */}
-      <div className="lg:col-span-3 flex gap-3 overflow-x-auto scrollbar-hide">
-        {(["all", "pending", "sent", "needs_verification", "paid"] as const).map((status) => (
-          <button
-            key={status}
-            onClick={() => setFilterStatus(status)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
-              filterStatus === status
-                ? "bg-brand-light/30 text-brand-light border border-brand-light/50"
-                : "bg-white/5 text-gray-400 hover:text-white border border-white/10"
-            }`}
-          >
-            {status === "all" ? "All" : STATUS_LABELS[status]}
-          </button>
-        ))}
+      {/* Toolbar */}
+      <div className="lg:col-span-3 flex flex-col sm:flex-row gap-3">
+        {/* Search */}
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+          <input
+            type="text"
+            placeholder="Search by name, email, company..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full pl-9 pr-4 py-2 rounded-lg bg-white/5 border border-white/10 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-brand-light/50"
+          />
+        </div>
+
+        {/* Status filters */}
+        <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+          {(["all", "pending", "sent", "needs_verification", "paid"] as const).map((status) => (
+            <button
+              key={status}
+              onClick={() => setFilterStatus(status)}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
+                filterStatus === status
+                  ? "bg-brand-light/30 text-brand-light border border-brand-light/50"
+                  : "bg-white/5 text-gray-400 hover:text-white border border-white/10"
+              }`}
+            >
+              {status === "all" ? "All" : STATUS_LABELS[status]}
+            </button>
+          ))}
+        </div>
+
+        {/* Export */}
+        <button
+          onClick={() => filtered && exportCSV(filtered as unknown as Record<string, unknown>[])}
+          disabled={!filtered?.length}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 text-gray-300 hover:text-white hover:bg-white/10 border border-white/10 text-sm font-medium transition-all disabled:opacity-40 whitespace-nowrap"
+        >
+          <Download className="w-4 h-4" />
+          Export CSV
+        </button>
       </div>
 
       {/* List */}
@@ -221,7 +277,7 @@ export function InvoicesTab() {
               <div className="space-y-2 text-sm">
                 <div>
                   <span className="text-gray-500">Invoice ID: </span>
-                  <code className="text-gray-300 text-xs">{selected.setupInvoiceStripeId}</code>
+                  <code className="text-gray-300 text-xs break-all">{selected.setupInvoiceStripeId}</code>
                 </div>
               </div>
             </div>

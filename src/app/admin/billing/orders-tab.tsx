@@ -6,7 +6,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
 import { Doc } from "@convex/_generated/dataModel";
 import { format } from "date-fns";
-import { ArrowLeft, ExternalLink, Trash2, X, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
+import { ArrowLeft, ExternalLink, Trash2, X, CheckCircle, AlertCircle, Loader2, Download, Search } from "lucide-react";
 
 type OrderStatus = "pending" | "paid" | "failed" | "refunded";
 
@@ -31,9 +31,32 @@ const PRODUCT_NAMES: Record<string, string> = {
 
 type Toast = { type: "success" | "error"; message: string };
 
+function exportCSV(orders: Doc<"orders">[]) {
+  const headers = ["Customer Name", "Email", "Product", "Amount", "Status", "Date"];
+  const rows = orders.map((o) => [
+    o.customerName ?? "",
+    o.customerEmail,
+    PRODUCT_NAMES[o.productType] ?? o.productType,
+    `$${(o.amount / 100).toFixed(2)}`,
+    o.status,
+    format(new Date(o.createdAt), "yyyy-MM-dd"),
+  ]);
+  const csv = [headers, ...rows]
+    .map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(","))
+    .join("\n");
+  const blob = new Blob([csv], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `orders-${format(new Date(), "yyyy-MM-dd")}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 export function OrdersTab() {
   const convexIsAdmin = useQuery(api.auth.isAdmin);
   const [filterStatus, setFilterStatus] = useState<OrderStatus | "all">("all");
+  const [search, setSearch] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -41,15 +64,22 @@ export function OrdersTab() {
 
   const orders = useQuery(
     api.stripe.getAllOrders,
-    convexIsAdmin === true
-      ? (filterStatus !== "all" ? { status: filterStatus } : {})
-      : "skip"
+    convexIsAdmin === true ? {} : "skip"
   );
 
   const deleteOrder = useMutation(api.stripe.deleteOrder);
 
-  const selected = orders?.find((o: Doc<"orders">) => o._id === selectedId);
-  const confirmTarget = orders?.find((o: Doc<"orders">) => o._id === confirmDeleteId);
+  const filtered = orders?.filter((o: Doc<"orders">) => {
+    const matchesStatus = filterStatus === "all" || o.status === filterStatus;
+    const q = search.toLowerCase();
+    const matchesSearch = !q ||
+      (o.customerName ?? "").toLowerCase().includes(q) ||
+      o.customerEmail.toLowerCase().includes(q);
+    return matchesStatus && matchesSearch;
+  });
+
+  const selected = filtered?.find((o: Doc<"orders">) => o._id === selectedId);
+  const confirmTarget = filtered?.find((o: Doc<"orders">) => o._id === confirmDeleteId);
 
   function showToast(type: Toast["type"], message: string) {
     setToast({ type, message });
@@ -144,21 +174,41 @@ export function OrdersTab() {
         )}
       </AnimatePresence>
 
-      {/* Filters */}
-      <div className="lg:col-span-3 flex gap-3 overflow-x-auto scrollbar-hide">
-        {(["all", "pending", "paid", "failed", "refunded"] as const).map((status) => (
-          <button
-            key={status}
-            onClick={() => setFilterStatus(status)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
-              filterStatus === status
-                ? "bg-brand-light/30 text-brand-light border border-brand-light/50"
-                : "bg-white/5 text-gray-400 hover:text-white border border-white/10"
-            }`}
-          >
-            {status === "all" ? "All" : STATUS_LABELS[status]}
-          </button>
-        ))}
+      {/* Toolbar */}
+      <div className="lg:col-span-3 flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+          <input
+            type="text"
+            placeholder="Search by name or email..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full pl-9 pr-4 py-2 rounded-lg bg-white/5 border border-white/10 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-brand-light/50"
+          />
+        </div>
+        <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+          {(["all", "pending", "paid", "failed", "refunded"] as const).map((status) => (
+            <button
+              key={status}
+              onClick={() => setFilterStatus(status)}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
+                filterStatus === status
+                  ? "bg-brand-light/30 text-brand-light border border-brand-light/50"
+                  : "bg-white/5 text-gray-400 hover:text-white border border-white/10"
+              }`}
+            >
+              {status === "all" ? "All" : STATUS_LABELS[status]}
+            </button>
+          ))}
+        </div>
+        <button
+          onClick={() => filtered && exportCSV(filtered)}
+          disabled={!filtered?.length}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 text-gray-300 hover:text-white hover:bg-white/10 border border-white/10 text-sm font-medium transition-all disabled:opacity-40 whitespace-nowrap"
+        >
+          <Download className="w-4 h-4" />
+          Export CSV
+        </button>
       </div>
 
       {/* List */}
@@ -170,17 +220,17 @@ export function OrdersTab() {
         <div className="glass-elevated rounded-2xl overflow-hidden">
           <div className="p-4 border-b border-white/10 bg-white/5">
             <p className="text-sm font-semibold text-gray-300">
-              {orders === undefined ? "Loading..." : `${orders.length} Orders`}
+              {filtered === undefined ? "Loading..." : `${filtered.length} Orders`}
             </p>
           </div>
           <div className="divide-y divide-white/10 max-h-[600px] overflow-y-auto">
-            {orders === undefined && (
+            {filtered === undefined && (
               <div className="p-8 flex items-center justify-center gap-2 text-gray-500">
                 <Loader2 className="w-4 h-4 animate-spin" />
                 <span className="text-sm">Loading orders...</span>
               </div>
             )}
-            {orders?.map((order: Doc<"orders">) => (
+            {filtered?.map((order: Doc<"orders">) => (
               <motion.button
                 key={order._id}
                 onClick={() => setSelectedId(order._id)}
@@ -214,7 +264,7 @@ export function OrdersTab() {
                 </div>
               </motion.button>
             ))}
-            {orders?.length === 0 && (
+            {filtered?.length === 0 && (
               <div className="p-8 text-center text-gray-500">No orders found</div>
             )}
           </div>
