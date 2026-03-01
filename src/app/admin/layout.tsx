@@ -29,12 +29,13 @@ import {
   Users,
   Target,
   ChevronDown,
+  type LucideIcon,
 } from "lucide-react";
 
 type NavItem = {
   href: string;
   label: string;
-  icon: React.ElementType;
+  icon: LucideIcon;
   countKey: string | null;
 };
 
@@ -169,7 +170,7 @@ function NavGroup({
 export default function AdminLayout({ children }: { children: ReactNode }) {
   const { isAuthenticated, isLoading, isAdmin, signOut } = useAuth();
   const router = useRouter();
-  const pathname = usePathname();
+  const pathname = usePathname() ?? "";
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const inboxNewCount = useQuery(api.inbox.getInboxNewCount);

@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
+import { Id } from "@convex/_generated/dataModel";
 import { motion, AnimatePresence } from "motion/react";
 import {
   Search, Users, Mail, Phone, Building2, Calendar, Globe,
@@ -38,7 +39,7 @@ function ProjectInvoiceRow({ project }: { project: Record<string, unknown> }) {
   async function handleMarkPaid() {
     setMarking(true);
     try {
-      await confirmPaid({ projectId: project._id as string });
+      await confirmPaid({ projectId: project._id as Id<"projects"> });
       setDone(true);
     } catch {
       // silent - user can retry
