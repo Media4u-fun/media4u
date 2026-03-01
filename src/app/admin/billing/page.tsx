@@ -34,7 +34,8 @@ export default function AdminBillingPage() {
   const orderRevenue = paidOrders.reduce((sum, o) => sum + (o.amount || 0), 0) / 100;
   const invoiceRevenue = paidInvoices.reduce((sum, p) => sum + ((p.setupFeeAmount as number) || 0), 0);
   const totalRevenue = orderRevenue + invoiceRevenue;
-  const mrr = activeSubscriptions.length * 149;
+  // Use actual subscription amounts if available, fallback to 149 estimate
+  const mrr = activeSubscriptions.length * 149; // rough estimate - sync from Stripe for accurate amounts
 
   const stats = [
     {

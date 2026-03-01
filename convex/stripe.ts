@@ -1,6 +1,7 @@
 import { v } from "convex/values";
-import { query, mutation, internalMutation } from "./_generated/server";
+import { query, mutation, internalMutation, action } from "./_generated/server";
 import { requireAdmin, getAuthenticatedUser } from "./auth";
+import { api } from "./_generated/api";
 
 // Product type validator
 const productTypeValidator = v.union(v.literal("starter"), v.literal("professional"));
@@ -413,5 +414,102 @@ export const deleteSubscription = mutation({
   handler: async (ctx, { id }) => {
     await requireAdmin(ctx);
     await ctx.db.delete(id);
+  },
+});
+
+// Admin only - sync active subscriptions from Stripe API
+export const syncSubscriptionsFromStripe = action({
+  args: {},
+  handler: async (ctx) => {
+    const stripeKey = process.env.STRIPE_SECRET_KEY;
+    if (!stripeKey) throw new Error("STRIPE_SECRET_KEY not set");
+
+    // Fetch all active subscriptions from Stripe
+    const response = await fetch("https://api.stripe.com/v1/subscriptions?status=active&limit=100&expand[]=data.customer", {
+      headers: {
+        Authorization: `Bearer ${stripeKey}`,
+      },
+    });
+
+    if (!response.ok) {
+      const err = await response.text();
+      throw new Error(`Stripe API error: ${err}`);
+    }
+
+    const data = await response.json() as {
+      data: Array<{
+        id: string;
+        customer: { id: string; email: string };
+        items: { data: Array<{ price: { id: string } }> };
+        status: string;
+        current_period_start: number;
+        current_period_end: number;
+        cancel_at_period_end: boolean;
+        created: number;
+      }>;
+    };
+
+    let synced = 0;
+    for (const sub of data.data) {
+      const customerEmail = sub.customer?.email ?? "";
+      const priceId = sub.items?.data?.[0]?.price?.id ?? "";
+      await ctx.runMutation(api.stripe.upsertSubscription, {
+        stripeSubscriptionId: sub.id,
+        stripeCustomerId: sub.customer.id,
+        stripePriceId: priceId,
+        status: "active",
+        currentPeriodStart: sub.current_period_start * 1000,
+        currentPeriodEnd: sub.current_period_end * 1000,
+        cancelAtPeriodEnd: sub.cancel_at_period_end,
+        customerEmail,
+        createdAt: sub.created * 1000,
+      });
+      synced++;
+    }
+
+    return { synced };
+  },
+});
+
+// Upsert subscription (used by sync action)
+export const upsertSubscription = mutation({
+  args: {
+    stripeSubscriptionId: v.string(),
+    stripeCustomerId: v.string(),
+    stripePriceId: v.string(),
+    status: subscriptionStatusValidator,
+    currentPeriodStart: v.number(),
+    currentPeriodEnd: v.number(),
+    cancelAtPeriodEnd: v.boolean(),
+    customerEmail: v.string(),
+    createdAt: v.number(),
+  },
+  handler: async (ctx, args) => {
+    await requireAdmin(ctx);
+    const existing = await ctx.db
+      .query("subscriptions")
+      .withIndex("by_stripeSubscriptionId", (q) =>
+        q.eq("stripeSubscriptionId", args.stripeSubscriptionId)
+      )
+      .first();
+
+    if (existing) {
+      await ctx.db.patch(existing._id, {
+        stripeCustomerId: args.stripeCustomerId,
+        stripePriceId: args.stripePriceId,
+        status: args.status,
+        currentPeriodStart: args.currentPeriodStart,
+        currentPeriodEnd: args.currentPeriodEnd,
+        cancelAtPeriodEnd: args.cancelAtPeriodEnd,
+        customerEmail: args.customerEmail,
+        updatedAt: Date.now(),
+      });
+      return existing._id;
+    }
+
+    return await ctx.db.insert("subscriptions", {
+      ...args,
+      updatedAt: Date.now(),
+    });
   },
 });

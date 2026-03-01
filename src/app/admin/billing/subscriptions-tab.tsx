@@ -2,11 +2,11 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { useQuery, useMutation } from "convex/react";
+import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "@convex/_generated/api";
 import { Doc } from "@convex/_generated/dataModel";
 import { format } from "date-fns";
-import { ArrowLeft, ExternalLink, Trash2, X, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
+import { ArrowLeft, ExternalLink, Trash2, X, CheckCircle, AlertCircle, Loader2, RefreshCw } from "lucide-react";
 
 type SubscriptionStatus = "active" | "past_due" | "canceled" | "unpaid";
 
@@ -44,23 +44,39 @@ export function SubscriptionsTab() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
   const [toast, setToast] = useState<Toast | null>(null);
 
   const subscriptions = useQuery(
     api.stripe.getAllSubscriptions,
-    convexIsAdmin === true
-      ? (filterStatus !== "all" ? { status: filterStatus } : {})
-      : "skip"
+    convexIsAdmin === true ? {} : "skip"
+  );
+  const syncFromStripe = useAction(api.stripe.syncSubscriptionsFromStripe);
+
+  const filtered = subscriptions?.filter((s: Doc<"subscriptions">) =>
+    filterStatus === "all" || s.status === filterStatus
   );
 
   const deleteSubscription = useMutation(api.stripe.deleteSubscription);
 
-  const selected = subscriptions?.find((s: Doc<"subscriptions">) => s._id === selectedId);
-  const confirmTarget = subscriptions?.find((s: Doc<"subscriptions">) => s._id === confirmDeleteId);
+  const selected = filtered?.find((s: Doc<"subscriptions">) => s._id === selectedId);
+  const confirmTarget = filtered?.find((s: Doc<"subscriptions">) => s._id === confirmDeleteId);
 
   function showToast(type: Toast["type"], message: string) {
     setToast({ type, message });
     setTimeout(() => setToast(null), 3500);
+  }
+
+  async function handleSync() {
+    setIsSyncing(true);
+    try {
+      const result = await syncFromStripe({});
+      showToast("success", `Synced ${result.synced} subscription(s) from Stripe.`);
+    } catch {
+      showToast("error", "Failed to sync from Stripe. Please try again.");
+    } finally {
+      setIsSyncing(false);
+    }
   }
 
   async function handleDelete() {
@@ -148,21 +164,31 @@ export function SubscriptionsTab() {
         )}
       </AnimatePresence>
 
-      {/* Filters */}
-      <div className="lg:col-span-3 flex gap-3 overflow-x-auto scrollbar-hide">
-        {(["all", "active", "past_due", "canceled", "unpaid"] as const).map((status) => (
-          <button
-            key={status}
-            onClick={() => setFilterStatus(status)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
-              filterStatus === status
-                ? "bg-brand-light/30 text-brand-light border border-brand-light/50"
-                : "bg-white/5 text-gray-400 hover:text-white border border-white/10"
-            }`}
-          >
-            {status === "all" ? "All" : STATUS_LABELS[status]}
-          </button>
-        ))}
+      {/* Toolbar */}
+      <div className="lg:col-span-3 flex flex-wrap gap-3 items-center">
+        <div className="flex gap-2 overflow-x-auto scrollbar-hide flex-1">
+          {(["all", "active", "past_due", "canceled", "unpaid"] as const).map((status) => (
+            <button
+              key={status}
+              onClick={() => setFilterStatus(status)}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
+                filterStatus === status
+                  ? "bg-brand-light/30 text-brand-light border border-brand-light/50"
+                  : "bg-white/5 text-gray-400 hover:text-white border border-white/10"
+              }`}
+            >
+              {status === "all" ? "All" : STATUS_LABELS[status]}
+            </button>
+          ))}
+        </div>
+        <button
+          onClick={handleSync}
+          disabled={isSyncing}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-brand-light/10 text-brand-light hover:bg-brand-light/20 border border-brand-light/30 text-sm font-medium transition-all disabled:opacity-50 whitespace-nowrap"
+        >
+          {isSyncing ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+          {isSyncing ? "Syncing..." : "Sync from Stripe"}
+        </button>
       </div>
 
       {/* List */}
@@ -174,17 +200,30 @@ export function SubscriptionsTab() {
         <div className="glass-elevated rounded-2xl overflow-hidden">
           <div className="p-4 border-b border-white/10 bg-white/5">
             <p className="text-sm font-semibold text-gray-300">
-              {subscriptions === undefined ? "Loading..." : `${subscriptions.length} Subscriptions`}
+              {filtered === undefined ? "Loading..." : `${filtered.length} Subscriptions`}
             </p>
           </div>
           <div className="divide-y divide-white/10 max-h-[600px] overflow-y-auto">
-            {subscriptions === undefined && (
+            {filtered === undefined && (
               <div className="p-8 flex items-center justify-center gap-2 text-gray-500">
                 <Loader2 className="w-4 h-4 animate-spin" />
                 <span className="text-sm">Loading subscriptions...</span>
               </div>
             )}
-            {subscriptions?.map((subscription: Doc<"subscriptions">) => (
+            {filtered?.length === 0 && subscriptions !== undefined && (
+              <div className="p-8 text-center">
+                <p className="text-gray-500 text-sm mb-3">No subscriptions found.</p>
+                <button
+                  onClick={handleSync}
+                  disabled={isSyncing}
+                  className="text-brand-light text-sm hover:underline flex items-center gap-1 mx-auto"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  Sync from Stripe
+                </button>
+              </div>
+            )}
+            {filtered?.map((subscription: Doc<"subscriptions">) => (
               <motion.button
                 key={subscription._id}
                 onClick={() => setSelectedId(subscription._id)}
@@ -213,7 +252,7 @@ export function SubscriptionsTab() {
                 </div>
               </motion.button>
             ))}
-            {subscriptions?.length === 0 && (
+            {filtered?.length === 0 && subscriptions === undefined && (
               <div className="p-8 text-center text-gray-500">No subscriptions found</div>
             )}
           </div>
