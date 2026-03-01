@@ -6,7 +6,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
 import { useState, useRef } from "react";
 import { Id } from "@convex/_generated/dataModel";
-import { Search, Plus, X, Upload, Trash2, Image as ImageIcon, Building2, MapPin, Globe, Phone, Mail, Camera, Download, Send, ExternalLink, Copy } from "lucide-react";
+import { Search, Plus, X, Upload, Trash2, Image as ImageIcon, Building2, MapPin, Globe, Phone, Mail, Camera, Download, Send, ExternalLink, Copy, Loader2, AlertTriangle, ChevronLeft, ChevronRight } from "lucide-react";
 import { useAction } from "convex/react";
 
 type LeadStatus = "new" | "researching" | "building" | "presented" | "contacted" | "qualified" | "converted" | "won" | "lost";
@@ -65,6 +65,8 @@ export default function LeadsAdminPage() {
   });
 
   const sendProposal = useAction(api.websiteFactoryProposals.sendProposalEmail);
+  const [currentPage, setCurrentPage] = useState(1);
+  const PAGE_SIZE = 25;
 
   const [formData, setFormData] = useState({
     name: "",
@@ -93,6 +95,10 @@ export default function LeadsAdminPage() {
       l.industry?.toLowerCase().includes(query)
     );
   }
+
+  // Reset to page 1 when filter/search changes (done via useMemo side-effect pattern)
+  const totalPages = Math.max(1, Math.ceil((filtered?.length ?? 0) / PAGE_SIZE));
+  const paginated = filtered?.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   const selected = leads?.find((l: any) => l._id === selectedId);
 
@@ -462,12 +468,28 @@ export default function LeadsAdminPage() {
 
         {/* Lead List */}
         <div className="flex-1 overflow-y-auto">
-          {filtered && filtered.length === 0 && (
+          {/* Loading state */}
+          {leads === undefined && (
+            <div className="flex items-center justify-center gap-3 p-8 text-neutral-400">
+              <Loader2 className="w-5 h-5 animate-spin" />
+              <span className="text-sm">Loading leads...</span>
+            </div>
+          )}
+          {/* Error state */}
+          {leads === null && (
+            <div className="flex flex-col items-center gap-2 p-8 text-center text-red-400">
+              <AlertTriangle className="w-6 h-6" />
+              <p className="text-sm font-medium">Failed to load leads</p>
+              <p className="text-xs text-neutral-500">Check your connection and refresh</p>
+            </div>
+          )}
+          {/* Empty state */}
+          {leads !== undefined && leads !== null && filtered && filtered.length === 0 && (
             <div className="p-8 text-center text-neutral-500">
               No leads found. Add your first lead!
             </div>
           )}
-          {filtered?.map((lead: any) => (
+          {paginated?.map((lead: any) => (
             <motion.div
               key={lead._id}
               initial={{ opacity: 0 }}
@@ -502,6 +524,31 @@ export default function LeadsAdminPage() {
               )}
             </motion.div>
           ))}
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between px-4 py-3 border-t border-neutral-800 bg-neutral-950">
+              <span className="text-xs text-neutral-500">
+                {(currentPage - 1) * PAGE_SIZE + 1}-{Math.min(currentPage * PAGE_SIZE, filtered?.length ?? 0)} of {filtered?.length ?? 0}
+              </span>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="p-1.5 rounded-lg hover:bg-neutral-800 text-neutral-400 disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                <span className="text-xs text-neutral-400 px-2">{currentPage} / {totalPages}</span>
+                <button
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="p-1.5 rounded-lg hover:bg-neutral-800 text-neutral-400 disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

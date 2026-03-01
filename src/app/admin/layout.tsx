@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, ReactNode } from "react";
+import { AdminErrorBoundary } from "@/components/admin/AdminErrorBoundary";
 import { useRouter, usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
 import { useAuth } from "@/components/AuthContext";
@@ -259,7 +260,9 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         transition={{ duration: 0.5 }}
         className="flex-1 p-4 pt-[72px] lg:pt-8 lg:p-8 min-w-0"
       >
-        {children}
+        <AdminErrorBoundary>
+          {children}
+        </AdminErrorBoundary>
       </motion.main>
     </div>
   );

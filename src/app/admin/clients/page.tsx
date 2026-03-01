@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
 import { motion, AnimatePresence } from "motion/react";
@@ -11,6 +11,7 @@ import {
   ClipboardList, Bell, Activity, ChevronRight, ExternalLink,
   RefreshCw, Send, Plus, X, Hash, Newspaper, AlertCircle,
   CircleCheck, CircleDot, Circle, Flame, ArrowUp, ArrowRight, ArrowDown,
+  Loader2, ChevronLeft,
 } from "lucide-react";
 import EditClientModal from "@/components/admin/EditClientModal";
 import type { LucideIcon } from "lucide-react";
@@ -80,11 +81,17 @@ export default function ClientsPage() {
 
   const selectedClient = clients?.find((c) => c.primaryEmail === selectedEmail);
 
-  const filteredClients = clients?.filter((client) =>
+  const [clientPage, setClientPage] = useState(1);
+  const CLIENT_PAGE_SIZE = 25;
+
+  const filteredClients = useMemo(() => clients?.filter((client) =>
     client.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     client.primaryEmail.toLowerCase().includes(searchQuery.toLowerCase()) ||
     client.company?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  ), [clients, searchQuery]);
+
+  const clientTotalPages = Math.max(1, Math.ceil((filteredClients?.length ?? 0) / CLIENT_PAGE_SIZE));
+  const paginatedClients = filteredClients?.slice((clientPage - 1) * CLIENT_PAGE_SIZE, clientPage * CLIENT_PAGE_SIZE);
 
   function selectClient(email: string) {
     setSelectedEmail(email);
@@ -139,7 +146,22 @@ export default function ClientsPage() {
             </div>
 
             <div className="space-y-1.5 max-h-[calc(100vh-340px)] overflow-y-auto pr-1">
-              {filteredClients?.map((client) => (
+              {/* Loading */}
+              {clients === undefined && (
+                <div className="flex items-center justify-center gap-2 py-10 text-gray-500">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span className="text-sm">Loading clients...</span>
+                </div>
+              )}
+              {/* Error */}
+              {clients === null && (
+                <div className="flex flex-col items-center gap-1 py-10 text-red-400 text-center">
+                  <AlertCircle className="w-6 h-6" />
+                  <p className="text-sm font-medium">Failed to load clients</p>
+                  <p className="text-xs text-gray-600">Refresh to try again</p>
+                </div>
+              )}
+              {paginatedClients?.map((client) => (
                 <motion.div
                   key={client.primaryEmail}
                   whileHover={{ scale: 1.01 }}
@@ -181,10 +203,35 @@ export default function ClientsPage() {
                   </div>
                 </motion.div>
               ))}
-              {filteredClients?.length === 0 && (
+              {filteredClients?.length === 0 && clients !== undefined && (
                 <div className="text-center py-12 text-gray-600">
                   <Users className="w-10 h-10 mx-auto mb-2 opacity-40" />
                   <p className="text-sm">No clients found</p>
+                </div>
+              )}
+              {/* Pagination */}
+              {clientTotalPages > 1 && (
+                <div className="flex items-center justify-between pt-2 border-t border-white/8 mt-2">
+                  <span className="text-xs text-gray-600">
+                    {(clientPage - 1) * CLIENT_PAGE_SIZE + 1}-{Math.min(clientPage * CLIENT_PAGE_SIZE, filteredClients?.length ?? 0)} of {filteredClients?.length ?? 0}
+                  </span>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => setClientPage((p) => Math.max(1, p - 1))}
+                      disabled={clientPage === 1}
+                      className="p-1 rounded-lg hover:bg-white/5 text-gray-500 disabled:opacity-30"
+                    >
+                      <ChevronLeft className="w-3.5 h-3.5" />
+                    </button>
+                    <span className="text-xs text-gray-500">{clientPage}/{clientTotalPages}</span>
+                    <button
+                      onClick={() => setClientPage((p) => Math.min(clientTotalPages, p + 1))}
+                      disabled={clientPage === clientTotalPages}
+                      className="p-1 rounded-lg hover:bg-white/5 text-gray-500 disabled:opacity-30"
+                    >
+                      <ChevronRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
               )}
             </div>

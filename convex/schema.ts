@@ -468,7 +468,8 @@ export default defineSchema({
     date: v.string(),
     readTime: v.string(),
     gradient: v.string(),
-    imageStorageId: v.optional(v.id("_storage")),
+    imageStorageId: v.optional(v.id("_storage")), // legacy Convex storage
+    imageUrl: v.optional(v.string()), // Cloudflare image URL
     featured: v.boolean(),
     published: v.boolean(),
     createdAt: v.number(),
