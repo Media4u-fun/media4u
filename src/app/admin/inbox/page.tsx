@@ -5,7 +5,7 @@ import { motion } from "motion/react";
 import { useQuery } from "convex/react";
 import { api } from "@convex/_generated/api";
 import { Doc } from "@convex/_generated/dataModel";
-import { Search, Plus } from "lucide-react";
+import { Search, Plus, Inbox, Clock, TrendingUp, CheckCircle } from "lucide-react";
 import { InboxItem, InboxSource, UnifiedStatus, UNIFIED_STATUS_LABELS, SOURCE_LABELS } from "./types";
 import { InboxListItem } from "./inbox-list-item";
 import { ContactDetail } from "./contact-detail";
@@ -78,6 +78,18 @@ export default function AdminInboxPage() {
     }
   }
 
+  const newCount = inboxItems?.filter((i: InboxItem) => i.unifiedStatus === "new").length ?? 0;
+  const inProgressCount = inboxItems?.filter((i: InboxItem) => i.unifiedStatus === "in_progress").length ?? 0;
+  const convertedCount = inboxItems?.filter((i: InboxItem) => i.unifiedStatus === "converted").length ?? 0;
+  const convRate = inboxItems?.length ? Math.round((convertedCount / inboxItems.length) * 100) : 0;
+
+  const inboxStats = [
+    { label: "Total", value: inboxItems?.length ?? 0, icon: Inbox, color: "text-brand-light" },
+    { label: "New", value: newCount, icon: TrendingUp, color: "text-blue-400" },
+    { label: "In Progress", value: inProgressCount, icon: Clock, color: "text-yellow-400" },
+    { label: "Converted", value: `${convRate}%`, icon: CheckCircle, color: "text-emerald-400" },
+  ];
+
   return (
     <div>
       <motion.div
@@ -98,6 +110,20 @@ export default function AdminInboxPage() {
             Add Lead
           </button>
         </div>
+      </motion.div>
+
+      {/* Stats */}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
+        className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        {inboxStats.map((s) => (
+          <div key={s.label} className="glass-elevated rounded-xl p-4 border border-white/10">
+            <div className="flex items-center gap-2 mb-1">
+              <s.icon className={`w-4 h-4 ${s.color}`} />
+              <p className="text-xs text-gray-500 uppercase tracking-wider">{s.label}</p>
+            </div>
+            <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
+          </div>
+        ))}
       </motion.div>
 
       {/* Search */}

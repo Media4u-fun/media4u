@@ -281,6 +281,27 @@ export default function NewsletterAdminPage() {
         <p className="text-gray-400">Create, schedule, and send newsletters to your subscribers</p>
       </motion.div>
 
+      {/* Stats */}
+      {(() => {
+        const active = subscribers?.filter((s: any) => !s.unsubscribed).length ?? 0;
+        const sent = newsletters?.filter((n: any) => n.status === "sent").length ?? 0;
+        return (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            {[
+              { label: "Total Newsletters", value: newsletters?.length ?? 0, color: "text-brand-light" },
+              { label: "Sent", value: sent, color: "text-emerald-400" },
+              { label: "Active Subscribers", value: active, color: "text-blue-400" },
+              { label: "Total Subscribers", value: subscribers?.length ?? 0, color: "text-purple-400" },
+            ].map((s) => (
+              <div key={s.label} className="glass-elevated rounded-xl p-4 border border-white/10">
+                <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">{s.label}</p>
+                <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
+              </div>
+            ))}
+          </div>
+        );
+      })()}
+
       {/* Master-Detail Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         {/* Left Sidebar - Newsletter List */}

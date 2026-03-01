@@ -580,6 +580,30 @@ export default function ProjectsAdminPage() {
         </button>
       </motion.div>
 
+      {/* Stats */}
+      {(() => {
+        const active = projects?.filter((p: any) => p.status !== "launched").length ?? 0;
+        const launched = projects?.filter((p: any) => p.status === "launched").length ?? 0;
+        const paidRevenue = projects?.filter((p: any) => p.setupInvoicePaid).reduce((sum: number, p: any) => sum + (p.setupFeeAmount || 0), 0) ?? 0;
+        const pendingPayment = projects?.filter((p: any) => p.setupInvoiceStatus && p.setupInvoiceStatus !== "paid").length ?? 0;
+        return (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
+            className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            {[
+              { label: "Active Projects", value: active, color: "text-brand-light" },
+              { label: "Launched", value: launched, color: "text-emerald-400" },
+              { label: "Revenue Collected", value: `$${paidRevenue.toLocaleString()}`, color: "text-green-400" },
+              { label: "Pending Payment", value: pendingPayment, color: "text-yellow-400" },
+            ].map((s) => (
+              <div key={s.label} className="glass-elevated rounded-xl p-4 border border-white/10">
+                <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">{s.label}</p>
+                <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
+              </div>
+            ))}
+          </motion.div>
+        );
+      })()}
+
       {/* Search Bar */}
       <div className="mb-4">
         <div className="relative">

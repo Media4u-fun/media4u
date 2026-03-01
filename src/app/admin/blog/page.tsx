@@ -269,6 +269,26 @@ export default function BlogAdminPage() {
         </button>
       </motion.div>
 
+      {/* Stats */}
+      {(() => {
+        const published = posts?.filter((p: { published: boolean }) => p.published).length ?? 0;
+        const drafts = (posts?.length ?? 0) - published;
+        return (
+          <div className="grid grid-cols-3 gap-4 mb-6">
+            {[
+              { label: "Total Posts", value: posts?.length ?? 0, color: "text-brand-light" },
+              { label: "Published", value: published, color: "text-emerald-400" },
+              { label: "Drafts", value: drafts, color: "text-yellow-400" },
+            ].map((s) => (
+              <div key={s.label} className="glass-elevated rounded-xl p-4 border border-white/10">
+                <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">{s.label}</p>
+                <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
+              </div>
+            ))}
+          </div>
+        );
+      })()}
+
       {/* Filter */}
       <div className="mb-6 flex gap-3">
         {(["all", "published", "draft"] as const).map((f) => (
