@@ -726,4 +726,20 @@ export default defineSchema({
     updatedAt: v.number(),
   })
     .index("by_key", ["key"]),
+
+  tasks: defineTable({
+    title: v.string(),
+    notes: v.optional(v.string()),
+    priority: v.union(v.literal("low"), v.literal("medium"), v.literal("high"), v.literal("urgent")),
+    status: v.union(v.literal("todo"), v.literal("in_progress"), v.literal("done")),
+    category: v.string(),
+    dueDate: v.optional(v.string()),
+    projectId: v.optional(v.id("projects")),
+    completedAt: v.optional(v.number()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_status", ["status"])
+    .index("by_priority", ["priority"])
+    .index("by_dueDate", ["dueDate"]),
 });

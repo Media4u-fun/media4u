@@ -19,6 +19,17 @@ import {
   CheckCircle,
   XCircle,
   RefreshCw,
+  ClipboardList,
+  Flame,
+  ArrowUp,
+  ArrowRight,
+  ArrowDown,
+  Trash2,
+  Tag,
+  Clock,
+  CircleDot,
+  CircleCheck,
+  Circle,
 } from "lucide-react";
 
 // ---------------------------------------------------------------------------
@@ -1176,6 +1187,384 @@ function NoteModal({ eventId, initial, onClose, onSave }: NoteModalProps) {
 }
 
 // ---------------------------------------------------------------------------
+// Task Board
+// ---------------------------------------------------------------------------
+
+const TASK_CATEGORIES = [
+  "Follow-Up", "Client Work", "Build Task", "Marketing", "Admin", "Finance", "Personal", "Urgent", "Other",
+] as const;
+
+const PRIORITY_CONFIG = {
+  urgent: { label: "Urgent", color: "text-red-400", bg: "bg-red-500/20", border: "border-red-500/30", icon: Flame },
+  high:   { label: "High",   color: "text-orange-400", bg: "bg-orange-500/20", border: "border-orange-500/30", icon: ArrowUp },
+  medium: { label: "Medium", color: "text-yellow-400", bg: "bg-yellow-500/20", border: "border-yellow-500/30", icon: ArrowRight },
+  low:    { label: "Low",    color: "text-blue-400",   bg: "bg-blue-500/20",   border: "border-blue-500/30",   icon: ArrowDown },
+};
+
+const STATUS_COLUMNS = [
+  { key: "todo",        label: "To Do",       icon: Circle,      color: "text-gray-400",   border: "border-gray-700" },
+  { key: "in_progress", label: "In Progress", icon: CircleDot,   color: "text-cyan-400",   border: "border-cyan-500/30" },
+  { key: "done",        label: "Done",        icon: CircleCheck, color: "text-emerald-400", border: "border-emerald-500/30" },
+] as const;
+
+type TaskDoc = {
+  _id: string;
+  title: string;
+  notes?: string;
+  priority: "low" | "medium" | "high" | "urgent";
+  status: "todo" | "in_progress" | "done";
+  category: string;
+  dueDate?: string;
+  projectId?: string;
+  completedAt?: number;
+  createdAt: number;
+};
+
+type ProjectOption = { _id: Id<"projects">; name: string };
+
+type TaskBoardProps = {
+  tasks: TaskDoc[];
+  projects: ProjectOption[];
+  onCreateTask: (args: { title: string; notes?: string; priority: "low" | "medium" | "high" | "urgent"; category: string; dueDate?: string; projectId?: Id<"projects"> }) => Promise<unknown>;
+  onUpdateStatus: (args: { id: string; status: "todo" | "in_progress" | "done" }) => Promise<unknown>;
+  onDeleteTask: (args: { id: string }) => Promise<unknown>;
+};
+
+function TaskBoard({ tasks, projects, onCreateTask, onUpdateStatus, onDeleteTask }: TaskBoardProps) {
+  const [showAdd, setShowAdd] = useState(false);
+  const [filterPriority, setFilterPriority] = useState<string>("all");
+  const [filterCategory, setFilterCategory] = useState<string>("all");
+  const [filterProject, setFilterProject] = useState<string>("all");
+  const [newTitle, setNewTitle] = useState("");
+  const [newNotes, setNewNotes] = useState("");
+  const [newPriority, setNewPriority] = useState<"low" | "medium" | "high" | "urgent">("medium");
+  const [newCategory, setNewCategory] = useState("Other");
+  const [newDueDate, setNewDueDate] = useState("");
+  const [newProjectId, setNewProjectId] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  const filtered = useMemo(() => {
+    return tasks.filter((t) => {
+      if (filterPriority !== "all" && t.priority !== filterPriority) return false;
+      if (filterCategory !== "all" && t.category !== filterCategory) return false;
+      if (filterProject !== "all" && t.projectId !== filterProject) return false;
+      return true;
+    });
+  }, [tasks, filterPriority, filterCategory, filterProject]);
+
+  const byStatus = useMemo(() => {
+    const map: Record<string, TaskDoc[]> = { todo: [], in_progress: [], done: [] };
+    for (const t of filtered) {
+      if (map[t.status]) map[t.status].push(t);
+    }
+    return map;
+  }, [filtered]);
+
+  const counts = useMemo(() => ({
+    todo: tasks.filter((t) => t.status === "todo").length,
+    in_progress: tasks.filter((t) => t.status === "in_progress").length,
+    done: tasks.filter((t) => t.status === "done").length,
+  }), [tasks]);
+
+  const handleAdd = async () => {
+    if (!newTitle.trim()) return;
+    setSaving(true);
+    await onCreateTask({
+      title: newTitle.trim(),
+      notes: newNotes.trim() || undefined,
+      priority: newPriority,
+      category: newCategory,
+      dueDate: newDueDate || undefined,
+      projectId: newProjectId ? (newProjectId as Id<"projects">) : undefined,
+    });
+    setNewTitle(""); setNewNotes(""); setNewPriority("medium"); setNewCategory("Other"); setNewDueDate(""); setNewProjectId("");
+    setShowAdd(false);
+    setSaving(false);
+  };
+
+  const today = new Date().toISOString().split("T")[0];
+
+  return (
+    <div className="space-y-4">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <ClipboardList className="w-5 h-5 text-cyan-400" />
+          <h2 className="text-lg font-bold text-white">Task Board</h2>
+          <div className="flex items-center gap-2">
+            {STATUS_COLUMNS.map((col) => (
+              <span key={col.key} className={`text-xs px-2 py-0.5 rounded-full bg-white/5 border border-white/10 ${col.color}`}>
+                {counts[col.key]} {col.label}
+              </span>
+            ))}
+          </div>
+        </div>
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Priority filter */}
+          <select
+            value={filterPriority}
+            onChange={(e) => setFilterPriority(e.target.value)}
+            className="text-xs px-2 py-1.5 rounded-lg bg-[#1a1a22] border border-white/10 text-gray-300 outline-none cursor-pointer"
+          >
+            <option value="all" className="bg-[#1a1a22]">All Priorities</option>
+            {Object.entries(PRIORITY_CONFIG).map(([k, v]) => (
+              <option key={k} value={k} className="bg-[#1a1a22]">{v.label}</option>
+            ))}
+          </select>
+          {/* Category filter */}
+          <select
+            value={filterCategory}
+            onChange={(e) => setFilterCategory(e.target.value)}
+            className="text-xs px-2 py-1.5 rounded-lg bg-[#1a1a22] border border-white/10 text-gray-300 outline-none cursor-pointer"
+          >
+            <option value="all" className="bg-[#1a1a22]">All Categories</option>
+            {TASK_CATEGORIES.map((c) => <option key={c} value={c} className="bg-[#1a1a22]">{c}</option>)}
+          </select>
+          {/* Project filter */}
+          {projects.length > 0 && (
+            <select
+              value={filterProject}
+              onChange={(e) => setFilterProject(e.target.value)}
+              className="text-xs px-2 py-1.5 rounded-lg bg-[#1a1a22] border border-white/10 text-gray-300 outline-none cursor-pointer"
+            >
+              <option value="all" className="bg-[#1a1a22]">All Projects</option>
+              {projects.map((p) => <option key={p._id} value={p._id} className="bg-[#1a1a22]">{p.name}</option>)}
+            </select>
+          )}
+          <button
+            onClick={() => setShowAdd(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-cyan-500/20 border border-cyan-500/30 text-cyan-400 rounded-lg text-xs font-semibold hover:bg-cyan-500/30 transition-all"
+          >
+            <Plus className="w-3.5 h-3.5" /> Add Task
+          </button>
+        </div>
+      </div>
+
+      {/* Kanban Columns */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {STATUS_COLUMNS.map((col) => {
+          const colTasks = byStatus[col.key] ?? [];
+          const ColIcon = col.icon;
+          return (
+            <div key={col.key} className={`glass-elevated rounded-2xl border ${col.border} flex flex-col min-h-[200px]`}>
+              {/* Column Header */}
+              <div className="flex items-center justify-between px-4 py-3 border-b border-white/8">
+                <div className="flex items-center gap-2">
+                  <ColIcon className={`w-4 h-4 ${col.color}`} />
+                  <span className={`text-sm font-semibold ${col.color}`}>{col.label}</span>
+                  <span className="text-xs text-gray-600 bg-white/5 rounded-full px-2 py-0.5">{colTasks.length}</span>
+                </div>
+              </div>
+
+              {/* Tasks */}
+              <div className="flex-1 p-3 space-y-2 overflow-y-auto max-h-[420px]">
+                {colTasks.length === 0 && (
+                  <div className="flex items-center justify-center h-20 text-gray-700 text-xs">
+                    No tasks here
+                  </div>
+                )}
+                {colTasks.map((task) => {
+                  const p = PRIORITY_CONFIG[task.priority];
+                  const PIcon = p.icon;
+                  const isOverdue = task.dueDate && task.dueDate < today && task.status !== "done";
+                  return (
+                    <motion.div
+                      key={task._id}
+                      layout
+                      initial={{ opacity: 0, y: 6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className={`group relative bg-white/[0.03] border border-white/8 hover:border-white/15 rounded-xl p-3 transition-all`}
+                    >
+                      {/* Priority bar */}
+                      <div className={`absolute left-0 top-3 bottom-3 w-0.5 rounded-full ${p.bg.replace("bg-", "bg-").replace("/20", "/60")} ml-1`} />
+
+                      <div className="pl-2">
+                        {/* Title row */}
+                        <div className="flex items-start justify-between gap-2 mb-2">
+                          <span className={`text-sm font-medium text-white leading-snug ${task.status === "done" ? "line-through text-gray-500" : ""}`}>
+                            {task.title}
+                          </span>
+                          <button
+                            onClick={() => void onDeleteTask({ id: task._id })}
+                            className="opacity-0 group-hover:opacity-100 text-gray-600 hover:text-red-400 transition-all shrink-0 mt-0.5"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+
+                        {/* Notes */}
+                        {task.notes && (
+                          <p className="text-xs text-gray-500 mb-2 leading-relaxed line-clamp-2">{task.notes}</p>
+                        )}
+
+                        {/* Badges row */}
+                        <div className="flex items-center gap-1.5 flex-wrap mb-2">
+                          <span className={`inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded-md ${p.bg} ${p.text} border ${p.border}`}>
+                            <PIcon className="w-2.5 h-2.5" />{p.label}
+                          </span>
+                          <span className="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded-md bg-white/5 text-gray-400 border border-white/8">
+                            <Tag className="w-2.5 h-2.5" />{task.category}
+                          </span>
+                          {task.dueDate && (
+                            <span className={`inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded-md border ${isOverdue ? "bg-red-500/20 text-red-400 border-red-500/30" : "bg-white/5 text-gray-400 border-white/8"}`}>
+                              <Clock className="w-2.5 h-2.5" />
+                              {task.dueDate}
+                            </span>
+                          )}
+                          {task.projectId && (() => {
+                            const proj = projects.find((p) => p._id === task.projectId);
+                            return proj ? (
+                              <span className="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded-md bg-violet-500/15 text-violet-400 border border-violet-500/25">
+                                <Sparkles className="w-2.5 h-2.5" />{proj.name}
+                              </span>
+                            ) : null;
+                          })()}
+                        </div>
+
+                        {/* Status move buttons */}
+                        <div className="flex gap-1">
+                          {STATUS_COLUMNS.filter((c) => c.key !== col.key).map((c) => {
+                            const CIcon = c.icon;
+                            return (
+                              <button
+                                key={c.key}
+                                onClick={() => void onUpdateStatus({ id: task._id, status: c.key })}
+                                className={`flex items-center gap-1 text-xs px-2 py-1 rounded-lg bg-white/5 border border-white/8 hover:border-white/20 ${c.color} transition-all`}
+                              >
+                                <CIcon className="w-3 h-3" />
+                                {c.label}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Add Task Modal */}
+      <AnimatePresence>
+        {showAdd && (
+          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 30 }}
+              className="w-full max-w-lg bg-[#1a1a22] border border-white/10 rounded-2xl p-6 shadow-2xl"
+            >
+              <div className="flex items-center justify-between mb-5">
+                <h3 className="text-white font-bold text-lg flex items-center gap-2">
+                  <ClipboardList className="w-5 h-5 text-cyan-400" /> New Task
+                </h3>
+                <button onClick={() => setShowAdd(false)} className="text-gray-500 hover:text-white transition-colors">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1.5 font-medium">Task Title *</label>
+                  <input
+                    autoFocus
+                    value={newTitle}
+                    onChange={(e) => setNewTitle(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && void handleAdd()}
+                    placeholder="What needs to get done?"
+                    className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-600 text-sm outline-none focus:border-cyan-500/50 transition-all"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1.5 font-medium">Notes</label>
+                  <textarea
+                    value={newNotes}
+                    onChange={(e) => setNewNotes(e.target.value)}
+                    placeholder="Any details..."
+                    rows={2}
+                    className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-600 text-sm outline-none focus:border-cyan-500/50 transition-all resize-none"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs text-gray-400 mb-1.5 font-medium">Priority</label>
+                    <select
+                      value={newPriority}
+                      onChange={(e) => setNewPriority(e.target.value as typeof newPriority)}
+                      className="w-full px-3 py-2.5 rounded-xl bg-[#1a1a22] border border-white/10 text-white text-sm outline-none focus:border-cyan-500/50"
+                    >
+                      {Object.entries(PRIORITY_CONFIG).map(([k, v]) => (
+                        <option key={k} value={k} className="bg-[#1a1a22]">{v.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-400 mb-1.5 font-medium">Category</label>
+                    <select
+                      value={newCategory}
+                      onChange={(e) => setNewCategory(e.target.value)}
+                      className="w-full px-3 py-2.5 rounded-xl bg-[#1a1a22] border border-white/10 text-white text-sm outline-none focus:border-cyan-500/50"
+                    >
+                      {TASK_CATEGORIES.map((c) => <option key={c} value={c} className="bg-[#1a1a22]">{c}</option>)}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs text-gray-400 mb-1.5 font-medium">Due Date (optional)</label>
+                    <input
+                      type="date"
+                      value={newDueDate}
+                      onChange={(e) => setNewDueDate(e.target.value)}
+                      className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm outline-none focus:border-cyan-500/50 transition-all"
+                    />
+                  </div>
+                  {projects.length > 0 && (
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1.5 font-medium">Link to Project (optional)</label>
+                      <select
+                        value={newProjectId}
+                        onChange={(e) => setNewProjectId(e.target.value)}
+                        className="w-full px-3 py-2.5 rounded-xl bg-[#1a1a22] border border-white/10 text-white text-sm outline-none focus:border-cyan-500/50"
+                      >
+                        <option value="" className="bg-[#1a1a22]">No project</option>
+                        {projects.map((p) => <option key={p._id} value={p._id} className="bg-[#1a1a22]">{p.name}</option>)}
+                      </select>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex gap-2 pt-1">
+                  <button
+                    onClick={() => setShowAdd(false)}
+                    className="flex-1 px-4 py-2.5 rounded-xl border border-white/10 text-gray-400 text-sm hover:bg-white/5 transition-all"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => void handleAdd()}
+                    disabled={!newTitle.trim() || saving}
+                    className="flex-1 px-4 py-2.5 rounded-xl bg-cyan-500/20 border border-cyan-500/30 text-cyan-400 text-sm font-semibold hover:bg-cyan-500/30 transition-all disabled:opacity-40"
+                  >
+                    {saving ? "Saving..." : "Add Task"}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Main Page
 // ---------------------------------------------------------------------------
 
@@ -1201,6 +1590,11 @@ export default function AdminCalendarPage() {
 
   // Convex
   const convexIsAdmin = useQuery(api.auth.isAdmin);
+  const allTasks = useQuery(api.tasks.getAllTasks, {});
+  const allProjects = useQuery(api.projects.getAllProjects, {});
+  const createTask = useMutation(api.tasks.createTask);
+  const updateTaskStatus = useMutation(api.tasks.updateTaskStatus);
+  const deleteTask = useMutation(api.tasks.deleteTask);
   const allAppointments = useQuery(
     api.appointments.getAllAppointments,
     convexIsAdmin === true ? {} : "skip"
@@ -1421,14 +1815,7 @@ export default function AdminCalendarPage() {
       <div className="flex gap-6">
         {/* Calendar area */}
         <div className="flex-1 min-w-0">
-          {allAppointments === undefined ? (
-            <div className="glass-elevated rounded-2xl p-8 flex items-center justify-center">
-              <div className="text-center">
-                <Loader2 className="w-8 h-8 animate-spin text-cyan-400 mx-auto mb-3" />
-                <p className="text-gray-400 text-sm">Loading calendar...</p>
-              </div>
-            </div>
-          ) : viewMode === "month" ? (
+          {viewMode === "month" ? (
             <MonthView
               viewYear={viewYear}
               viewMonth={viewMonth}
@@ -1487,6 +1874,15 @@ export default function AdminCalendarPage() {
 
       {/* AI Assistant Panel */}
       <AiAssistantPanel allAppointments={appointments} />
+
+      {/* Task Board */}
+      <TaskBoard
+        tasks={allTasks ?? []}
+        projects={allProjects ?? []}
+        onCreateTask={createTask}
+        onUpdateStatus={updateTaskStatus}
+        onDeleteTask={deleteTask}
+      />
 
       {/* Event Detail - mobile bottom sheet */}
       <AnimatePresence>

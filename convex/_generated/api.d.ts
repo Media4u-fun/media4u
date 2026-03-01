@@ -47,6 +47,7 @@ import type * as seed from "../seed.js";
 import type * as settings from "../settings.js";
 import type * as stripe from "../stripe.js";
 import type * as support from "../support.js";
+import type * as tasks from "../tasks.js";
 import type * as users from "../users.js";
 import type * as vr from "../vr.js";
 import type * as websiteFactoryProposals from "../websiteFactoryProposals.js";
@@ -97,6 +98,7 @@ declare const fullApi: ApiFromModules<{
   settings: typeof settings;
   stripe: typeof stripe;
   support: typeof support;
+  tasks: typeof tasks;
   users: typeof users;
   vr: typeof vr;
   websiteFactoryProposals: typeof websiteFactoryProposals;

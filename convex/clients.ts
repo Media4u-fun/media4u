@@ -228,35 +228,71 @@ export const getAllClients = query({
   },
 });
 
-// Get client details with all related records
+// Get client details with ALL related records across the entire dashboard
 export const getClientDetails = query({
   args: { email: v.string() },
   handler: async (ctx, args) => {
-    const projects = await ctx.db
-      .query("projects")
-      .filter((q) => q.eq(q.field("email"), args.email))
-      .collect();
+    const email = args.email;
 
-    const leads = await ctx.db
-      .query("leads")
-      .filter((q) => q.eq(q.field("email"), args.email))
-      .collect();
+    // Core records
+    const projects = await ctx.db.query("projects").filter((q) => q.eq(q.field("email"), email)).collect();
+    const leads = await ctx.db.query("leads").filter((q) => q.eq(q.field("email"), email)).collect();
+    const requests = await ctx.db.query("projectRequests").filter((q) => q.eq(q.field("email"), email)).collect();
+    const contacts = await ctx.db.query("contactSubmissions").filter((q) => q.eq(q.field("email"), email)).collect();
+    const quoteRequests = await ctx.db.query("quoteRequests").filter((q) => q.eq(q.field("email"), email)).collect();
 
-    const requests = await ctx.db
-      .query("projectRequests")
-      .filter((q) => q.eq(q.field("email"), args.email))
-      .collect();
+    // Appointments
+    const appointments = await ctx.db.query("appointments").filter((q) => q.eq(q.field("userEmail"), email)).collect();
 
-    const contacts = await ctx.db
-      .query("contactSubmissions")
-      .filter((q) => q.eq(q.field("email"), args.email))
-      .collect();
+    // Messages
+    const messages = await ctx.db.query("messages").filter((q) => q.eq(q.field("userEmail"), email)).collect();
+
+    // Admin notes
+    const adminNotes = await ctx.db.query("adminNotes").filter((q) => q.eq(q.field("clientEmail"), email)).collect();
+
+    // Billing
+    const orders = await ctx.db.query("orders").filter((q) => q.eq(q.field("customerEmail"), email)).collect();
+    const subscriptions = await ctx.db.query("subscriptions").filter((q) => q.eq(q.field("customerEmail"), email)).collect();
+
+    // Newsletter
+    const newsletterRecord = await ctx.db.query("newsletterSubscribers").filter((q) => q.eq(q.field("email"), email)).first();
+
+    // Tasks + Activity via projects
+    const projectIds = projects.map((p) => p._id);
+    const tasks: Array<Record<string, unknown>> = [];
+    const activity: Array<Record<string, unknown>> = [];
+
+    for (const pid of projectIds) {
+      const pt = await ctx.db.query("tasks").filter((q) => q.eq(q.field("projectId"), pid)).collect();
+      const pa = await ctx.db.query("clientActivity").withIndex("by_projectId", (q) => q.eq("projectId", pid)).order("desc").take(20);
+      tasks.push(...pt);
+      activity.push(...pa);
+    }
+
+    const sortedActivity = [...activity].sort((a, b) => (b.createdAt as number) - (a.createdAt as number)).slice(0, 30);
+    const today = new Date().toISOString().split("T")[0];
 
     return {
       projects,
       leads,
       requests,
       contacts,
+      quoteRequests,
+      appointments,
+      messages,
+      adminNotes,
+      orders,
+      subscriptions,
+      newsletterSubscribed: newsletterRecord ? !newsletterRecord.unsubscribed : false,
+      tasks,
+      activity: sortedActivity,
+      summary: {
+        totalRevenue: projects.reduce((sum, p) => sum + ((p.totalCost as number) || 0), 0),
+        paidOrdersCount: orders.filter((o) => o.status === "paid").length,
+        activeSubscriptionsCount: subscriptions.filter((s) => s.status === "active").length,
+        openTasksCount: tasks.filter((t) => t.status !== "done").length,
+        upcomingAppointments: appointments.filter((a) => (a.date as string) >= today && a.status !== "cancelled").length,
+      },
     };
   },
 });
