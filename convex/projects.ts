@@ -758,6 +758,7 @@ export const confirmSetupInvoicePaid = mutation({
     await ctx.db.patch(args.projectId, {
       setupInvoiceStatus: "paid",
       setupInvoicePaid: true,
+      paymentStatus: "paid",
       updatedAt: Date.now(),
     });
 

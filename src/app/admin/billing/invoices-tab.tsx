@@ -1,11 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
 import { format } from "date-fns";
-import { ArrowLeft, CheckCircle, ExternalLink, FileText, FolderOpen } from "lucide-react";
+import { ArrowLeft, CheckCircle, ExternalLink, FileText, FolderOpen, X, AlertCircle, Loader2 } from "lucide-react";
+
+type Toast = { type: "success" | "error"; message: string };
 import Link from "next/link";
 
 type InvoiceStatus = "pending" | "sent" | "needs_verification" | "paid";
@@ -33,9 +35,16 @@ export function InvoicesTab() {
   const convexIsAdmin = useQuery(api.auth.isAdmin);
   const [filterStatus, setFilterStatus] = useState<InvoiceStatus | "all">("all");
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [isMarking, setIsMarking] = useState(false);
+  const [toast, setToast] = useState<Toast | null>(null);
 
   const invoices = useQuery(api.projects.getProjectsWithInvoices, convexIsAdmin === true ? {} : "skip");
   const confirmPaid = useMutation(api.projects.confirmSetupInvoicePaid);
+
+  function showToast(type: Toast["type"], message: string) {
+    setToast({ type, message });
+    setTimeout(() => setToast(null), 3500);
+  }
 
   const filtered = invoices?.filter((inv) => {
     if (filterStatus === "all") return true;
@@ -46,6 +55,28 @@ export function InvoicesTab() {
 
   return (
     <div className="grid lg:grid-cols-3 gap-6">
+      {/* Toast */}
+      <AnimatePresence>
+        {toast && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className={`fixed top-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-xl border ${
+              toast.type === "success"
+                ? "bg-green-500/20 border-green-500/40 text-green-300"
+                : "bg-red-500/20 border-red-500/40 text-red-300"
+            }`}
+          >
+            {toast.type === "success" ? <CheckCircle className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
+            <span className="text-sm font-medium">{toast.message}</span>
+            <button onClick={() => setToast(null)} className="ml-2 opacity-60 hover:opacity-100">
+              <X className="w-4 h-4" />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Filters */}
       <div className="lg:col-span-3 flex gap-3 overflow-x-auto scrollbar-hide">
         {(["all", "pending", "sent", "needs_verification", "paid"] as const).map((status) => (
@@ -199,12 +230,21 @@ export function InvoicesTab() {
               {selected.setupInvoiceStatus !== "paid" && (
                 <button
                   onClick={async () => {
-                    await confirmPaid({ projectId: selected._id });
+                    setIsMarking(true);
+                    try {
+                      await confirmPaid({ projectId: selected._id });
+                      showToast("success", "Invoice marked as paid.");
+                    } catch {
+                      showToast("error", "Failed to mark as paid. Please try again.");
+                    } finally {
+                      setIsMarking(false);
+                    }
                   }}
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-green-500/10 text-green-400 hover:bg-green-500/20 transition-all border border-green-500/30"
+                  disabled={isMarking}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-green-500/10 text-green-400 hover:bg-green-500/20 transition-all border border-green-500/30 disabled:opacity-50"
                 >
-                  <CheckCircle className="w-4 h-4" />
-                  Mark as Paid
+                  {isMarking ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
+                  {isMarking ? "Marking..." : "Mark as Paid"}
                 </button>
               )}
               <Link

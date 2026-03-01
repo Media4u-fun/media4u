@@ -233,21 +233,12 @@ export default function AdminDashboard() {
         </Link>
       </motion.div>
 
-      {/* Scheduler Widget */}
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-      >
-        <SchedulerWidget />
-      </motion.div>
-
       {/* Revenue Analytics */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-        className="mt-8 mb-8"
+        transition={{ delay: 0.2 }}
+        className="mb-8"
       >
         <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
           <DollarSign className="w-5 h-5 text-green-400" /> Revenue Overview
@@ -303,6 +294,16 @@ export default function AdminDashboard() {
             </Link>
           ))}
         </div>
+      </motion.div>
+
+      {/* Scheduler Widget */}
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+        className="mb-8"
+      >
+        <SchedulerWidget />
       </motion.div>
 
       {/* Stats Grid */}

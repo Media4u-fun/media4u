@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "motion/react";
-import { useQuery } from "convex/react";
+import { motion, AnimatePresence } from "motion/react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
 import { Doc } from "@convex/_generated/dataModel";
 import { format } from "date-fns";
-import { ArrowLeft, ExternalLink } from "lucide-react";
+import { ArrowLeft, ExternalLink, Trash2, X, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
 
 type SubscriptionStatus = "active" | "past_due" | "canceled" | "unpaid";
 
@@ -24,10 +24,27 @@ const STATUS_LABELS: Record<SubscriptionStatus, string> = {
   unpaid: "Unpaid",
 };
 
+function getPlanName(stripePriceId: string): string {
+  // Map known price IDs to human-readable names
+  // Falls back to a formatted version of the price ID
+  const knownPrices: Record<string, string> = {
+    // Add your actual Stripe price IDs here if needed
+  };
+  if (knownPrices[stripePriceId]) return knownPrices[stripePriceId];
+  // Try to make price ID readable: price_monthly_webcare -> Monthly Webcare
+  const parts = stripePriceId.replace(/^price_/, "").split(/[_-]/);
+  return parts.map((p) => p.charAt(0).toUpperCase() + p.slice(1)).join(" ") || "Web Care Plan";
+}
+
+type Toast = { type: "success" | "error"; message: string };
+
 export function SubscriptionsTab() {
   const convexIsAdmin = useQuery(api.auth.isAdmin);
   const [filterStatus, setFilterStatus] = useState<SubscriptionStatus | "all">("all");
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [toast, setToast] = useState<Toast | null>(null);
 
   const subscriptions = useQuery(
     api.stripe.getAllSubscriptions,
@@ -36,17 +53,108 @@ export function SubscriptionsTab() {
       : "skip"
   );
 
+  const deleteSubscription = useMutation(api.stripe.deleteSubscription);
+
   const selected = subscriptions?.find((s: Doc<"subscriptions">) => s._id === selectedId);
+  const confirmTarget = subscriptions?.find((s: Doc<"subscriptions">) => s._id === confirmDeleteId);
+
+  function showToast(type: Toast["type"], message: string) {
+    setToast({ type, message });
+    setTimeout(() => setToast(null), 3500);
+  }
+
+  async function handleDelete() {
+    if (!confirmTarget) return;
+    setIsDeleting(true);
+    try {
+      await deleteSubscription({ id: confirmTarget._id });
+      if (selectedId === confirmTarget._id) setSelectedId(null);
+      setConfirmDeleteId(null);
+      showToast("success", "Subscription record deleted.");
+    } catch {
+      showToast("error", "Failed to delete subscription. Please try again.");
+    } finally {
+      setIsDeleting(false);
+    }
+  }
 
   return (
     <div className="grid lg:grid-cols-3 gap-6">
+      {/* Toast */}
+      <AnimatePresence>
+        {toast && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className={`fixed top-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-xl border ${
+              toast.type === "success"
+                ? "bg-green-500/20 border-green-500/40 text-green-300"
+                : "bg-red-500/20 border-red-500/40 text-red-300"
+            }`}
+          >
+            {toast.type === "success" ? <CheckCircle className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
+            <span className="text-sm font-medium">{toast.message}</span>
+            <button onClick={() => setToast(null)} className="ml-2 opacity-60 hover:opacity-100">
+              <X className="w-4 h-4" />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Confirm Delete Modal */}
+      <AnimatePresence>
+        {confirmDeleteId && confirmTarget && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+            onClick={() => !isDeleting && setConfirmDeleteId(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="glass-elevated rounded-2xl p-6 w-full max-w-sm mx-4 border border-red-500/30"
+            >
+              <h3 className="text-lg font-semibold text-white mb-2">Delete Subscription Record?</h3>
+              <p className="text-sm text-gray-400 mb-1">
+                Customer: <span className="text-white">{confirmTarget.customerEmail}</span>
+              </p>
+              <p className="text-sm text-gray-400 mb-4">
+                This only removes the record from your database - it does NOT cancel the subscription in Stripe.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setConfirmDeleteId(null)}
+                  disabled={isDeleting}
+                  className="flex-1 px-4 py-2 rounded-lg bg-white/5 text-gray-300 hover:bg-white/10 border border-white/10 transition-all text-sm"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDelete}
+                  disabled={isDeleting}
+                  className="flex-1 px-4 py-2 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 border border-red-500/40 transition-all text-sm flex items-center justify-center gap-2"
+                >
+                  {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                  {isDeleting ? "Deleting..." : "Delete Record"}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Filters */}
       <div className="lg:col-span-3 flex gap-3 overflow-x-auto scrollbar-hide">
         {(["all", "active", "past_due", "canceled", "unpaid"] as const).map((status) => (
           <button
             key={status}
             onClick={() => setFilterStatus(status)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
               filterStatus === status
                 ? "bg-brand-light/30 text-brand-light border border-brand-light/50"
                 : "bg-white/5 text-gray-400 hover:text-white border border-white/10"
@@ -66,10 +174,16 @@ export function SubscriptionsTab() {
         <div className="glass-elevated rounded-2xl overflow-hidden">
           <div className="p-4 border-b border-white/10 bg-white/5">
             <p className="text-sm font-semibold text-gray-300">
-              {subscriptions?.length ?? 0} Subscriptions
+              {subscriptions === undefined ? "Loading..." : `${subscriptions.length} Subscriptions`}
             </p>
           </div>
           <div className="divide-y divide-white/10 max-h-[600px] overflow-y-auto">
+            {subscriptions === undefined && (
+              <div className="p-8 flex items-center justify-center gap-2 text-gray-500">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span className="text-sm">Loading subscriptions...</span>
+              </div>
+            )}
             {subscriptions?.map((subscription: Doc<"subscriptions">) => (
               <motion.button
                 key={subscription._id}
@@ -84,7 +198,7 @@ export function SubscriptionsTab() {
                 <p className="font-semibold text-white text-sm truncate">
                   {subscription.customerEmail}
                 </p>
-                <p className="text-xs text-gray-400">Web Care Monthly</p>
+                <p className="text-xs text-gray-400 truncate">{getPlanName(subscription.stripePriceId)}</p>
                 <div className="flex items-center justify-between mt-2">
                   <span
                     className={`text-xs font-medium px-2 py-1 rounded border ${STATUS_COLORS[subscription.status as SubscriptionStatus]}`}
@@ -126,7 +240,7 @@ export function SubscriptionsTab() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs uppercase tracking-wider text-gray-500 mb-1">Subscription</p>
-                <p className="text-xl font-semibold text-white">Web Care Monthly</p>
+                <p className="text-xl font-semibold text-white">{getPlanName(selected.stripePriceId)}</p>
               </div>
               <span
                 className={`px-3 py-1 rounded-lg text-sm font-medium border ${STATUS_COLORS[selected.status as SubscriptionStatus]}`}
@@ -137,7 +251,7 @@ export function SubscriptionsTab() {
 
             <div>
               <p className="text-xs uppercase tracking-wider text-gray-500 mb-1">Customer Email</p>
-              <a href={`mailto:${selected.customerEmail}`} className="text-brand-light hover:text-brand-light">
+              <a href={`mailto:${selected.customerEmail}`} className="text-brand-light hover:underline">
                 {selected.customerEmail}
               </a>
             </div>
@@ -171,28 +285,41 @@ export function SubscriptionsTab() {
               <div className="space-y-2 text-sm">
                 <div>
                   <span className="text-gray-500">Subscription: </span>
-                  <code className="text-gray-300 text-xs">{selected.stripeSubscriptionId}</code>
+                  <code className="text-gray-300 text-xs break-all">{selected.stripeSubscriptionId}</code>
                 </div>
                 <div>
                   <span className="text-gray-500">Price: </span>
-                  <code className="text-gray-300 text-xs">{selected.stripePriceId}</code>
+                  <code className="text-gray-300 text-xs break-all">{selected.stripePriceId}</code>
                 </div>
                 <div>
                   <span className="text-gray-500">Customer: </span>
-                  <code className="text-gray-300 text-xs">{selected.stripeCustomerId}</code>
+                  <code className="text-gray-300 text-xs break-all">{selected.stripeCustomerId}</code>
                 </div>
               </div>
             </div>
 
-            <a
-              href={`https://dashboard.stripe.com/subscriptions/${selected.stripeSubscriptionId}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 text-gray-300 hover:text-white hover:bg-white/10 transition-all border border-white/10"
-            >
-              <ExternalLink className="w-4 h-4" />
-              View in Stripe Dashboard
-            </a>
+            <div className="flex flex-wrap gap-3">
+              <a
+                href={`https://dashboard.stripe.com/subscriptions/${selected.stripeSubscriptionId}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 text-gray-300 hover:text-white hover:bg-white/10 transition-all border border-white/10"
+              >
+                <ExternalLink className="w-4 h-4" />
+                View in Stripe
+              </a>
+              <button
+                onClick={() => setConfirmDeleteId(selected._id)}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-all border border-red-500/30"
+              >
+                <Trash2 className="w-4 h-4" />
+                Delete Record
+              </button>
+            </div>
+
+            <p className="text-xs text-gray-600">
+              Note: To cancel an active subscription, use the Stripe Dashboard link above. Deleting a record here only removes it from your database.
+            </p>
           </div>
         ) : (
           <div className="glass-elevated rounded-2xl p-12 text-center">
