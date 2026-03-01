@@ -76,7 +76,7 @@ export default function AdminDashboard() {
   const activeSubscriptions = allSubscriptions?.filter((s: any) => s.status === "active") ?? [];
   const totalOrderRevenue = paidOrders.reduce((sum: number, o: any) => sum + (o.amount || 0), 0);
   const monthlySubRevenue = activeSubscriptions.length * 149; // estimate from sub price
-  const projectRevenue = clientProjects?.reduce((sum: number, p: any) => sum + ((p.totalCost as number) || 0), 0) ?? 0;
+  const projectRevenue = clientProjects?.reduce((sum: number, p: any) => sum + (p.setupInvoicePaid ? (p.setupFeeAmount || 0) : 0), 0) ?? 0;
 
   const now = Date.now();
   const thirtyDaysAgo = now - 30 * 24 * 60 * 60 * 1000;

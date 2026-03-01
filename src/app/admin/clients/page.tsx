@@ -462,7 +462,7 @@ export default function ClientsPage() {
                             {selectedClient.notes && (
                               <div>
                                 <p className="text-xs uppercase tracking-wider text-gray-600 mb-2 font-semibold">Notes</p>
-                                <p className="text-sm text-gray-300 leading-relaxed bg-white/[0.03] rounded-lg p-3 border border-white/8">{selectedClient.notes}</p>
+                                <p className="text-sm text-gray-300 leading-relaxed bg-white/[0.03] rounded-lg p-3 border border-white/8 break-words overflow-wrap-anywhere">{selectedClient.notes}</p>
                               </div>
                             )}
 
@@ -473,7 +473,7 @@ export default function ClientsPage() {
                                 <div className="space-y-2">
                                   {d.adminNotes.slice(0, 3).map((note: Record<string, unknown>, i: number) => (
                                     <div key={i} className="text-sm text-gray-300 bg-yellow-500/5 rounded-lg p-3 border border-yellow-500/10">
-                                      <p className="leading-relaxed">{note.content as string}</p>
+                                      <p className="leading-relaxed break-words">{note.content as string}</p>
                                       <p className="text-xs text-gray-600 mt-1">{fmt(note.createdAt as number)}</p>
                                     </div>
                                   ))}
