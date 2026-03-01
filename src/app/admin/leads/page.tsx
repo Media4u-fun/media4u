@@ -67,6 +67,8 @@ export default function LeadsAdminPage() {
   const sendProposal = useAction(api.websiteFactoryProposals.sendProposalEmail);
   const [currentPage, setCurrentPage] = useState(1);
   const PAGE_SIZE = 25;
+  const [isImporting, setIsImporting] = useState(false);
+  const csvImportRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -314,6 +316,58 @@ export default function LeadsAdminPage() {
     document.body.removeChild(link);
   }
 
+  async function handleCSVImport(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsImporting(true);
+    try {
+      const text = await file.text();
+      const lines = text.split("\n").map((l) => l.trim()).filter(Boolean);
+      if (lines.length < 2) { alert("CSV must have a header row and at least one data row."); return; }
+
+      // Parse header to find column indices (case-insensitive)
+      const headers = lines[0].split(",").map((h) => h.replace(/"/g, "").trim().toLowerCase());
+      const col = (name: string) => headers.indexOf(name);
+
+      let created = 0;
+      let skipped = 0;
+
+      for (let i = 1; i < lines.length; i++) {
+        const cells = lines[i].match(/(".*?"|[^,]+|(?<=,)(?=,)|(?<=,)$|^(?=,))/g) ?? [];
+        const get = (idx: number) => (cells[idx] ?? "").replace(/^"|"$/g, "").trim();
+
+        const name = get(col("name")) || get(col("contact")) || get(col("owner"));
+        const businessName = get(col("business")) || get(col("businessname")) || get(col("business name")) || get(col("company"));
+        const email = get(col("email"));
+        const phone = get(col("phone"));
+        const location = get(col("location")) || get(col("city")) || get(col("address"));
+        const industry = get(col("industry")) || get(col("type"));
+
+        if (!name && !businessName) { skipped++; continue; }
+
+        await createLead({
+          name: name || businessName,
+          businessName: businessName || undefined,
+          email: email || "",
+          phone: phone || undefined,
+          location: location || undefined,
+          industry: industry || undefined,
+          source: "csv_import",
+          notes: "",
+        });
+        created++;
+      }
+
+      alert(`Import complete: ${created} leads added, ${skipped} rows skipped.`);
+    } catch (err) {
+      console.error(err);
+      alert("Import failed. Make sure your CSV is properly formatted.");
+    } finally {
+      setIsImporting(false);
+      if (csvImportRef.current) csvImportRef.current.value = "";
+    }
+  }
+
   return (
     <div className="flex flex-col lg:flex-row h-[calc(100vh-4rem)] bg-neutral-950">
       {/* Master List */}
@@ -339,6 +393,16 @@ export default function LeadsAdminPage() {
                 <Download className="w-4 h-4" />
                 <span className="hidden sm:inline">Export</span>
               </button>
+              <button
+                onClick={() => csvImportRef.current?.click()}
+                disabled={isImporting}
+                className="px-3 py-2 lg:px-4 lg:py-2 bg-neutral-800 hover:bg-neutral-700 text-white rounded-lg flex items-center gap-2 transition-all text-sm lg:text-base disabled:opacity-50"
+                title="Import leads from CSV"
+              >
+                {isImporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                <span className="hidden sm:inline">Import</span>
+              </button>
+              <input ref={csvImportRef} type="file" accept=".csv" onChange={handleCSVImport} className="hidden" />
               <button
                 onClick={() => setIsAddModalOpen(true)}
                 className="px-3 py-2 lg:px-4 lg:py-2 bg-brand-dark hover:bg-brand-dark/80 text-white rounded-lg flex items-center gap-2 transition-all text-sm lg:text-base"

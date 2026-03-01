@@ -22,6 +22,9 @@ import {
   UserPlus,
   Globe,
   Mail,
+  DollarSign,
+  Target,
+  RefreshCw,
 } from "lucide-react";
 import SchedulerWidget from "@/components/admin/SchedulerWidget";
 
@@ -34,6 +37,9 @@ export default function AdminDashboard() {
   const communityRequests = useQuery(api.community.getInviteRequests);
   const clientProjects = useQuery(api.projects.getAllProjects);
   const vrExperiences = useQuery(api.vr.getAllExperiences);
+  const allOrders = useQuery(api.stripe.getAllOrders, {});
+  const allSubscriptions = useQuery(api.stripe.getAllSubscriptions, {});
+  const allLeads = useQuery(api.leads.getAllLeads);
 
   function calculateTrend(items: any[] | undefined) {
     if (!items || items.length === 0) return { trend: 0, isUp: false };
@@ -61,6 +67,19 @@ export default function AdminDashboard() {
   const pendingApprovals = communityMembers?.filter((m: any) => !m.approved).length || 0;
 
   const totalPendingItems = newInboxItems + pendingCommunity + pendingApprovals;
+
+  // Revenue analytics
+  const paidOrders = allOrders?.filter((o: any) => o.status === "paid") ?? [];
+  const activeSubscriptions = allSubscriptions?.filter((s: any) => s.status === "active") ?? [];
+  const totalOrderRevenue = paidOrders.reduce((sum: number, o: any) => sum + (o.amount || 0), 0);
+  const monthlySubRevenue = activeSubscriptions.length * 149; // estimate from sub price
+  const projectRevenue = clientProjects?.reduce((sum: number, p: any) => sum + ((p.totalCost as number) || 0), 0) ?? 0;
+
+  const now = Date.now();
+  const thirtyDaysAgo = now - 30 * 24 * 60 * 60 * 1000;
+  const newLeadsThisMonth = allLeads?.filter((l: any) => l.createdAt > thirtyDaysAgo).length ?? 0;
+  const wonLeads = allLeads?.filter((l: any) => l.status === "won").length ?? 0;
+  const leadConversionRate = allLeads?.length ? Math.round((wonLeads / allLeads.length) * 100) : 0;
 
   const stats = [
     {
@@ -218,6 +237,69 @@ export default function AdminDashboard() {
         transition={{ delay: 0.2 }}
       >
         <SchedulerWidget />
+      </motion.div>
+
+      {/* Revenue Analytics */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+        className="mt-8 mb-8"
+      >
+        <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+          <DollarSign className="w-5 h-5 text-green-400" /> Revenue Overview
+        </h2>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {[
+            {
+              label: "Order Revenue",
+              value: `$${totalOrderRevenue.toLocaleString()}`,
+              sub: `${paidOrders.length} paid orders`,
+              icon: DollarSign,
+              color: "text-green-400",
+              bg: "bg-green-500/10 border-green-500/20",
+              href: "/admin/billing",
+            },
+            {
+              label: "Active MRR",
+              value: `$${monthlySubRevenue.toLocaleString()}`,
+              sub: `${activeSubscriptions.length} active subscriptions`,
+              icon: RefreshCw,
+              color: "text-cyan-400",
+              bg: "bg-cyan-500/10 border-cyan-500/20",
+              href: "/admin/billing",
+            },
+            {
+              label: "Project Revenue",
+              value: `$${projectRevenue.toLocaleString()}`,
+              sub: `${clientProjects?.length ?? 0} total projects`,
+              icon: Briefcase,
+              color: "text-brand-light",
+              bg: "bg-brand-light/10 border-brand-light/20",
+              href: "/admin/projects",
+            },
+            {
+              label: "Lead Conversion",
+              value: `${leadConversionRate}%`,
+              sub: `${newLeadsThisMonth} new leads this month`,
+              icon: Target,
+              color: "text-yellow-400",
+              bg: "bg-yellow-500/10 border-yellow-500/20",
+              href: "/admin/leads",
+            },
+          ].map((item) => (
+            <Link key={item.label} href={item.href}>
+              <div className={`glass-elevated rounded-2xl p-4 border ${item.bg} hover:scale-[1.02] transition-all cursor-pointer`}>
+                <div className="flex items-center gap-2 mb-2">
+                  <item.icon className={`w-4 h-4 ${item.color}`} />
+                  <span className="text-xs text-gray-400">{item.label}</span>
+                </div>
+                <p className={`text-2xl font-bold ${item.color}`}>{item.value}</p>
+                <p className="text-xs text-gray-600 mt-1">{item.sub}</p>
+              </div>
+            </Link>
+          ))}
+        </div>
       </motion.div>
 
       {/* Stats Grid */}
