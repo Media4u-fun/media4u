@@ -161,6 +161,72 @@ const steps = [
   { num: "04", title: "Launch", desc: "We deploy and support your success" },
 ];
 
+const testimonials = [
+  {
+    name: "Marcus Johnson",
+    role: "Owner",
+    company: "Summit Fitness Studio",
+    quote: "Media4U built our website in under a week and it looks incredible. We saw a 40% increase in online bookings within the first month.",
+    stars: 5,
+  },
+  {
+    name: "Rachel Dominguez",
+    role: "Creative Director",
+    company: "Bloom Collective",
+    quote: "They didn't just build a website - they understood our brand. The VR showroom was a bonus we didn't expect to love so much.",
+    stars: 5,
+  },
+  {
+    name: "David Chen",
+    role: "Pastor",
+    company: "New Hope Community Church",
+    quote: "We needed something simple and welcoming. Media4U delivered exactly that, plus helped us set up online giving. Truly a blessing.",
+    stars: 5,
+  },
+  {
+    name: "Aisha Williams",
+    role: "Founder",
+    company: "Luxe Beauty Bar",
+    quote: "Professional, fast, and easy to work with. My clients constantly compliment the site. Worth every penny.",
+    stars: 5,
+  },
+];
+
+function Testimonials() {
+  return (
+    <section className="py-24 border-t border-zinc-900">
+      <div className="max-w-7xl mx-auto px-6 md:px-8 lg:px-12">
+        <Reveal>
+          <p className="text-sm tracking-[0.2em] uppercase text-zinc-500 mb-4">What our clients say</p>
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-display mb-16">
+            Real results, real people
+          </h2>
+        </Reveal>
+        <div className="grid md:grid-cols-2 gap-4">
+          {testimonials.map((t, i) => (
+            <Reveal key={t.name} delay={0.05 * (i + 1)}>
+              <div className="h-full p-7 rounded-xl bg-[#1a1a21] border border-zinc-800/40 hover:border-zinc-700/60 transition-all duration-300">
+                <div className="flex gap-0.5 mb-4">
+                  {Array.from({ length: t.stars }).map((_, idx) => (
+                    <Star key={idx} className="w-4 h-4 fill-yellow-500 text-yellow-500" />
+                  ))}
+                </div>
+                <p className="text-zinc-300 text-sm leading-relaxed mb-5 italic">
+                  &ldquo;{t.quote}&rdquo;
+                </p>
+                <div>
+                  <p className="text-white font-semibold text-sm">{t.name}</p>
+                  <p className="text-zinc-500 text-xs">{t.role}, {t.company}</p>
+                </div>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function Process() {
   return (
     <section className="py-24 border-t border-zinc-900">
@@ -313,6 +379,7 @@ export default function HomePageClient() {
       <Hero />
       {/* <GlobeShowcase /> */}
       <Services />
+      <Testimonials />
       <Process />
       <About />
       <Community />

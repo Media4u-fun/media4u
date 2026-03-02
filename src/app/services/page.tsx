@@ -17,6 +17,7 @@ const services = [
       "Fast & accessible performance",
       "Easy to maintain & update",
     ],
+    startingPrice: "$899",
     gradient: "from-brand to-brand-light",
     glowColor: "magenta",
     icon: (
@@ -79,6 +80,7 @@ const services = [
       "Video & podcast promo assets",
       "Print-ready & digital-optimized",
     ],
+    startingPrice: "$499",
     gradient: "from-brand to-brand-dark",
     glowColor: "purple",
     icon: (
@@ -138,6 +140,7 @@ const services = [
       "Connect to web with hotlinks",
       "Multi-platform deployment",
     ],
+    startingPrice: "$1,499",
     gradient: "from-brand-light to-brand-dark",
     glowColor: "cyan",
     icon: (
@@ -180,6 +183,7 @@ const services = [
       "Interactive hotlinks & navigation",
       "Unified brand experience",
     ],
+    startingPrice: "$2,499",
     gradient: "from-brand to-brand-light",
     glowColor: "magenta",
     icon: (
@@ -279,9 +283,19 @@ function ServiceCard({ service, isReversed }: ServiceCardProps): React.ReactNode
         <h3 className="text-2xl md:text-3xl lg:text-4xl font-display font-bold mb-4 text-white">
           {service.title}
         </h3>
-        <p className="text-gray-400 text-lg mb-6 max-w-xl">
+        <p className="text-gray-400 text-lg mb-4 max-w-xl">
           {service.description}
         </p>
+
+        <div className="mb-6">
+          <span className="text-xs text-gray-500 uppercase tracking-wider">Starting at </span>
+          <span className="text-2xl font-display font-bold text-white">{service.startingPrice}</span>
+          <span className="text-gray-500 text-sm ml-2">
+            <Link href="/start-project#packages" className="text-brand-light hover:underline text-xs">
+              View Packages →
+            </Link>
+          </span>
+        </div>
 
         <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-8">
           {service.features.map((feature, featureIndex) => (

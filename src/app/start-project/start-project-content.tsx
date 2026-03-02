@@ -1,7 +1,8 @@
 "use client";
 
-import { type ReactElement } from "react";
-import { motion } from "motion/react";
+import { type ReactElement, useState } from "react";
+import { motion, AnimatePresence } from "motion/react";
+import { Star, ChevronDown } from "lucide-react";
 import Link from "next/link";
 import { Section, SectionHeader } from "@/components/ui/section";
 import { Button } from "@/components/ui/button";
@@ -167,6 +168,67 @@ const PROCESS_STEPS = [
   { number: "04", title: "Launch", description: "We deploy, test, and celebrate together" },
 ];
 
+const TESTIMONIALS = [
+  { name: "Marcus J.", role: "Summit Fitness Studio", quote: "We saw a 40% increase in online bookings within the first month.", stars: 5 },
+  { name: "Rachel D.", role: "Bloom Collective", quote: "They understood our brand. The VR showroom was a bonus we didn't expect to love.", stars: 5 },
+  { name: "David C.", role: "New Hope Community Church", quote: "Simple, welcoming, and exactly what we needed. Truly a blessing.", stars: 5 },
+  { name: "Aisha W.", role: "Luxe Beauty Bar", quote: "Professional, fast, and easy to work with. Worth every penny.", stars: 5 },
+];
+
+const FAQ_ITEMS = [
+  { q: "How long does a typical website project take?", a: "Most websites take 2-4 weeks from start to launch, depending on the size and complexity. A simple landing page can be done in under a week, while a full eCommerce site may take 4-6 weeks." },
+  { q: "What's included in the price?", a: "All packages include custom design, mobile-responsive development, basic SEO setup, contact form integration, and post-launch support. We don't use templates - everything is built from scratch for your brand." },
+  { q: "How many revisions do I get?", a: "We include 2 rounds of revisions in every package. Most clients are happy after the first round. If you need additional revisions, we're flexible and will work with you." },
+  { q: "Do you handle hosting and domains?", a: "We can help you set up hosting and connect your domain. Hosting costs are separate and typically run $10-20 per month depending on your needs. We'll recommend the best option for your project." },
+  { q: "What are the payment terms?", a: "We require a 50% deposit to start, with the remaining 50% due at launch. For larger projects, we can set up a payment plan. We accept all major credit cards and bank transfers." },
+  { q: "Do you build VR experiences too?", a: "Yes! VR storefronts and environments are available as an add-on or standalone service. Most clients start with a website and add VR later when they're ready to innovate." },
+  { q: "What about ongoing maintenance?", a: "We offer monthly maintenance plans that include updates, security patches, content changes, and performance monitoring. Plans are custom-priced based on your package." },
+  { q: "What does the process look like?", a: "It's simple: Discovery (we learn your goals), Design (you see mockups), Build (we develop it), Launch (we deploy together). You're involved at every step and nothing goes live without your approval." },
+];
+
+function FAQAccordion() {
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
+
+  return (
+    <div className="max-w-3xl mx-auto space-y-3">
+      {FAQ_ITEMS.map((item, i) => (
+        <motion.div
+          key={i}
+          initial={{ opacity: 0, y: 12 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.3, delay: i * 0.05 }}
+        >
+          <button
+            onClick={() => setOpenIndex(openIndex === i ? null : i)}
+            className="w-full flex items-center justify-between gap-4 p-5 rounded-xl bg-white/5 border border-white/10 hover:border-white/20 transition-colors text-left"
+          >
+            <span className="text-white font-medium">{item.q}</span>
+            <ChevronDown
+              className={`w-5 h-5 text-gray-400 flex-shrink-0 transition-transform duration-200 ${openIndex === i ? "rotate-180" : ""}`}
+            />
+          </button>
+          <AnimatePresence>
+            {openIndex === i && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="overflow-hidden"
+              >
+                <p className="px-5 pt-3 pb-5 text-gray-400 text-sm leading-relaxed">
+                  {item.a}
+                </p>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
+      ))}
+    </div>
+  );
+}
+
 export function StartProjectContent(): ReactElement {
   const scrollToForm = () => {
     document.getElementById("project-form")?.scrollIntoView({ behavior: "smooth" });
@@ -289,6 +351,33 @@ export function StartProjectContent(): ReactElement {
         >
           <ProjectWizard />
         </motion.div>
+      </Section>
+
+      {/* TESTIMONIALS STRIP */}
+      <Section className="border-t border-white/10 py-16">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {TESTIMONIALS.map((t, i) => (
+            <motion.div
+              key={t.name}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: i * 0.1 }}
+              className="p-5 rounded-xl bg-white/5 border border-white/10"
+            >
+              <div className="flex gap-0.5 mb-3">
+                {Array.from({ length: t.stars }).map((_, idx) => (
+                  <Star key={idx} className="w-3.5 h-3.5 fill-yellow-500 text-yellow-500" />
+                ))}
+              </div>
+              <p className="text-gray-300 text-sm leading-relaxed mb-3 italic">
+                &ldquo;{t.quote}&rdquo;
+              </p>
+              <p className="text-white text-sm font-semibold">{t.name}</p>
+              <p className="text-gray-500 text-xs">{t.role}</p>
+            </motion.div>
+          ))}
+        </div>
       </Section>
 
       {/* SECTION 5 - PACKAGES / STARTING POINTS */}
@@ -448,7 +537,20 @@ export function StartProjectContent(): ReactElement {
         </motion.p>
       </Section>
 
-      {/* SECTION 7 - TRUST & CLOSE */}
+      {/* SECTION 7 - FAQ */}
+      <Section className="border-t border-white/10">
+        <SectionHeader
+          tag="FAQ"
+          title="Common"
+          highlight="Questions"
+          description="Everything you need to know before getting started."
+        />
+        <div className="mt-12">
+          <FAQAccordion />
+        </div>
+      </Section>
+
+      {/* SECTION 8 - TRUST & CLOSE */}
       <Section className="border-t border-white/10">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
