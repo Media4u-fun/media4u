@@ -1,5 +1,6 @@
 "use client";
 
+/* eslint-disable @next/next/no-img-element */
 import { type ReactElement } from "react";
 import { motion } from "motion/react";
 import Link from "next/link";
@@ -108,6 +109,7 @@ const TEAM_MEMBERS = [
     name: "Mr. Harmony",
     realName: "Devland Lister",
     role: "Founder & Visionary",
+    image: "/Portrait of MrHarmony in Modern Style.png",
     bio: "Devland brings years of IT and tech experience into every project, but his real gift is seeing possibilities others miss. He's a builder at heart-whether it's a VR apartment complex, a digital community space, or a website that feels alive. He believes technology should foster harmony and connection, and that belief shapes everything Media4U creates. Devland leads with vision, purpose, and a deep commitment to doing work that matters.",
     gradient: "from-brand-light to-brand",
   },
@@ -115,6 +117,7 @@ const TEAM_MEMBERS = [
     name: "Mike",
     realName: "Iceman",
     role: "Visual Media Specialist",
+    image: "/e07ec9d7-f769-4f81-8b7f-c3f725b8e2cf.png",
     bio: "Mike turns ideas into visuals you can feel. From websites and branding to VR assets and promotional content, he brings the creative precision that makes every project polished and professional. He's the bridge between concept and execution-taking vision and turning it into something people can see, touch, and experience. His work supports both the technical and creative sides of every project we take on.",
     gradient: "from-brand to-brand-dark",
   },
@@ -303,11 +306,18 @@ export function AboutContent(): ReactElement {
               className="group relative"
             >
               <Card className="h-full">
-                {/* Gradient Header */}
-                <div className={`h-32 bg-gradient-to-r ${member.gradient} opacity-80 rounded-t-2xl`} />
+                {/* Portrait */}
+                <div className="relative h-64 overflow-hidden rounded-t-2xl bg-zinc-900">
+                  <img
+                    src={member.image}
+                    alt={member.name}
+                    className="w-full h-full object-cover object-top"
+                  />
+                  <div className={`absolute inset-0 bg-gradient-to-t from-[#13131a] via-transparent to-transparent`} />
+                </div>
 
                 {/* Content */}
-                <div className="p-6 -mt-16 relative">
+                <div className="p-6 -mt-8 relative">
                   <div className="mb-4">
                     <h3 className="text-2xl md:text-3xl font-display font-bold mb-1">
                       {member.name}
