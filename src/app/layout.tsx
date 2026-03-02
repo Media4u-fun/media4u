@@ -21,11 +21,20 @@ export const metadata: Metadata = {
     siteName: "Media4U",
     title: "Media4U | VR Environments & Digital Solutions",
     description: "Custom VR environments, stunning websites, and immersive virtual experiences.",
+    images: [
+      {
+        url: "https://media4u.fun/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Media4U - VR Environments & Digital Solutions",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Media4U | VR Environments & Digital Solutions",
     description: "Custom VR environments, stunning websites, and immersive virtual experiences.",
+    images: ["https://media4u.fun/og-image.png"],
   },
 };
 
