@@ -10,6 +10,7 @@ import { Id } from "@convex/_generated/dataModel";
 import { Search, Plus, X, ExternalLink, FileDown, MessageSquarePlus, Trash2, Palette, Share2, Lock, Copy, Check, Upload, Image as ImageIcon, File, Mail, Receipt, ToggleLeft, ToggleRight, CheckCircle, Clock, CreditCard, AlertCircle, RotateCcw, Monitor } from "lucide-react";
 import { EmailReplyModal } from "@/components/admin/EmailReplyModal";
 import { EmailListManager } from "@/components/admin/EmailListManager";
+import JSZip from "jszip";
 
 type ProjectStatus = "new" | "planning" | "design" | "development" | "review" | "completed" | "launched";
 
@@ -88,6 +89,7 @@ export default function ProjectsAdminPage() {
   const [exportedVault, setExportedVault] = useState<string | null>(null);
   const [copiedExport, setCopiedExport] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [isDownloadingAll, setIsDownloadingAll] = useState(false);
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
   const [detailTab, setDetailTab] = useState<"details" | "client-view">("details");
   const [copiedBriefing, setCopiedBriefing] = useState(false);
@@ -277,6 +279,34 @@ export default function ProjectsAdminPage() {
   async function handleDeleteFile(fileId: Id<"projectFiles">) {
     if (confirm("Delete this file? This cannot be undone.")) {
       await deleteFile({ id: fileId });
+    }
+  }
+
+  async function handleDownloadAll() {
+    if (!projectFiles || projectFiles.length === 0 || !selected) return;
+    setIsDownloadingAll(true);
+    try {
+      const zip = new JSZip();
+      await Promise.all(
+        projectFiles.map(async (file: any) => {
+          if (!file.url) return;
+          const response = await fetch(file.url);
+          const blob = await response.blob();
+          zip.file(file.fileName, blob);
+        })
+      );
+      const content = await zip.generateAsync({ type: "blob" });
+      const url = URL.createObjectURL(content);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${(selected.name || selected.company || "project").replace(/[^a-z0-9]/gi, "_")}_files.zip`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Download all failed:", err);
+      alert("Failed to download files. Please try again.");
+    } finally {
+      setIsDownloadingAll(false);
     }
   }
 
@@ -1477,17 +1507,29 @@ export default function ProjectsAdminPage() {
                     <ImageIcon className="w-5 h-5 text-brand-light" />
                     <p className="text-sm font-semibold text-white">Project Files</p>
                   </div>
-                  <label className="px-3 py-1.5 rounded-lg bg-brand-light/20 text-brand-light hover:bg-brand-light/30 border border-brand-light/50 text-sm font-medium flex items-center gap-2 cursor-pointer transition-all">
-                    <Upload className="w-4 h-4" />
-                    {isUploading ? "Uploading..." : "Upload File"}
-                    <input
-                      type="file"
-                      onChange={handleFileUpload}
-                      disabled={isUploading}
-                      className="hidden"
-                      accept="image/*,.pdf,.doc,.docx"
-                    />
-                  </label>
+                  <div className="flex items-center gap-2">
+                    {projectFiles && projectFiles.length > 1 && (
+                      <button
+                        onClick={handleDownloadAll}
+                        disabled={isDownloadingAll}
+                        className="px-3 py-1.5 rounded-lg bg-green-500/20 text-green-400 hover:bg-green-500/30 border border-green-500/50 text-sm font-medium flex items-center gap-2 transition-all disabled:opacity-50"
+                      >
+                        <FileDown className="w-4 h-4" />
+                        {isDownloadingAll ? "Zipping..." : "Download All"}
+                      </button>
+                    )}
+                    <label className="px-3 py-1.5 rounded-lg bg-brand-light/20 text-brand-light hover:bg-brand-light/30 border border-brand-light/50 text-sm font-medium flex items-center gap-2 cursor-pointer transition-all">
+                      <Upload className="w-4 h-4" />
+                      {isUploading ? "Uploading..." : "Upload File"}
+                      <input
+                        type="file"
+                        onChange={handleFileUpload}
+                        disabled={isUploading}
+                        className="hidden"
+                        accept="image/*,.pdf,.doc,.docx"
+                      />
+                    </label>
+                  </div>
                 </div>
 
                 {/* Files Grid */}
