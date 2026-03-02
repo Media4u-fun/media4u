@@ -37,6 +37,7 @@ interface DbBlogPost {
   published: boolean;
   slug: string;
   imageStorageId?: string;
+  imageUrl?: string;
 }
 
 // Fallback data in case Convex is not yet seeded
@@ -95,7 +96,7 @@ function BlogCardWithImage({ post, index, featured = false }: { post: BlogPost; 
     post.imageStorageId ? { storageId: post.imageStorageId as Id<"_storage"> } : "skip"
   );
 
-  return <BlogCard post={{ ...post, imageUrl }} index={index} featured={featured} />;
+  return <BlogCard post={{ ...post, imageUrl: imageUrl || post.imageUrl }} index={index} featured={featured} />;
 }
 
 function BlogCard({ post, index, featured = false }: { post: BlogPost; index: number; featured?: boolean }) {
@@ -279,6 +280,7 @@ export default function BlogPageClient() {
         featured: p.featured,
         slug: p.slug,
         imageStorageId: p.imageStorageId,
+        imageUrl: p.imageUrl,
       }))
     : FALLBACK_BLOG_POSTS;
 

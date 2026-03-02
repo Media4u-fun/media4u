@@ -1,4 +1,53 @@
 import { mutation } from "./_generated/server";
+import { v } from "convex/values";
+
+// Add a single portfolio project (no auth - run once then remove)
+export const addPortfolioProject = mutation({
+  args: {
+    title: v.string(),
+    slug: v.string(),
+    category: v.string(),
+    description: v.string(),
+    fullDescription: v.optional(v.string()),
+    gradient: v.string(),
+    featured: v.boolean(),
+    technologies: v.optional(v.array(v.string())),
+    images: v.optional(v.array(v.string())),
+    testimonial: v.optional(v.string()),
+    results: v.optional(v.array(v.string())),
+  },
+  handler: async (ctx, args) => {
+    return await ctx.db.insert("portfolioProjects", {
+      ...args,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    });
+  },
+});
+
+// Add a single blog post (no auth - run once then remove)
+export const addBlogPost = mutation({
+  args: {
+    title: v.string(),
+    slug: v.string(),
+    excerpt: v.string(),
+    content: v.string(),
+    category: v.string(),
+    date: v.string(),
+    readTime: v.string(),
+    gradient: v.string(),
+    featured: v.boolean(),
+    published: v.boolean(),
+    imageUrl: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    return await ctx.db.insert("blogPosts", {
+      ...args,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    });
+  },
+});
 
 // This migration file contains the hardcoded data from the frontend
 // It can be run once to populate the database with initial content
