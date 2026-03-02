@@ -1,9 +1,11 @@
 import { v } from "convex/values";
 import { mutation, query, internalMutation } from "./_generated/server";
+import { requireAdmin } from "./auth";
 
 // Get all leads (sorted by creation date, newest first)
 export const getAllLeads = query({
   handler: async (ctx) => {
+    await requireAdmin(ctx);
     const leads = await ctx.db
       .query("leads")
       .order("desc")
@@ -16,6 +18,7 @@ export const getAllLeads = query({
 export const getLeadById = query({
   args: { id: v.id("leads") },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const lead = await ctx.db.get(args.id);
     return lead;
   },
@@ -37,6 +40,7 @@ export const createLead = mutation({
     photos: v.optional(v.array(v.id("_storage"))), // Uploaded photo IDs
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const leadId = await ctx.db.insert("leads", {
       name: args.name,
       businessName: args.businessName,
@@ -92,6 +96,7 @@ export const updateLead = mutation({
     proposalPrice: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const { id, ...updates } = args;
     await ctx.db.patch(id, updates);
   },
@@ -101,6 +106,7 @@ export const updateLead = mutation({
 export const deleteLead = mutation({
   args: { id: v.id("leads") },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     await ctx.db.delete(args.id);
   },
 });
@@ -109,6 +115,7 @@ export const deleteLead = mutation({
 export const updateLastContacted = mutation({
   args: { id: v.id("leads") },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     await ctx.db.patch(args.id, {
       lastContactedAt: Date.now(),
       status: "contacted",
@@ -118,6 +125,7 @@ export const updateLastContacted = mutation({
 
 // Generate upload URL for lead photos
 export const generateUploadUrl = mutation(async (ctx) => {
+  await requireAdmin(ctx);
   return await ctx.storage.generateUploadUrl();
 });
 

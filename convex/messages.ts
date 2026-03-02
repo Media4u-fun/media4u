@@ -89,6 +89,7 @@ export const markThreadRead = mutation({
     readBy: v.union(v.literal("client"), v.literal("admin")),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     // If admin is reading, mark client messages as read. Vice versa.
     const senderToMark = args.readBy === "admin" ? "client" : "admin";
 
@@ -109,6 +110,7 @@ export const markThreadRead = mutation({
 export const getThreadMessages = query({
   args: { threadId: v.string() },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     return await ctx.db
       .query("messages")
       .withIndex("by_threadId", (q) => q.eq("threadId", args.threadId))
@@ -178,6 +180,7 @@ export const getClientThreads = query({
 // Get all threads for admin view
 export const getAllThreads = query({
   handler: async (ctx) => {
+    await requireAdmin(ctx);
     const allMessages = await ctx.db.query("messages").collect();
 
     const threadMap = new Map<
@@ -238,6 +241,7 @@ export const getAllThreads = query({
 // Unread count for admin badge
 export const getUnreadCountForAdmin = query({
   handler: async (ctx) => {
+    await requireAdmin(ctx);
     const unread = await ctx.db
       .query("messages")
       .withIndex("by_unread", (q) => q.eq("sender", "client").eq("read", false))

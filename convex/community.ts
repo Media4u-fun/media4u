@@ -19,6 +19,7 @@ function generateToken(): string {
 // Get all invites (for admin)
 export const getAllInvites = query({
   handler: async (ctx) => {
+    await requireAdmin(ctx);
     return await ctx.db
       .query("communityInvites")
       .order("desc")
@@ -204,6 +205,7 @@ export const submitCommunityEntry = mutation({
 // Get all submissions (pending approval)
 export const getPendingSubmissions = query({
   handler: async (ctx) => {
+    await requireAdmin(ctx);
     const members = await ctx.db
       .query("communityMembers")
       .withIndex("by_approved", (q) => q.eq("approved", false))
@@ -428,6 +430,7 @@ export const getApprovedMembers = query({
 // Get all community members (for admin)
 export const getAllMembers = query({
   handler: async (ctx) => {
+    await requireAdmin(ctx);
     const members = await ctx.db
       .query("communityMembers")
       .order("desc")
@@ -508,6 +511,7 @@ export const requestInvite = mutation({
 // Get all invite requests (admin)
 export const getInviteRequests = query({
   handler: async (ctx) => {
+    await requireAdmin(ctx);
     return await ctx.db
       .query("communityInviteRequests")
       .order("desc")

@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query, action } from "./_generated/server";
+import { requireAdmin } from "./auth";
 
 // Create a new quote request
 export const createQuoteRequest = mutation({
@@ -36,6 +37,7 @@ export const getAllQuoteRequests = query({
     serviceType: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     if (args.serviceType) {
       return await ctx.db
         .query("quoteRequests")
@@ -62,6 +64,7 @@ export const updateQuoteRequestStatus = mutation({
     ),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     await ctx.db.patch(args.id, { status: args.status });
   },
 });
@@ -72,6 +75,7 @@ export const deleteQuoteRequest = mutation({
     id: v.id("quoteRequests"),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     await ctx.db.delete(args.id);
   },
 });
@@ -82,6 +86,7 @@ export const createProjectFromQuoteRequest = mutation({
     quoteId: v.id("quoteRequests"),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     // Get the quote request
     const quote = await ctx.db.get(args.quoteId);
     if (!quote) {

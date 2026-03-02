@@ -1,5 +1,6 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { requireAdmin } from "./auth";
 
 export const subscribeToNewsletter = mutation({
   args: {
@@ -44,6 +45,7 @@ export const getNewsletterSubscribers = query({
     unsubscribedOnly: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const baseQuery = ctx.db.query("newsletterSubscribers");
 
     const filteredQuery = args.unsubscribedOnly
@@ -78,6 +80,7 @@ export const unsubscribeFromNewsletter = mutation({
 
 export const getSubscriberCount = query({
   handler: async (ctx) => {
+    await requireAdmin(ctx);
     const subscribers = await ctx.db
       .query("newsletterSubscribers")
       .withIndex("by_subscribed", (q) => q.eq("unsubscribed", false))

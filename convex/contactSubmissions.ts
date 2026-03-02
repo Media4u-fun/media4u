@@ -55,8 +55,7 @@ export const getContactSubmissions = query({
     status: v.optional(v.union(v.literal("new"), v.literal("read"), v.literal("replied"))),
   },
   handler: async (ctx, args) => {
-    // Note: Queries can't use requireAdmin directly as they don't have mutation context
-    // Access control is enforced at the UI level for queries
+    await requireAdmin(ctx);
     if (args.status) {
       return await ctx.db
         .query("contactSubmissions")

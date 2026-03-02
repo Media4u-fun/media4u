@@ -1,10 +1,12 @@
 import { query } from "./_generated/server";
 import { v } from "convex/values";
+import { requireAdmin } from "./auth";
 
 // Get all unique clients aggregated from all tables
 export const getAllClients = query({
   args: {},
   handler: async (ctx) => {
+    await requireAdmin(ctx);
     const projects = await ctx.db.query("projects").collect();
     const leads = await ctx.db.query("leads").collect();
     const requests = await ctx.db.query("projectRequests").collect();
@@ -232,6 +234,7 @@ export const getAllClients = query({
 export const getClientDetails = query({
   args: { email: v.string() },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const email = args.email;
 
     // Core records
