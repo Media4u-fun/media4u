@@ -5,7 +5,7 @@ import { requireAdmin } from "./auth";
 // Get all leads (sorted by creation date, newest first)
 export const getAllLeads = query({
   handler: async (ctx) => {
-    await requireAdmin(ctx);
+    try { await requireAdmin(ctx); } catch { return []; }
     const leads = await ctx.db
       .query("leads")
       .order("desc")
@@ -18,7 +18,7 @@ export const getAllLeads = query({
 export const getLeadById = query({
   args: { id: v.id("leads") },
   handler: async (ctx, args) => {
-    await requireAdmin(ctx);
+    try { await requireAdmin(ctx); } catch { return null; }
     const lead = await ctx.db.get(args.id);
     return lead;
   },

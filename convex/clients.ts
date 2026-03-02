@@ -6,7 +6,7 @@ import { requireAdmin } from "./auth";
 export const getAllClients = query({
   args: {},
   handler: async (ctx) => {
-    await requireAdmin(ctx);
+    try { await requireAdmin(ctx); } catch { return []; }
     const projects = await ctx.db.query("projects").collect();
     const leads = await ctx.db.query("leads").collect();
     const requests = await ctx.db.query("projectRequests").collect();
@@ -234,7 +234,7 @@ export const getAllClients = query({
 export const getClientDetails = query({
   args: { email: v.string() },
   handler: async (ctx, args) => {
-    await requireAdmin(ctx);
+    try { await requireAdmin(ctx); } catch { return null; }
     const email = args.email;
 
     // Core records

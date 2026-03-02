@@ -55,7 +55,7 @@ export const getContactSubmissions = query({
     status: v.optional(v.union(v.literal("new"), v.literal("read"), v.literal("replied"))),
   },
   handler: async (ctx, args) => {
-    await requireAdmin(ctx);
+    try { await requireAdmin(ctx); } catch { return []; }
     if (args.status) {
       return await ctx.db
         .query("contactSubmissions")

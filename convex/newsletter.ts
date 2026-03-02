@@ -45,7 +45,7 @@ export const getNewsletterSubscribers = query({
     unsubscribedOnly: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
-    await requireAdmin(ctx);
+    try { await requireAdmin(ctx); } catch { return []; }
     const baseQuery = ctx.db.query("newsletterSubscribers");
 
     const filteredQuery = args.unsubscribedOnly
@@ -80,7 +80,7 @@ export const unsubscribeFromNewsletter = mutation({
 
 export const getSubscriberCount = query({
   handler: async (ctx) => {
-    await requireAdmin(ctx);
+    try { await requireAdmin(ctx); } catch { return 0; }
     const subscribers = await ctx.db
       .query("newsletterSubscribers")
       .withIndex("by_subscribed", (q) => q.eq("unsubscribed", false))

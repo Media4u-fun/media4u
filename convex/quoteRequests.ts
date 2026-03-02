@@ -37,7 +37,7 @@ export const getAllQuoteRequests = query({
     serviceType: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    await requireAdmin(ctx);
+    try { await requireAdmin(ctx); } catch { return []; }
     if (args.serviceType) {
       return await ctx.db
         .query("quoteRequests")
