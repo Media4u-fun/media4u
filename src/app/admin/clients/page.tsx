@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { useQuery, useMutation } from "convex/react";
+import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "@convex/_generated/api";
 import { Id } from "@convex/_generated/dataModel";
 import { motion, AnimatePresence } from "motion/react";
@@ -15,6 +15,7 @@ import {
   Loader2, ChevronLeft,
 } from "lucide-react";
 import EditClientModal from "@/components/admin/EditClientModal";
+import { EmailReplyModal } from "@/components/admin/EmailReplyModal";
 import type { LucideIcon } from "lucide-react";
 
 // ---------------------------------------------------------------------------
@@ -134,6 +135,9 @@ export default function ClientsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState<Tab>("overview");
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isReplyModalOpen, setIsReplyModalOpen] = useState(false);
+  const [replyToEmail, setReplyToEmail] = useState("");
+  const sendEmailReply = useAction(api.emailReplies.sendEmailReply);
 
   const selectedClientDetails = useQuery(
     api.clients.getClientDetails,
@@ -332,9 +336,9 @@ export default function ClientsPage() {
                     {/* Quick contact row */}
                     <div className="flex flex-wrap gap-3 text-xs">
                       {selectedClient.emails.slice(0, 2).map((e, i) => (
-                        <a key={i} href={`mailto:${e.address}`} className="flex items-center gap-1 text-brand-light hover:underline">
+                        <button key={i} onClick={() => { setReplyToEmail(e.address); setIsReplyModalOpen(true); }} className="flex items-center gap-1 text-brand-light hover:underline cursor-pointer">
                           <Mail className="w-3 h-3" />{e.address}
-                        </a>
+                        </button>
                       ))}
                       {(selectedClient.phones ?? []).slice(0, 1).map((p, i) => (
                         <a key={i} href={`tel:${p.number}`} className="flex items-center gap-1 text-gray-300 hover:text-white">
@@ -787,6 +791,20 @@ export default function ClientsPage() {
           </div>
         </div>
       </div>
+
+      {/* Email Reply Modal */}
+      {selectedClient && (
+        <EmailReplyModal
+          isOpen={isReplyModalOpen}
+          onClose={() => setIsReplyModalOpen(false)}
+          recipientEmail={replyToEmail || selectedClient.primaryEmail}
+          recipientName={selectedClient.name}
+          subject={`Re: ${selectedClient.name}`}
+          onSend={async (toEmail, subject, message, attachments) => {
+            await sendEmailReply({ to: toEmail, subject, message, recipientName: "", attachments });
+          }}
+        />
+      )}
 
       {/* Edit Modal */}
       {isEditModalOpen && selectedClient && (

@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { useQuery, useMutation } from "convex/react";
+import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "@convex/_generated/api";
 import { format } from "date-fns";
 import { ArrowLeft, CheckCircle, ExternalLink, FileText, FolderOpen, X, AlertCircle, Loader2, Download, Search } from "lucide-react";
+import { EmailReplyModal } from "@/components/admin/EmailReplyModal";
 
 type Toast = { type: "success" | "error"; message: string };
 import Link from "next/link";
@@ -63,9 +64,11 @@ export function InvoicesTab() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [isMarking, setIsMarking] = useState(false);
   const [toast, setToast] = useState<Toast | null>(null);
+  const [isReplyModalOpen, setIsReplyModalOpen] = useState(false);
 
   const invoices = useQuery(api.projects.getProjectsWithInvoices, convexIsAdmin === true ? {} : "skip");
   const confirmPaid = useMutation(api.projects.confirmSetupInvoicePaid);
+  const sendEmailReply = useAction(api.emailReplies.sendEmailReply);
 
   function showToast(type: Toast["type"], message: string) {
     setToast({ type, message });
@@ -240,9 +243,9 @@ export function InvoicesTab() {
               </div>
               <div>
                 <p className="text-xs uppercase tracking-wider text-gray-500 mb-1">Email</p>
-                <a href={`mailto:${selected.email}`} className="text-brand-light hover:underline">
+                <button onClick={() => setIsReplyModalOpen(true)} className="text-brand-light hover:underline cursor-pointer">
                   {selected.email}
-                </a>
+                </button>
               </div>
             </div>
 
@@ -331,6 +334,17 @@ export function InvoicesTab() {
                 View in Stripe
               </a>
             </div>
+
+            <EmailReplyModal
+              isOpen={isReplyModalOpen}
+              onClose={() => setIsReplyModalOpen(false)}
+              recipientEmail={selected.email as string}
+              recipientName={selected.name as string}
+              subject={`Re: Invoice - ${selected.projectType}`}
+              onSend={async (toEmail, subject, message, attachments) => {
+                await sendEmailReply({ to: toEmail, subject, message, recipientName: selected?.name || "", attachments });
+              }}
+            />
           </div>
         ) : (
           <div className="glass-elevated rounded-2xl p-12 text-center">

@@ -1,9 +1,11 @@
 "use client";
 
-import { useMutation } from "convex/react";
+import { useState } from "react";
+import { useMutation, useAction } from "convex/react";
 import { api } from "@convex/_generated/api";
 import { Doc, Id } from "@convex/_generated/dataModel";
 import { Phone, Mail, Briefcase, Building2, DollarSign, Trash2, FolderPlus, ArrowLeft } from "lucide-react";
+import { EmailReplyModal } from "@/components/admin/EmailReplyModal";
 
 type QuoteStatus = "new" | "contacted" | "quoted" | "closed";
 
@@ -30,6 +32,8 @@ export function QuoteDetail({ data, onClose }: QuoteDetailProps) {
   const updateStatus = useMutation(api.quoteRequests.updateQuoteRequestStatus);
   const deleteQuote = useMutation(api.quoteRequests.deleteQuoteRequest);
   const convertToProject = useMutation(api.quoteRequests.createProjectFromQuoteRequest);
+  const sendEmailReply = useAction(api.emailReplies.sendEmailReply);
+  const [isReplyModalOpen, setIsReplyModalOpen] = useState(false);
 
   async function handleStatusChange(status: QuoteStatus) {
     await updateStatus({ id: data._id as Id<"quoteRequests">, status });
@@ -76,10 +80,13 @@ export function QuoteDetail({ data, onClose }: QuoteDetailProps) {
         {data.email && (
           <div>
             <p className="text-xs uppercase tracking-wider text-gray-500 mb-1">Email</p>
-            <a href={`mailto:${data.email}`} className="text-brand-light hover:text-brand-light flex items-center gap-2">
+            <button
+              onClick={() => setIsReplyModalOpen(true)}
+              className="text-brand-light hover:text-brand-light flex items-center gap-2 cursor-pointer"
+            >
               <Mail className="w-4 h-4" />
               {data.email}
-            </a>
+            </button>
           </div>
         )}
       </div>
@@ -154,6 +161,19 @@ export function QuoteDetail({ data, onClose }: QuoteDetailProps) {
         <Trash2 className="w-4 h-4" />
         Delete Quote Request
       </button>
+
+      {data.email && (
+        <EmailReplyModal
+          isOpen={isReplyModalOpen}
+          onClose={() => setIsReplyModalOpen(false)}
+          recipientEmail={data.email}
+          recipientName={data.name}
+          subject={`Re: Quote Request - ${data.issueType}`}
+          onSend={async (toEmail, subject, message, attachments) => {
+            await sendEmailReply({ to: toEmail, subject, message, recipientName: data.name || "", attachments });
+          }}
+        />
+      )}
     </div>
   );
 }

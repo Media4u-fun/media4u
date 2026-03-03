@@ -2,11 +2,12 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { useQuery, useMutation } from "convex/react";
+import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "@convex/_generated/api";
 import { Doc } from "@convex/_generated/dataModel";
 import { format } from "date-fns";
 import { ArrowLeft, ExternalLink, Trash2, X, CheckCircle, AlertCircle, Loader2, Download, Search } from "lucide-react";
+import { EmailReplyModal } from "@/components/admin/EmailReplyModal";
 
 type OrderStatus = "pending" | "paid" | "failed" | "refunded";
 
@@ -61,6 +62,7 @@ export function OrdersTab() {
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [toast, setToast] = useState<Toast | null>(null);
+  const [isReplyModalOpen, setIsReplyModalOpen] = useState(false);
 
   const orders = useQuery(
     api.stripe.getAllOrders,
@@ -68,6 +70,7 @@ export function OrdersTab() {
   );
 
   const deleteOrder = useMutation(api.stripe.deleteOrder);
+  const sendEmailReply = useAction(api.emailReplies.sendEmailReply);
 
   const filtered = orders?.filter((o: Doc<"orders">) => {
     const matchesStatus = filterStatus === "all" || o.status === filterStatus;
@@ -309,9 +312,9 @@ export function OrdersTab() {
               </div>
               <div>
                 <p className="text-xs uppercase tracking-wider text-gray-500 mb-1">Customer Email</p>
-                <a href={`mailto:${selected.customerEmail}`} className="text-brand-light hover:underline">
+                <button onClick={() => setIsReplyModalOpen(true)} className="text-brand-light hover:underline cursor-pointer">
                   {selected.customerEmail}
-                </a>
+                </button>
               </div>
             </div>
 
@@ -378,6 +381,17 @@ export function OrdersTab() {
                 Delete Order
               </button>
             </div>
+
+            <EmailReplyModal
+              isOpen={isReplyModalOpen}
+              onClose={() => setIsReplyModalOpen(false)}
+              recipientEmail={selected.customerEmail}
+              recipientName={selected.customerName ?? selected.customerEmail}
+              subject={`Re: Your Order - ${PRODUCT_NAMES[selected.productType] ?? selected.productType}`}
+              onSend={async (toEmail, subject, message, attachments) => {
+                await sendEmailReply({ to: toEmail, subject, message, recipientName: selected?.customerName || "", attachments });
+              }}
+            />
           </div>
         ) : (
           <div className="glass-elevated rounded-2xl p-12 text-center">

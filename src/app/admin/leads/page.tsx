@@ -11,6 +11,7 @@ import {
   Phone, Mail, Camera, Download, Send, ExternalLink, Copy, Loader2, AlertTriangle,
   ChevronLeft, ChevronRight, Target, TrendingUp, CheckCircle, XCircle, ArrowLeft,
 } from "lucide-react";
+import { EmailReplyModal } from "@/components/admin/EmailReplyModal";
 
 type LeadStatus = "new" | "researching" | "building" | "presented" | "contacted" | "qualified" | "converted" | "won" | "lost";
 
@@ -48,6 +49,7 @@ export default function LeadsAdminPage() {
   const deleteLead = useMutation(api.leads.deleteLead);
   const generateUploadUrl = useMutation(api.leads.generateUploadUrl);
   const sendProposal = useAction(api.websiteFactoryProposals.sendProposalEmail);
+  const sendEmailReply = useAction(api.emailReplies.sendEmailReply);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
@@ -60,6 +62,7 @@ export default function LeadsAdminPage() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isProposalModalOpen, setIsProposalModalOpen] = useState(false);
   const [isDeleteConfirm, setIsDeleteConfirm] = useState(false);
+  const [isReplyModalOpen, setIsReplyModalOpen] = useState(false);
   const [uploadedPhotos, setUploadedPhotos] = useState<Id<"_storage">[]>([]);
   const [uploading, setUploading] = useState(false);
   const [sendingProposal, setSendingProposal] = useState(false);
@@ -507,9 +510,9 @@ export default function LeadsAdminPage() {
                 {selected.email && !selected.email.includes("@example.com") && (
                   <div>
                     <p className={LABEL_CLASS}>Email</p>
-                    <a href={`mailto:${selected.email}`} className="text-brand-light hover:underline text-sm break-all">
+                    <button onClick={() => setIsReplyModalOpen(true)} className="text-brand-light hover:underline text-sm break-all cursor-pointer">
                       {selected.email}
-                    </a>
+                    </button>
                   </div>
                 )}
                 {selected.phone && (
@@ -539,9 +542,9 @@ export default function LeadsAdminPage() {
               {/* Quick Actions */}
               <div className="flex flex-wrap gap-2 pt-2 border-t border-white/10">
                 {selected.email && !selected.email.includes("@example.com") && (
-                  <a href={`mailto:${selected.email}`} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white border border-white/10 text-xs transition-all">
+                  <button onClick={() => setIsReplyModalOpen(true)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white border border-white/10 text-xs transition-all">
                     <Mail className="w-3.5 h-3.5" />Email
-                  </a>
+                  </button>
                 )}
                 {selected.phone && (
                   <a href={`tel:${selected.phone}`} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white border border-white/10 text-xs transition-all">
@@ -595,6 +598,20 @@ export default function LeadsAdminPage() {
           )}
         </div>
       </div>
+
+      {/* Email Reply Modal */}
+      {selected && selected.email && !selected.email.includes("@example.com") && (
+        <EmailReplyModal
+          isOpen={isReplyModalOpen}
+          onClose={() => setIsReplyModalOpen(false)}
+          recipientEmail={selected.email}
+          recipientName={selected.businessName || selected.name}
+          subject={`Re: ${selected.businessName || selected.name}`}
+          onSend={async (toEmail, subject, message, attachments) => {
+            await sendEmailReply({ to: toEmail, subject, message, recipientName: selected?.name || "", attachments });
+          }}
+        />
+      )}
 
       {/* Delete Confirm Modal */}
       <AnimatePresence>

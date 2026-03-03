@@ -7,6 +7,7 @@ import { api } from "@convex/_generated/api";
 import { Doc } from "@convex/_generated/dataModel";
 import { format } from "date-fns";
 import { ArrowLeft, ExternalLink, Trash2, X, CheckCircle, AlertCircle, Loader2, RefreshCw } from "lucide-react";
+import { EmailReplyModal } from "@/components/admin/EmailReplyModal";
 
 type SubscriptionStatus = "active" | "past_due" | "canceled" | "unpaid";
 
@@ -47,12 +48,14 @@ export function SubscriptionsTab() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [toast, setToast] = useState<Toast | null>(null);
+  const [isReplyModalOpen, setIsReplyModalOpen] = useState(false);
 
   const subscriptions = useQuery(
     api.stripe.getAllSubscriptions,
     convexIsAdmin === true ? {} : "skip"
   );
   const syncFromStripe = useAction(api.stripe.syncSubscriptionsFromStripe);
+  const sendEmailReply = useAction(api.emailReplies.sendEmailReply);
 
   const filtered = subscriptions?.filter((s: Doc<"subscriptions">) =>
     filterStatus === "all" || s.status === filterStatus
@@ -301,9 +304,9 @@ export function SubscriptionsTab() {
 
             <div>
               <p className="text-xs uppercase tracking-wider text-gray-500 mb-1">Customer Email</p>
-              <a href={`mailto:${selected.customerEmail}`} className="text-brand-light hover:underline">
+              <button onClick={() => setIsReplyModalOpen(true)} className="text-brand-light hover:underline cursor-pointer">
                 {selected.customerEmail}
-              </a>
+              </button>
             </div>
 
             <div className="grid md:grid-cols-2 gap-4">
@@ -370,6 +373,17 @@ export function SubscriptionsTab() {
             <p className="text-xs text-gray-600">
               Note: To cancel an active subscription, use the Stripe Dashboard link above. Deleting a record here only removes it from your database.
             </p>
+
+            <EmailReplyModal
+              isOpen={isReplyModalOpen}
+              onClose={() => setIsReplyModalOpen(false)}
+              recipientEmail={selected.customerEmail}
+              recipientName={selected.customerEmail}
+              subject="Re: Your Subscription"
+              onSend={async (toEmail, subject, message, attachments) => {
+                await sendEmailReply({ to: toEmail, subject, message, recipientName: selected?.customerEmail || "", attachments });
+              }}
+            />
           </div>
         ) : (
           <div className="glass-elevated rounded-2xl p-12 text-center">
