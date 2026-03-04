@@ -17,7 +17,7 @@ const PLAN_INFO = {
 
 export default function SignupPage() {
   const searchParams = useSearchParams();
-  const planKey = (searchParams.get("plan") || "starter") as keyof typeof PLAN_INFO;
+  const planKey = (searchParams?.get("plan") || "starter") as keyof typeof PLAN_INFO;
   const plan = PLAN_INFO[planKey] || PLAN_INFO.starter;
 
   const [name, setName] = useState("");

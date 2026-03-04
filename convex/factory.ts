@@ -1683,7 +1683,7 @@ export const getOrgStats = query({
     return {
       blogCount: blogPosts.length,
       reviewCount: reviews.length,
-      pendingReviews: reviews.filter((r) => !r.approved).length,
+      pendingReviews: reviews.filter((r) => r.status !== "approved").length,
       bookingCount: bookings.length,
       pendingBookings: bookings.filter((b) => b.status === "pending").length,
       galleryCount: gallery.length,

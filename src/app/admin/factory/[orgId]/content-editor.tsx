@@ -335,7 +335,7 @@ function GalleryManager({ orgId }: { orgId: Id<"clientOrgs"> }) {
         orgId,
         title: newTitle.trim(),
         category: newCategory.trim() || "general",
-        imageUrl: newUrl.trim() || undefined,
+        imageUrl: newUrl.trim() || "",
       });
       setNewTitle("");
       setNewCategory("");
@@ -428,7 +428,7 @@ function BlogManager({ orgId }: { orgId: Id<"clientOrgs"> }) {
         excerpt: newExcerpt.trim(),
         content: newContent.trim(),
         category: "general",
-        published: true,
+        status: "published" as const,
       });
       setNewTitle("");
       setNewExcerpt("");
@@ -446,7 +446,7 @@ function BlogManager({ orgId }: { orgId: Id<"clientOrgs"> }) {
             <div className="flex-1 min-w-0">
               <p className="text-sm text-white truncate">{post.title}</p>
               <p className="text-xs text-gray-500">
-                {post.published ? "Published" : "Draft"} - {post.category}
+                {post.status === "published" ? "Published" : "Draft"} - {post.category}
                 {post.publishedAt && ` - ${new Date(post.publishedAt).toLocaleDateString()}`}
               </p>
             </div>
@@ -510,19 +510,19 @@ function ReviewsManager({ orgId }: { orgId: Id<"clientOrgs"> }) {
           <div key={review._id} className="flex items-start gap-3 p-3 rounded-lg bg-white/[0.03] border border-white/5">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
-                <span className="text-sm text-white font-medium">{review.name}</span>
+                <span className="text-sm text-white font-medium">{review.customerName}</span>
                 <span className="text-yellow-400 text-xs">{"*".repeat(review.rating)}</span>
                 <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
-                  review.approved ? "bg-green-500/20 text-green-400" : "bg-yellow-500/20 text-yellow-400"
+                  review.status === "approved" ? "bg-green-500/20 text-green-400" : "bg-yellow-500/20 text-yellow-400"
                 }`}>
-                  {review.approved ? "Approved" : "Pending"}
+                  {review.status === "approved" ? "Approved" : "Pending"}
                 </span>
               </div>
               <p className="text-xs text-gray-400">{review.text}</p>
             </div>
-            {!review.approved && (
+            {review.status !== "approved" && (
               <button
-                onClick={() => moderate({ reviewId: review._id, approved: true })}
+                onClick={() => moderate({ reviewId: review._id, status: "approved" as const })}
                 className="flex items-center gap-1 px-2 py-1 rounded-lg bg-green-500/20 text-green-400 text-[10px] font-medium hover:bg-green-500/30 transition-all flex-shrink-0"
               >
                 <Check className="w-3 h-3" />
@@ -561,7 +561,7 @@ function BookingsManager({ orgId }: { orgId: Id<"clientOrgs"> }) {
                 </span>
               </div>
               <p className="text-xs text-gray-400">
-                {booking.service} - {booking.date} at {booking.time}
+                {booking.serviceType} - {booking.preferredDate} at {booking.preferredTime || ""}
               </p>
               <p className="text-xs text-gray-500">{booking.customerEmail} - {booking.customerPhone}</p>
             </div>
