@@ -10,7 +10,17 @@
       "Bash(git commit:*)",
       "Bash(git push:*)",
       "Bash(npx convex deploy:*)",
-      "Bash(cd \"C:/Users/devla/OneDrive/Desktop/claud/leadroute\" && npx convex codegen 2>&1)"
+      "Bash(cd \"C:/Users/devla/OneDrive/Desktop/claud/leadroute\" && npx convex codegen 2>&1)",
+      "WebFetch(domain:shaggy2swaggypets.wheree.com)",
+      "WebFetch(domain:local.yahoo.com)",
+      "WebFetch(domain:ourpetgroomer.com)",
+      "WebFetch(domain:nextdoor.com)",
+      "WebFetch(domain:www.dogdog.org)",
+      "WebFetch(domain:www.instagram.com)",
+      "WebFetch(domain:catgroomersnearme.com)",
+      "WebFetch(domain:www.yellowpages.com)",
+      "Bash(curl:*)",
+      "Bash(node:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
