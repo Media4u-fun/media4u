@@ -29,6 +29,7 @@ import {
   Users,
   Target,
   ChevronDown,
+  Factory,
   type LucideIcon,
 } from "lucide-react";
 
@@ -75,6 +76,12 @@ const navGroups: NavGroup[] = [
     items: [
       { href: "/admin/vr", label: "VR Community", icon: Glasses, countKey: null },
       { href: "/admin/community", label: "Community", icon: Globe, countKey: "community" },
+    ],
+  },
+  {
+    label: "Website Factory",
+    items: [
+      { href: "/admin/factory", label: "Client Sites", icon: Factory, countKey: null },
     ],
   },
   {

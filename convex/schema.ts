@@ -745,4 +745,111 @@ export default defineSchema({
     .index("by_status", ["status"])
     .index("by_priority", ["priority"])
     .index("by_dueDate", ["dueDate"]),
+
+  // ========================================
+  // Website Factory - Feature Entitlement System
+  // ========================================
+
+  // Client organizations - each client site is an org
+  clientOrgs: defineTable({
+    name: v.string(), // Business name (e.g., "Just Doors Inc")
+    slug: v.string(), // URL-friendly name (e.g., "just-doors-inc")
+    domain: v.optional(v.string()), // Custom domain if they have one
+    ownerUserId: v.optional(v.string()), // Better Auth user ID of the client owner
+    ownerEmail: v.string(),
+    plan: v.union(
+      v.literal("starter"),
+      v.literal("growth"),
+      v.literal("enterprise")
+    ),
+    // Stripe billing
+    stripeCustomerId: v.optional(v.string()),
+    stripeSubscriptionId: v.optional(v.string()),
+    // Status
+    status: v.union(
+      v.literal("active"),
+      v.literal("trial"), // 7-day trial of a feature or plan
+      v.literal("suspended"), // Payment failed
+      v.literal("cancelled")
+    ),
+    trialEndsAt: v.optional(v.number()),
+    // Setup fee tracking
+    setupFeePaid: v.boolean(),
+    setupFeeAmount: v.optional(v.number()), // In cents
+    // Limits based on plan
+    maxAdminUsers: v.number(), // 1 for starter, 3 for growth, unlimited (999) for enterprise
+    maxFormSubmissions: v.optional(v.number()), // Monthly limit
+    // Metadata
+    industry: v.optional(v.string()), // "pest-control", "doors", "pools", etc.
+    projectId: v.optional(v.id("projects")), // Link to existing project record
+    notes: v.optional(v.string()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_slug", ["slug"])
+    .index("by_ownerEmail", ["ownerEmail"])
+    .index("by_ownerUserId", ["ownerUserId"])
+    .index("by_plan", ["plan"])
+    .index("by_status", ["status"])
+    .index("by_stripeCustomerId", ["stripeCustomerId"]),
+
+  // Feature registry - master list of all available features/modules
+  featureRegistry: defineTable({
+    key: v.string(), // Unique key: "mapping", "blog", "booking", etc.
+    name: v.string(), // Display name: "GPS Mapping & Routing"
+    description: v.string(), // Short description for admin/client UI
+    category: v.union(
+      v.literal("content"), // Blog, newsletter, community
+      v.literal("operations"), // Mapping, booking, scheduling
+      v.literal("communication"), // Email, SMS, chat
+      v.literal("analytics"), // Reports, exports, charts
+      v.literal("core") // Gallery, contact form, SEO - always included
+    ),
+    // Plan inclusion - which plan gets this for free
+    includedInPlan: v.optional(v.union(
+      v.literal("starter"), // Included in all plans
+      v.literal("growth"), // Included in Growth and Enterprise
+      v.literal("enterprise") // Only in Enterprise
+    )),
+    // Add-on pricing (if purchasable separately)
+    isAddon: v.boolean(), // Can this be bought as an add-on?
+    addonPriceCents: v.optional(v.number()), // Monthly price in cents (e.g., 4900 = $49)
+    stripePriceId: v.optional(v.string()), // Stripe Price ID for addon billing
+    // Display
+    sortOrder: v.number(), // For ordering in UI
+    icon: v.optional(v.string()), // Icon name for UI (e.g., "Map", "Calendar")
+    isActive: v.boolean(), // Can be toggled off globally if module isn't ready
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_key", ["key"])
+    .index("by_category", ["category"])
+    .index("by_includedInPlan", ["includedInPlan"]),
+
+  // Org features - which features are enabled for each client org
+  orgFeatures: defineTable({
+    orgId: v.id("clientOrgs"),
+    featureKey: v.string(), // Matches featureRegistry.key
+    enabled: v.boolean(),
+    source: v.union(
+      v.literal("plan"), // Enabled because their plan includes it
+      v.literal("addon"), // Enabled because they bought it as add-on
+      v.literal("trial"), // Enabled for a trial period
+      v.literal("manual") // Admin manually toggled it on (e.g., gift/promo)
+    ),
+    // Trial tracking
+    trialEndsAt: v.optional(v.number()),
+    // Addon billing
+    stripeSubscriptionItemId: v.optional(v.string()),
+    // Usage limits (optional per-feature limits)
+    usageLimit: v.optional(v.number()), // e.g., 100 form submissions
+    usageCurrent: v.optional(v.number()), // Current usage count
+    usageResetAt: v.optional(v.number()), // When usage resets (monthly)
+    addedAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_orgId", ["orgId"])
+    .index("by_orgId_featureKey", ["orgId", "featureKey"])
+    .index("by_featureKey", ["featureKey"])
+    .index("by_source", ["source"]),
 });
