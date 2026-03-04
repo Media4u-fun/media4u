@@ -90,7 +90,7 @@ export function PoolServiceLayout({
             reserved.
           </p>
           <p className="text-xs text-zinc-600 mt-2">
-            Powered by Media4U Website Factory
+            Powered by QuickSite Pro
           </p>
         </div>
       </footer>

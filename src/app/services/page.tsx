@@ -2,22 +2,23 @@
 
 import { motion } from "motion/react";
 import Link from "next/link";
+import { MapPin, Navigation, Users, Clock } from "lucide-react";
 import { Section, SectionHeader } from "@/components/ui/section";
 import { Button } from "@/components/ui/button";
 
 const services = [
   {
     id: "web-design",
-    title: "Professional Websites",
+    title: "QuickSite Pro - Professional Websites",
     description:
-      "Modern, mobile-responsive websites built for businesses, creators, and brands who want to grow their online presence. From landing pages to full eCommerce - we build sites that convert.",
+      "Professional websites for service businesses - built, managed, and optimized. Live in 48 hours with booking, scheduling, GPS mapping, reviews, and more. Subscribe monthly or own it outright.",
     features: [
-      "Responsive mobile-first design",
-      "SEO optimization built-in",
-      "Fast & accessible performance",
-      "Easy to maintain & update",
+      "Live in 48 hours - no tech skills needed",
+      "Online booking & scheduling built in",
+      "GPS service area mapping (LeadRoute)",
+      "Subscribe from $79/mo or own from $899",
     ],
-    startingPrice: "$899",
+    startingPrice: "$79/mo",
     gradient: "from-brand to-brand-light",
     glowColor: "magenta",
     icon: (
@@ -291,8 +292,8 @@ function ServiceCard({ service, isReversed }: ServiceCardProps): React.ReactNode
           <span className="text-xs text-gray-500 uppercase tracking-wider">Starting at </span>
           <span className="text-2xl font-display font-bold text-white">{service.startingPrice}</span>
           <span className="text-gray-500 text-sm ml-2">
-            <Link href="/start-project#packages" className="text-brand-light hover:underline text-xs">
-              View Packages →
+            <Link href="/factory/pricing" className="text-brand-light hover:underline text-xs">
+              View Plans →
             </Link>
           </span>
         </div>
@@ -315,7 +316,7 @@ function ServiceCard({ service, isReversed }: ServiceCardProps): React.ReactNode
           ))}
         </ul>
 
-        <Link href="/start-project">
+        <Link href="/factory/pricing">
           <Button variant="secondary" size="md">
             Get Started
           </Button>
@@ -352,6 +353,84 @@ export default function ServicesPage(): React.ReactNode {
               isReversed={index % 2 === 1}
             />
           ))}
+        </motion.div>
+      </Section>
+
+      {/* LeadRoute GPS Section */}
+      <Section>
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          viewport={{ once: true }}
+          className="rounded-2xl border border-emerald-500/20 bg-gradient-to-br from-emerald-500/5 via-transparent to-cyan-500/5 p-8 md:p-12"
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+            <div>
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-semibold mb-4">
+                <Navigation className="w-3.5 h-3.5" />
+                LeadRoute GPS Mapping
+              </div>
+              <h2 className="text-2xl md:text-3xl font-display font-bold mb-4 text-white">
+                Show customers exactly{" "}
+                <span className="text-emerald-400">where you work</span>
+              </h2>
+              <p className="text-gray-400 mb-6 leading-relaxed">
+                LeadRoute is our GPS mapping module that lets service businesses show their coverage area right on their website. Customers instantly see if you serve their neighborhood - no more wasted calls from outside your area.
+              </p>
+              <ul className="space-y-3 mb-6">
+                {[
+                  { icon: MapPin, text: "Interactive service area maps embedded on your site" },
+                  { icon: Navigation, text: "Draw custom zones by neighborhood or zip code" },
+                  { icon: Users, text: "Customers check coverage before they call" },
+                  { icon: Clock, text: "Save hours filtering out-of-area leads" },
+                ].map((item) => (
+                  <li key={item.text} className="flex items-center gap-2.5 text-sm text-gray-300">
+                    <item.icon className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                    {item.text}
+                  </li>
+                ))}
+              </ul>
+              <p className="text-sm text-gray-500 mb-6">
+                Built into QuickSite Pro Enterprise. Available as an add-on for any plan.
+              </p>
+              <Link href="/factory/pricing">
+                <Button variant="secondary" size="md">
+                  See QuickSite Pro Plans
+                </Button>
+              </Link>
+            </div>
+
+            {/* Map visual */}
+            <div className="relative">
+              <div className="aspect-[4/3] rounded-xl bg-[#0f1923] border border-emerald-500/10 overflow-hidden relative">
+                <div className="absolute inset-0 opacity-20">
+                  <div className="grid grid-cols-8 grid-rows-6 h-full w-full">
+                    {Array.from({ length: 48 }).map((_, i) => (
+                      <div key={i} className="border border-emerald-500/10" />
+                    ))}
+                  </div>
+                </div>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-48 h-48 rounded-full bg-emerald-500/15 border-2 border-emerald-500/30 border-dashed flex items-center justify-center relative">
+                    <div className="w-24 h-24 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center">
+                      <MapPin className="w-8 h-8 text-emerald-400" />
+                    </div>
+                    <div className="absolute top-4 right-6 w-3 h-3 rounded-full bg-cyan-400 animate-pulse" />
+                    <div className="absolute bottom-8 left-4 w-3 h-3 rounded-full bg-cyan-400 animate-pulse" style={{ animationDelay: "0.5s" }} />
+                    <div className="absolute top-12 left-8 w-3 h-3 rounded-full bg-emerald-400 animate-pulse" style={{ animationDelay: "1s" }} />
+                    <div className="absolute bottom-4 right-12 w-3 h-3 rounded-full bg-emerald-400 animate-pulse" style={{ animationDelay: "1.5s" }} />
+                  </div>
+                </div>
+                <div className="absolute bottom-3 left-3 px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-400 text-xs font-medium border border-emerald-500/20">
+                  Your Service Area
+                </div>
+                <div className="absolute top-3 right-3 px-2.5 py-1 rounded-lg bg-white/10 text-gray-400 text-xs">
+                  LeadRoute
+                </div>
+              </div>
+            </div>
+          </div>
         </motion.div>
       </Section>
 

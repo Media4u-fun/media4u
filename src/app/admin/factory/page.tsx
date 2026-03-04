@@ -3,12 +3,14 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
+import { Id } from "@convex/_generated/dataModel";
 import { motion, AnimatePresence } from "motion/react";
 import Link from "next/link";
 import {
   Factory, Plus, Search, Building2, Globe, ChevronRight,
   Crown, Zap, Rocket, X, Loader2, DollarSign, Users,
   TrendingUp, AlertCircle, Check, Mail, Eye, ExternalLink,
+  UserPlus, ArrowRight, Clock, XCircle, Phone,
 } from "lucide-react";
 
 const PLAN_COLORS = {
@@ -27,15 +29,31 @@ const STATUS_COLORS: Record<string, { dot: string; bg: string; text: string }> =
 type SortKey = "name" | "revenue" | "date";
 type FilterPlan = "all" | "starter" | "growth" | "enterprise";
 type FilterStatus = "all" | "active" | "trial" | "suspended" | "cancelled";
+type ActiveTab = "sites" | "signups";
+
+const LEAD_STATUS_COLORS: Record<string, { bg: string; text: string }> = {
+  new: { bg: "bg-cyan-500/10", text: "text-cyan-400" },
+  contacted: { bg: "bg-blue-500/10", text: "text-blue-400" },
+  researching: { bg: "bg-purple-500/10", text: "text-purple-400" },
+  building: { bg: "bg-yellow-500/10", text: "text-yellow-400" },
+  presented: { bg: "bg-orange-500/10", text: "text-orange-400" },
+  won: { bg: "bg-green-500/10", text: "text-green-400" },
+  lost: { bg: "bg-red-500/10", text: "text-red-400" },
+};
 
 function slugify(name: string) {
   return name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 }
 
 export default function FactoryPage() {
+  const [activeTab, setActiveTab] = useState<ActiveTab>("sites");
   const orgs = useQuery(api.factory.listClientOrgs);
   const stats = useQuery(api.factory.getRevenueStats);
+  const signups = useQuery(api.factory.listFactorySignups);
   const createOrg = useMutation(api.factory.createClientOrg);
+  const convertSignup = useMutation(api.factory.convertSignupToOrg);
+  const updateLeadStatus = useMutation(api.factory.updateLeadStatus);
+  const [convertingId, setConvertingId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [showCreate, setShowCreate] = useState(false);
   const [creating, setCreating] = useState(false);
@@ -108,19 +126,59 @@ export default function FactoryPage() {
         <div>
           <h1 className="text-2xl font-bold text-white flex items-center gap-3">
             <Factory className="w-7 h-7 text-brand-light" />
-            Client Sites
+            Website Factory
           </h1>
-          <p className="text-gray-400 text-sm mt-1">Manage client sites, plans, billing, and features</p>
+          <p className="text-gray-400 text-sm mt-1">Manage client sites, signups, and pipeline</p>
         </div>
+        {activeTab === "sites" && (
+          <button
+            onClick={() => setShowCreate(true)}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-brand-light/20 text-brand-light hover:bg-brand-light/30 border border-brand-light/30 font-medium text-sm transition-all"
+          >
+            <Plus className="w-4 h-4" />
+            New Client Site
+          </button>
+        )}
+      </div>
+
+      {/* Tabs */}
+      <div className="flex gap-1 p-1 rounded-xl bg-white/5 border border-white/10 w-fit">
         <button
-          onClick={() => setShowCreate(true)}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-brand-light/20 text-brand-light hover:bg-brand-light/30 border border-brand-light/30 font-medium text-sm transition-all"
+          onClick={() => setActiveTab("sites")}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+            activeTab === "sites"
+              ? "bg-white/10 text-white"
+              : "text-gray-400 hover:text-gray-300"
+          }`}
         >
-          <Plus className="w-4 h-4" />
-          New Client Site
+          <span className="flex items-center gap-2">
+            <Building2 className="w-4 h-4" />
+            Client Sites
+          </span>
+        </button>
+        <button
+          onClick={() => setActiveTab("signups")}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+            activeTab === "signups"
+              ? "bg-white/10 text-white"
+              : "text-gray-400 hover:text-gray-300"
+          }`}
+        >
+          <span className="flex items-center gap-2">
+            <UserPlus className="w-4 h-4" />
+            New Signups
+            {signups && signups.filter((s) => s.status === "new").length > 0 && (
+              <span className="px-1.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-400 text-xs font-bold">
+                {signups.filter((s) => s.status === "new").length}
+              </span>
+            )}
+          </span>
         </button>
       </div>
 
+      {activeTab === "signups" && <SignupsTab signups={signups} convertSignup={convertSignup} updateLeadStatus={updateLeadStatus} convertingId={convertingId} setConvertingId={setConvertingId} />}
+
+      {activeTab === "sites" && <>
       {/* Revenue Dashboard Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         <div className="p-4 rounded-xl bg-gradient-to-br from-green-500/10 to-green-600/5 border border-green-500/20">
@@ -341,6 +399,8 @@ export default function FactoryPage() {
         )}
       </div>
 
+      </>}
+
       {/* Create Modal */}
       <AnimatePresence>
         {showCreate && (
@@ -445,6 +505,179 @@ export default function FactoryPage() {
           </>
         )}
       </AnimatePresence>
+    </div>
+  );
+}
+
+// ========================================
+// Signups Pipeline Tab
+// ========================================
+
+function SignupsTab({
+  signups,
+  convertSignup,
+  updateLeadStatus,
+  convertingId,
+  setConvertingId,
+}: {
+  signups: Array<{
+    _id: Id<"leads">;
+    name: string;
+    email: string;
+    businessName?: string;
+    industry?: string;
+    phone?: string;
+    notes: string;
+    status: string;
+    factoryOrgId?: Id<"clientOrgs">;
+    createdAt: number;
+  }> | undefined;
+  convertSignup: (args: { leadId: Id<"leads"> }) => Promise<Id<"clientOrgs">>;
+  updateLeadStatus: (args: { leadId: Id<"leads">; status: "new" | "contacted" | "researching" | "building" | "presented" | "qualified" | "converted" | "won" | "lost" }) => Promise<void>;
+  convertingId: string | null;
+  setConvertingId: (id: string | null) => void;
+}) {
+  async function handleConvert(leadId: Id<"leads">) {
+    setConvertingId(leadId);
+    try {
+      await convertSignup({ leadId });
+    } catch (err) {
+      console.error("Convert failed:", err);
+    } finally {
+      setConvertingId(null);
+    }
+  }
+
+  async function handleStatusChange(leadId: Id<"leads">, status: string) {
+    try {
+      await updateLeadStatus({
+        leadId,
+        status: status as "new" | "contacted" | "lost",
+      });
+    } catch (err) {
+      console.error("Status update failed:", err);
+    }
+  }
+
+  if (!signups) {
+    return (
+      <div className="text-center py-12">
+        <Loader2 className="w-8 h-8 animate-spin text-gray-500 mx-auto mb-3" />
+        <p className="text-gray-500">Loading signups...</p>
+      </div>
+    );
+  }
+
+  if (signups.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <UserPlus className="w-12 h-12 text-gray-600 mx-auto mb-3" />
+        <p className="text-gray-400 font-medium">No signups yet</p>
+        <p className="text-gray-500 text-sm mt-1">Signups from /factory/signup will appear here</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      {signups.map((lead) => {
+        const statusStyle = LEAD_STATUS_COLORS[lead.status] || LEAD_STATUS_COLORS.new;
+        const isConverted = !!lead.factoryOrgId;
+        const isConverting = convertingId === lead._id;
+
+        return (
+          <div
+            key={lead._id}
+            className="p-5 rounded-2xl bg-white/[0.03] border border-white/8"
+          >
+            <div className="flex items-start justify-between mb-3">
+              <div>
+                <p className="text-white font-semibold">{lead.businessName || lead.name}</p>
+                <p className="text-gray-400 text-sm">{lead.name}</p>
+              </div>
+              <span className={`px-2.5 py-1 rounded-lg text-xs font-medium capitalize ${statusStyle.bg} ${statusStyle.text}`}>
+                {lead.status}
+              </span>
+            </div>
+
+            <div className="space-y-1.5 mb-4">
+              <p className="text-xs text-gray-500 flex items-center gap-1.5">
+                <Mail className="w-3 h-3" /> {lead.email}
+              </p>
+              {lead.phone && (
+                <p className="text-xs text-gray-500 flex items-center gap-1.5">
+                  <Phone className="w-3 h-3" /> {lead.phone}
+                </p>
+              )}
+              {lead.industry && (
+                <p className="text-xs text-gray-500 flex items-center gap-1.5">
+                  <Globe className="w-3 h-3" /> <span className="capitalize">{lead.industry}</span>
+                </p>
+              )}
+              <p className="text-xs text-gray-500 flex items-center gap-1.5">
+                <Clock className="w-3 h-3" /> {new Date(lead.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" })}
+              </p>
+              {lead.notes && (
+                <>
+                  <p className="text-xs text-cyan-400 font-medium mt-1">{lead.notes}</p>
+                  {lead.notes.includes("(own)") ? (
+                    <span className="inline-block mt-1 px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/20">Own It</span>
+                  ) : lead.notes.includes("(subscribe)") ? (
+                    <span className="inline-block mt-1 px-2 py-0.5 rounded text-[10px] font-bold bg-cyan-500/15 text-cyan-400 border border-cyan-500/20">Subscribe</span>
+                  ) : null}
+                </>
+              )}
+            </div>
+
+            {/* Actions */}
+            <div className="flex items-center gap-2">
+              {isConverted ? (
+                <Link
+                  href={`/admin/factory/${lead.factoryOrgId}`}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-green-500/10 text-green-400 border border-green-500/20 text-xs font-medium hover:bg-green-500/20 transition-all"
+                >
+                  <Check className="w-3 h-3" />
+                  Converted
+                  <ArrowRight className="w-3 h-3" />
+                </Link>
+              ) : lead.status === "lost" ? (
+                <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/10 text-red-400 text-xs font-medium">
+                  <XCircle className="w-3 h-3" />
+                  Lost
+                </span>
+              ) : (
+                <>
+                  <button
+                    onClick={() => handleConvert(lead._id)}
+                    disabled={isConverting}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-brand-light/10 text-brand-light border border-brand-light/20 text-xs font-medium hover:bg-brand-light/20 transition-all disabled:opacity-50"
+                  >
+                    {isConverting ? (
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                    ) : (
+                      <UserPlus className="w-3 h-3" />
+                    )}
+                    Convert to Client
+                  </button>
+
+                  <select
+                    value={lead.status}
+                    onChange={(e) => handleStatusChange(lead._id, e.target.value)}
+                    className="px-2 py-1.5 rounded-lg bg-white/5 border border-white/10 text-gray-300 text-xs focus:outline-none cursor-pointer appearance-none"
+                  >
+                    <option value="new">New</option>
+                    <option value="contacted">Contacted</option>
+                    <option value="researching">Researching</option>
+                    <option value="building">Building</option>
+                    <option value="presented">Presented</option>
+                    <option value="lost">Mark Lost</option>
+                  </select>
+                </>
+              )}
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }

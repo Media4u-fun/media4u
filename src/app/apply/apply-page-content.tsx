@@ -3,7 +3,8 @@
 import { motion } from "motion/react";
 import { Section } from "@/components/ui/section";
 import { ApplyForm } from "./apply-form";
-import { CheckCircle2, Zap, ShieldCheck, TrendingUp } from "lucide-react";
+import { CheckCircle2, Zap, Map, Calendar } from "lucide-react";
+import Link from "next/link";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -38,14 +39,14 @@ const benefits = [
     description: "See your new site in 2 days",
   },
   {
-    icon: ShieldCheck,
-    title: "100% Risk-Free",
-    description: "Approve before paying anything",
+    icon: Calendar,
+    title: "Booking & Scheduling",
+    description: "Customers book directly from your site",
   },
   {
-    icon: TrendingUp,
-    title: "Mobile-Optimized",
-    description: "Looks perfect on every device",
+    icon: Map,
+    title: "GPS Service Mapping",
+    description: "Show exactly where you work",
   },
 ];
 
@@ -61,20 +62,20 @@ export function ApplyPageContent() {
           className="text-center mb-12 md:mb-16"
         >
           <span className="inline-block mb-4 text-xs font-semibold tracking-[0.2em] uppercase text-brand-light">
-            Website Factory
+            QuickSite Pro
           </span>
           <h1 className="text-4xl md:text-5xl lg:text-7xl font-display font-bold text-white mb-6">
-            I&apos;ll Build Your Website
+            Focus on Your Business
             <br />
-            <span className="text-gradient">See It Live Before You Pay</span>
+            <span className="text-gradient">We&apos;ll Handle the Website</span>
           </h1>
           <p className="text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto mb-4">
-            $50 reserves your spot - Full website $699
+            Professional websites for service businesses - starting at $79/mo
           </p>
           <p className="text-lg text-gray-400 max-w-2xl mx-auto">
-            Your $50 deposit is <strong className="text-gray-300">fully refundable</strong> if you don&apos;t love the site.
+            Built, managed, and optimized. Live in 48 hours.
             <br />
-            If you do love it, it goes toward your $699 total.
+            Or <strong className="text-gray-300">own it outright</strong> starting at $899.
           </p>
         </motion.div>
 
@@ -128,7 +129,7 @@ export function ApplyPageContent() {
                       Fill Out the Form
                     </h3>
                     <p className="text-gray-400 text-sm">
-                      Tell me about your business in 2 minutes
+                      Tell us about your business in 2 minutes
                     </p>
                   </div>
                 </div>
@@ -138,10 +139,10 @@ export function ApplyPageContent() {
                   </div>
                   <div>
                     <h3 className="font-semibold text-white mb-1">
-                      I Build Your Site
+                      We Build Your Site
                     </h3>
                     <p className="text-gray-400 text-sm">
-                      Custom design, ready in 48 hours
+                      Custom design with booking, reviews, and more - ready in 48 hours
                     </p>
                   </div>
                 </div>
@@ -151,23 +152,10 @@ export function ApplyPageContent() {
                   </div>
                   <div>
                     <h3 className="font-semibold text-white mb-1">
-                      You See It Live
+                      You Review & Launch
                     </h3>
                     <p className="text-gray-400 text-sm">
-                      Click through every page, test on your phone
-                    </p>
-                  </div>
-                </div>
-                <div className="flex gap-4">
-                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-brand-light/20 flex items-center justify-center text-brand-light font-bold">
-                    4
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-white mb-1">
-                      You Approve & Launch
-                    </h3>
-                    <p className="text-gray-400 text-sm">
-                      Love it? Pay remaining $649 and launch. Don&apos;t love it? Full $50 refund.
+                      Click through every page, test on your phone, and go live
                     </p>
                   </div>
                 </div>
@@ -176,27 +164,30 @@ export function ApplyPageContent() {
 
             <div className="glass-card p-8 bg-gradient-to-br from-brand-dark/20 to-transparent border border-brand-light/20">
               <h2 className="text-2xl font-bold text-white mb-4">
-                Limited Spots Available
+                Two Ways to Get Started
               </h2>
-              <p className="text-gray-300 mb-4">
-                I&apos;m only taking on <strong>10 clients this month</strong> to
-                maintain quality and deliver on time.
-              </p>
-              <p className="text-gray-400 text-sm">
-                Typical agency price: <span className="line-through">$3,000-$5,000</span>
-                <br />
-                <span className="text-brand-light font-bold text-lg">
-                  Your price: $699 total
-                </span>
-                <br />
-                <span className="text-gray-300 text-sm mt-1 block">
-                  $50 deposit to reserve + $649 if you love it
-                </span>
-                <br />
-                <span className="text-green-400 text-xs font-semibold">
-                  ✓ Deposit fully refunded if you pass
-                </span>
-              </p>
+              <div className="space-y-4">
+                <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+                  <h3 className="text-white font-semibold mb-1">Subscribe</h3>
+                  <p className="text-gray-400 text-sm mb-1">
+                    Simple monthly plans from $79/mo. Everything included.
+                  </p>
+                  <p className="text-brand-light text-sm font-medium">$79 / $149 / $299 per month</p>
+                </div>
+                <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+                  <h3 className="text-white font-semibold mb-1">Own It</h3>
+                  <p className="text-gray-400 text-sm mb-1">
+                    One-time build fee + low monthly maintenance. Your site, your asset.
+                  </p>
+                  <p className="text-brand-light text-sm font-medium">From $899 + $39/mo maintenance</p>
+                </div>
+              </div>
+              <Link
+                href="/factory/pricing"
+                className="inline-block mt-4 text-sm text-brand-light hover:text-white transition-colors font-medium"
+              >
+                View full pricing &rarr;
+              </Link>
             </div>
 
             <div className="glass-card p-8">
@@ -232,11 +223,10 @@ export function ApplyPageContent() {
           <motion.div variants={itemVariants}>
             <div className="glass-card p-8 lg:sticky lg:top-8">
               <h2 className="text-2xl font-bold text-white mb-2">
-                Apply Now
+                Get Started
               </h2>
               <p className="text-gray-400 mb-6 text-sm">
-                Fill out this quick form and I&apos;ll get started on your site
-                today
+                Fill out this quick form and we&apos;ll get started on your site today
               </p>
               <ApplyForm />
             </div>

@@ -44,31 +44,31 @@ function Hero() {
                   />
                   <div className="text-center">
                     <p className="text-xs tracking-[0.2em] uppercase text-purple-400 mb-2">
-                      🎯 Limited Offer
+                      QuickSite Pro
                     </p>
                     <h3 className="text-2xl font-display font-bold text-white mb-3">
-                      Try Before You Buy
+                      Your Website, Live in 48 Hours
                     </h3>
                     <p className="text-sm text-zinc-300 mb-4">
-                      See your website live in 48 hours. Pay only if you love it.
+                      Professional websites for service businesses. Built, managed, and optimized.
                     </p>
                     <div className="flex items-center justify-center gap-3 mb-4">
                       <div className="text-center">
-                        <p className="text-3xl font-bold text-purple-400">$50</p>
-                        <p className="text-xs text-zinc-400">Reserve</p>
+                        <p className="text-3xl font-bold text-purple-400">$79</p>
+                        <p className="text-xs text-zinc-400">Subscribe/mo</p>
                       </div>
-                      <div className="text-zinc-500">→</div>
+                      <div className="text-zinc-500">or</div>
                       <div className="text-center">
-                        <p className="text-3xl font-bold text-white">$699</p>
-                        <p className="text-xs text-zinc-400">If you love it</p>
+                        <p className="text-3xl font-bold text-white">$899</p>
+                        <p className="text-xs text-zinc-400">Own it</p>
                       </div>
                     </div>
                     <div className="inline-flex items-center gap-2 px-6 py-3 bg-purple-600 text-white rounded-full text-sm font-semibold group-hover:bg-purple-500 transition-colors">
-                      Apply Now
+                      Get Started
                       <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                     </div>
                     <p className="text-xs text-zinc-500 mt-3">
-                      ✓ 100% Refundable • 10 spots left
+                      No payment upfront - we build first, you decide
                     </p>
                   </div>
                 </div>

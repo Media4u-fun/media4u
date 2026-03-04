@@ -2,6 +2,8 @@
 
 import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { useMutation } from "convex/react";
+import { api } from "@convex/_generated/api";
 import { motion } from "motion/react";
 import Link from "next/link";
 import {
@@ -10,9 +12,9 @@ import {
 } from "lucide-react";
 
 const PLAN_INFO = {
-  starter: { name: "Starter", price: 79, icon: Zap, color: "text-blue-400", bg: "bg-blue-500/10", border: "border-blue-500/30" },
-  growth: { name: "Growth", price: 149, icon: Rocket, color: "text-purple-400", bg: "bg-purple-500/10", border: "border-purple-500/30" },
-  enterprise: { name: "Enterprise", price: 299, icon: Crown, color: "text-amber-400", bg: "bg-amber-500/10", border: "border-amber-500/30" },
+  starter: { name: "Starter", price: 79, ownPrice: 899, ownMaintenance: 39, icon: Zap, color: "text-blue-400", bg: "bg-blue-500/10", border: "border-blue-500/30" },
+  growth: { name: "Growth", price: 149, ownPrice: 1399, ownMaintenance: 79, icon: Rocket, color: "text-purple-400", bg: "bg-purple-500/10", border: "border-purple-500/30" },
+  enterprise: { name: "Enterprise", price: 299, ownPrice: 1999, ownMaintenance: 149, icon: Crown, color: "text-amber-400", bg: "bg-amber-500/10", border: "border-amber-500/30" },
 };
 
 export default function SignupPage() {
@@ -26,7 +28,11 @@ export default function SignupPage() {
 function SignupForm() {
   const searchParams = useSearchParams();
   const planKey = (searchParams?.get("plan") || "starter") as keyof typeof PLAN_INFO;
+  const paymentType = (searchParams?.get("type") || "subscribe") as "subscribe" | "own";
   const plan = PLAN_INFO[planKey] || PLAN_INFO.starter;
+  const priceLabel = paymentType === "own"
+    ? `$${plan.ownPrice.toLocaleString()} + $${plan.ownMaintenance}/mo`
+    : `$${plan.price}/mo`;
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -35,19 +41,29 @@ function SignupForm() {
   const [phone, setPhone] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const submitSignup = useMutation(api.factory.submitFactorySignup);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !email.trim() || !business.trim()) return;
 
     setSubmitting(true);
-
-    // For now, this just shows a success message.
-    // In production, this would create a Stripe Checkout session
-    // and redirect to payment.
-    await new Promise((r) => setTimeout(r, 1500));
-    setSubmitted(true);
-    setSubmitting(false);
+    try {
+      await submitSignup({
+        name: name.trim(),
+        email: email.trim(),
+        businessName: business.trim(),
+        industry: industry.trim() || undefined,
+        phone: phone.trim() || undefined,
+        plan: planKey,
+        paymentType,
+      });
+      setSubmitted(true);
+    } catch (err) {
+      console.error("Signup failed:", err);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (submitted) {
@@ -63,7 +79,7 @@ function SignupForm() {
           </div>
           <h1 className="text-2xl font-bold mb-4">You&apos;re all set!</h1>
           <p className="text-gray-400 mb-6">
-            We&apos;ve received your signup for the <span className={plan.color}>{plan.name}</span> plan.
+            We&apos;ve received your QuickSite Pro signup for the <span className={plan.color}>{plan.name}</span> plan.
             Our team will reach out within 24 hours to get your site started.
           </p>
           <p className="text-sm text-gray-500 mb-8">
@@ -73,7 +89,7 @@ function SignupForm() {
             href="/"
             className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 font-medium text-sm hover:bg-cyan-500/30 transition-all"
           >
-            Back to Media4U
+            Back to Home
           </Link>
         </motion.div>
       </div>
@@ -98,7 +114,7 @@ function SignupForm() {
         {/* Plan badge */}
         <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg ${plan.bg} ${plan.color} border ${plan.border} text-sm font-semibold mb-4`}>
           <plan.icon className="w-4 h-4" />
-          {plan.name} - ${plan.price}/mo
+          {plan.name} - {priceLabel}
         </div>
 
         <h1 className="text-2xl font-bold mb-2">Get your website started</h1>

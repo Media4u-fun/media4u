@@ -5,6 +5,156 @@ import { requireAdmin, getAuthenticatedUser } from "./auth";
 import { Id } from "./_generated/dataModel";
 
 // ========================================
+// Factory Signup Pipeline
+// ========================================
+
+// Public mutation - no auth required (public signup form)
+export const submitFactorySignup = mutation({
+  args: {
+    name: v.string(),
+    email: v.string(),
+    businessName: v.string(),
+    industry: v.optional(v.string()),
+    phone: v.optional(v.string()),
+    plan: v.string(), // "starter", "growth", "enterprise"
+    paymentType: v.optional(v.string()), // "subscribe" or "own"
+  },
+  handler: async (ctx, args) => {
+    const now = Date.now();
+    const type = args.paymentType || "subscribe";
+    const planPrices: Record<string, { sub: number; own: number; maint: number }> = {
+      starter: { sub: 79, own: 899, maint: 39 },
+      growth: { sub: 149, own: 1399, maint: 79 },
+      enterprise: { sub: 299, own: 1999, maint: 149 },
+    };
+    const prices = planPrices[args.plan] || planPrices.starter;
+    const priceLabel = type === "own"
+      ? `$${prices.own.toLocaleString()} + $${prices.maint}/mo (own)`
+      : `$${prices.sub}/mo (subscribe)`;
+
+    const leadId = await ctx.db.insert("leads", {
+      name: args.name,
+      email: args.email,
+      businessName: args.businessName,
+      industry: args.industry,
+      phone: args.phone,
+      source: "factory-signup",
+      status: "new",
+      notes: `Plan: ${args.plan} - ${priceLabel}`,
+      createdAt: now,
+    });
+
+    return leadId;
+  },
+});
+
+// Admin query - list all factory signups
+export const listFactorySignups = query({
+  handler: async (ctx) => {
+    await requireAdmin(ctx);
+    const leads = await ctx.db
+      .query("leads")
+      .withIndex("by_created")
+      .order("desc")
+      .collect();
+    return leads.filter((l) => l.source === "factory-signup");
+  },
+});
+
+// Admin mutation - update a lead's status
+export const updateLeadStatus = mutation({
+  args: {
+    leadId: v.id("leads"),
+    status: v.union(
+      v.literal("new"),
+      v.literal("researching"),
+      v.literal("building"),
+      v.literal("presented"),
+      v.literal("contacted"),
+      v.literal("qualified"),
+      v.literal("converted"),
+      v.literal("won"),
+      v.literal("lost"),
+    ),
+  },
+  handler: async (ctx, { leadId, status }) => {
+    await requireAdmin(ctx);
+    const lead = await ctx.db.get(leadId);
+    if (!lead) throw new ConvexError({ code: "NOT_FOUND", message: "Lead not found" });
+    await ctx.db.patch(leadId, { status });
+  },
+});
+
+// Admin mutation - convert a factory signup to a client org
+export const convertSignupToOrg = mutation({
+  args: {
+    leadId: v.id("leads"),
+  },
+  handler: async (ctx, { leadId }) => {
+    await requireAdmin(ctx);
+    const lead = await ctx.db.get(leadId);
+    if (!lead) throw new ConvexError({ code: "NOT_FOUND", message: "Lead not found" });
+    if (lead.factoryOrgId) throw new ConvexError({ code: "ALREADY_CONVERTED", message: "Already converted" });
+
+    // Parse plan from notes (e.g., "Plan: growth - $149/mo")
+    const planMatch = lead.notes.match(/Plan:\s*(\w+)/i);
+    const plan = (planMatch?.[1] || "starter") as "starter" | "growth" | "enterprise";
+    const validPlans = ["starter", "growth", "enterprise"];
+    const finalPlan = validPlans.includes(plan) ? plan : "starter" as const;
+
+    const slug = (lead.businessName || lead.name)
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)/g, "");
+
+    // Make slug unique
+    const existingSlug = await ctx.db
+      .query("clientOrgs")
+      .withIndex("by_slug", (q) => q.eq("slug", slug))
+      .first();
+    const finalSlug = existingSlug ? `${slug}-${Date.now().toString(36)}` : slug;
+
+    const limits = PLAN_LIMITS[finalPlan];
+    const now = Date.now();
+
+    const orgId = await ctx.db.insert("clientOrgs", {
+      name: lead.businessName || lead.name,
+      slug: finalSlug,
+      ownerEmail: lead.email,
+      plan: finalPlan,
+      status: "active",
+      setupFeePaid: false,
+      maxAdminUsers: limits.maxAdminUsers,
+      maxFormSubmissions: limits.maxFormSubmissions,
+      industry: lead.industry,
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    // Apply plan preset features
+    const features = PLAN_PRESETS[finalPlan] || [];
+    for (const featureKey of features) {
+      await ctx.db.insert("orgFeatures", {
+        orgId,
+        featureKey,
+        enabled: true,
+        source: "plan",
+        addedAt: now,
+        updatedAt: now,
+      });
+    }
+
+    // Link the lead to the new org and mark as won
+    await ctx.db.patch(leadId, {
+      factoryOrgId: orgId,
+      status: "won",
+    });
+
+    return orgId;
+  },
+});
+
+// ========================================
 // Plan Presets - what features each plan includes
 // ========================================
 

@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { useMutation } from "convex/react";
+import { api } from "@convex/_generated/api";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import { Loader2, Check } from "lucide-react";
 
 export function ApplyForm() {
   const [formData, setFormData] = useState({
@@ -17,7 +19,9 @@ export function ApplyForm() {
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
+  const submitSignup = useMutation(api.factory.submitFactorySignup);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -34,38 +38,43 @@ export function ApplyForm() {
     setIsSubmitting(true);
 
     try {
-      // Validate required fields
       if (!formData.name || !formData.businessName || !formData.email || !formData.industry) {
         setError("Please fill in all required fields");
         setIsSubmitting(false);
         return;
       }
 
-      // Create Stripe checkout session for $50 deposit
-      const response = await fetch("/api/stripe/create-deposit-checkout", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
+      await submitSignup({
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        businessName: formData.businessName.trim(),
+        industry: formData.industry.trim(),
+        phone: formData.phone.trim() || undefined,
+        plan: "growth",
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to create checkout session");
-      }
-
-      // Redirect to Stripe Checkout
-      if (data.url) {
-        window.location.href = data.url;
-      }
+      setSubmitted(true);
     } catch (err) {
       console.error("Error submitting application:", err);
       setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
       setIsSubmitting(false);
     }
   };
+
+  if (submitted) {
+    return (
+      <div className="text-center py-8">
+        <div className="w-14 h-14 rounded-full bg-green-500/20 flex items-center justify-center mx-auto mb-4">
+          <Check className="w-7 h-7 text-green-400" />
+        </div>
+        <h3 className="text-xl font-bold text-white mb-2">You&apos;re all set!</h3>
+        <p className="text-gray-400 text-sm">
+          We&apos;ll reach out within 24 hours to get your site started.
+          Check your email ({formData.email}) for next steps.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
@@ -255,12 +264,12 @@ export function ApplyForm() {
             Processing...
           </>
         ) : (
-          "Reserve Your Spot - $50 Deposit"
+          "Get My Website Started"
         )}
       </Button>
 
       <p className="text-xs text-gray-500 text-center">
-        $50 deposit required to reserve your spot. Fully refundable if you don&apos;t love the finished site.
+        No payment required. We&apos;ll reach out within 24 hours to discuss your site.
       </p>
     </form>
   );

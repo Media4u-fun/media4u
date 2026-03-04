@@ -64,8 +64,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           price_data: {
             currency: "usd",
             product_data: {
-              name: "Website Factory - Spot Reservation",
-              description: "Refundable deposit to reserve your spot. Applies toward $699 total if you love the site.",
+              name: "QuickSite Pro - Spot Reservation",
+              description: "Refundable deposit to reserve your spot for a QuickSite Pro website.",
             },
             unit_amount: 5000, // $50 in cents
           },

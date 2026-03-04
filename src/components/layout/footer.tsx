@@ -14,9 +14,10 @@ const quickLinks = [
 ];
 
 const serviceLinks = [
+  { href: "/factory/pricing", label: "QuickSite Pro" },
+  { href: "/leadroute", label: "LeadRoute GPS" },
   { href: "/vr", label: "VR Environments" },
-  { href: "/services", label: "Web Design" },
-  { href: "/services", label: "VR Projects" },
+  { href: "/services", label: "All Services" },
 ];
 
 export function Footer() {

@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 export const metadata: Metadata = {
   title: "Services - Web Design, VR Development & Digital Solutions",
   description:
-    "Professional websites starting at $899, custom VR environments, and immersive digital experiences. Explore Media4U services for every budget.",
+    "Professional websites starting at $79/mo with QuickSite Pro, custom VR environments, and immersive digital experiences. Explore Media4U services for every budget.",
   keywords: [
     "web design services",
     "VR development",
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Media4U Services - Web Design, VR & Digital Solutions",
     description:
-      "Professional websites starting at $899, custom VR environments, and immersive digital experiences.",
+      "Professional websites starting at $79/mo with QuickSite Pro, custom VR environments, and immersive digital experiences.",
     type: "website",
     url: "https://media4u.fun/services",
   },

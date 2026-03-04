@@ -27,7 +27,7 @@ const learnSections = [
     heading: "Company",
     links: [
       { href: "/about", label: "About Us" },
-      { href: "/start-project", label: "Start a Project" },
+      { href: "/factory/pricing", label: "QuickSite Pro" },
     ],
   },
 ];
