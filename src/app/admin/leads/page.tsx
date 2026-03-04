@@ -10,7 +10,9 @@ import {
   Search, Plus, X, Upload, Trash2, Image as ImageIcon, Building2, MapPin, Globe,
   Phone, Mail, Camera, Download, Send, ExternalLink, Copy, Loader2, AlertTriangle,
   ChevronLeft, ChevronRight, Target, TrendingUp, CheckCircle, XCircle, ArrowLeft,
+  Eye, Rocket, LinkIcon,
 } from "lucide-react";
+import Link from "next/link";
 import { EmailReplyModal } from "@/components/admin/EmailReplyModal";
 
 type LeadStatus = "new" | "researching" | "building" | "presented" | "contacted" | "qualified" | "converted" | "won" | "lost";
@@ -39,6 +41,23 @@ const INDUSTRIES = [
   "Law Firm", "Dental Practice", "Other",
 ];
 
+// Map industry display names to template slugs
+function industryToSlug(industry: string | undefined): string | null {
+  if (!industry) return null;
+  const map: Record<string, string> = {
+    "Pool Service": "pool-service",
+    "Pest Control": "pest-control",
+    "Door Company": "door-company",
+    "Barbershop": "barbershop",
+    "HVAC": "hvac",
+    "Plumbing": "plumbing",
+    "Roofing": "roofing",
+    "Landscaping": "landscaping",
+    "Cleaning Service": "cleaning-service",
+  };
+  return map[industry] ?? null;
+}
+
 const INPUT_CLASS = "w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-brand-light/50 text-sm";
 const LABEL_CLASS = "text-xs uppercase tracking-wider text-gray-500 mb-1 block font-semibold";
 
@@ -50,6 +69,7 @@ export default function LeadsAdminPage() {
   const generateUploadUrl = useMutation(api.leads.generateUploadUrl);
   const sendProposal = useAction(api.websiteFactoryProposals.sendProposalEmail);
   const sendEmailReply = useAction(api.emailReplies.sendEmailReply);
+  const convertToFactory = useMutation(api.leads.convertLeadToFactory);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
@@ -67,6 +87,9 @@ export default function LeadsAdminPage() {
   const [uploading, setUploading] = useState(false);
   const [sendingProposal, setSendingProposal] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
+  const [isConvertModalOpen, setIsConvertModalOpen] = useState(false);
+  const [convertPlan, setConvertPlan] = useState<"starter" | "growth" | "enterprise">("starter");
+  const [isConverting, setIsConverting] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const PAGE_SIZE = 25;
 
@@ -486,6 +509,47 @@ export default function LeadsAdminPage() {
                 </div>
               )}
 
+              {/* Website Factory Actions */}
+              {selected.factoryOrgId ? (
+                <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center flex-shrink-0">
+                      <LinkIcon className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-white text-sm">Converted to Client Site</p>
+                      <p className="text-xs text-gray-500 mt-0.5">This lead is linked to a factory org</p>
+                    </div>
+                    <Link
+                      href={`/admin/factory/${selected.factoryOrgId}`}
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 rounded-lg text-xs font-semibold flex-shrink-0 transition-all"
+                    >
+                      <ExternalLink className="w-3 h-3" />View
+                    </Link>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {industryToSlug(selected.industry) && (
+                    <Link
+                      href={`/admin/factory/preview/${industryToSlug(selected.industry)}`}
+                      target="_blank"
+                      className="w-full px-4 py-3 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 hover:from-cyan-500/30 hover:to-blue-500/30 text-cyan-400 border border-cyan-500/30 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all text-sm"
+                    >
+                      <Eye className="w-4 h-4" />
+                      Preview {selected.industry} Template
+                    </Link>
+                  )}
+                  <button
+                    onClick={() => { setConvertPlan("starter"); setIsConvertModalOpen(true); }}
+                    className="w-full px-4 py-3 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white rounded-xl font-semibold flex items-center justify-center gap-2 transition-all text-sm"
+                  >
+                    <Rocket className="w-4 h-4" />
+                    Convert to Client Site
+                  </button>
+                </div>
+              )}
+
               {/* Website */}
               {selected.website && (
                 <div className="bg-gradient-to-r from-cyan-500/10 to-orange-500/10 border border-cyan-500/30 rounded-xl p-4">
@@ -612,6 +676,73 @@ export default function LeadsAdminPage() {
           }}
         />
       )}
+
+      {/* Convert to Client Site Modal */}
+      <AnimatePresence>
+        {isConvertModalOpen && selected && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+            onClick={() => setIsConvertModalOpen(false)}>
+            <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} exit={{ scale: 0.9 }}
+              onClick={(e) => e.stopPropagation()}
+              className="glass-elevated rounded-2xl p-6 w-full max-w-md mx-4 border border-emerald-500/30">
+              <h3 className="text-lg font-semibold text-white mb-1">Convert to Client Site</h3>
+              <p className="text-sm text-gray-400 mb-6">
+                This will create a factory org for <span className="text-white font-medium">{selected.businessName || selected.name}</span> and mark this lead as &ldquo;Won&rdquo;.
+              </p>
+
+              <label className={LABEL_CLASS}>Select Plan</label>
+              <div className="grid grid-cols-3 gap-2 mb-6">
+                {([
+                  { value: "starter" as const, label: "Starter", price: "$79/mo" },
+                  { value: "growth" as const, label: "Growth", price: "$149/mo" },
+                  { value: "enterprise" as const, label: "Enterprise", price: "$299/mo" },
+                ]).map((plan) => (
+                  <button
+                    key={plan.value}
+                    onClick={() => setConvertPlan(plan.value)}
+                    className={`p-3 rounded-xl border text-center transition-all ${
+                      convertPlan === plan.value
+                        ? "bg-emerald-500/20 border-emerald-500/50 text-white"
+                        : "bg-white/5 border-white/10 text-gray-400 hover:bg-white/10"
+                    }`}
+                  >
+                    <p className="font-semibold text-sm">{plan.label}</p>
+                    <p className="text-xs mt-0.5 opacity-70">{plan.price}</p>
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setIsConvertModalOpen(false)}
+                  className="flex-1 px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 border border-white/10 text-sm transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  disabled={isConverting}
+                  onClick={async () => {
+                    setIsConverting(true);
+                    try {
+                      await convertToFactory({ leadId: selected._id, plan: convertPlan });
+                      setIsConvertModalOpen(false);
+                    } catch (err: any) {
+                      alert(err.message || "Failed to convert lead");
+                    } finally {
+                      setIsConverting(false);
+                    }
+                  }}
+                  className="flex-1 px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white font-semibold text-sm transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  {isConverting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Rocket className="w-4 h-4" />}
+                  {isConverting ? "Converting..." : "Convert"}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Delete Confirm Modal */}
       <AnimatePresence>
