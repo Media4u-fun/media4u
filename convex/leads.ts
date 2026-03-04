@@ -137,6 +137,60 @@ export const getPhotoUrl = query({
   },
 });
 
+// Convert a lead into a factory client org
+export const convertLeadToFactory = mutation({
+  args: {
+    leadId: v.id("leads"),
+    plan: v.union(v.literal("starter"), v.literal("growth"), v.literal("enterprise")),
+  },
+  handler: async (ctx, args) => {
+    await requireAdmin(ctx);
+
+    const lead = await ctx.db.get(args.leadId);
+    if (!lead) throw new Error("Lead not found");
+    if (lead.factoryOrgId) throw new Error("Lead already converted to factory org");
+
+    // Generate slug from business name or lead name
+    const baseName = lead.businessName || lead.company || lead.name;
+    const slug = baseName
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "");
+
+    // Plan presets for max users and submissions
+    const planLimits = {
+      starter: { maxAdminUsers: 1, maxFormSubmissions: 100 },
+      growth: { maxAdminUsers: 3, maxFormSubmissions: 500 },
+      enterprise: { maxAdminUsers: 999, maxFormSubmissions: 999999 },
+    };
+    const limits = planLimits[args.plan];
+
+    // Create the factory org
+    const orgId = await ctx.db.insert("clientOrgs", {
+      name: baseName,
+      slug,
+      ownerEmail: lead.email,
+      plan: args.plan,
+      status: "trial",
+      setupFeePaid: false,
+      maxAdminUsers: limits.maxAdminUsers,
+      maxFormSubmissions: limits.maxFormSubmissions,
+      industry: lead.industry,
+      notes: `Converted from lead on ${new Date().toLocaleDateString()}`,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    });
+
+    // Link lead to the new org and mark as won
+    await ctx.db.patch(args.leadId, {
+      factoryOrgId: orgId,
+      status: "won",
+    });
+
+    return orgId;
+  },
+});
+
 // Create lead from Website Factory deposit payment (called by webhook)
 export const createLeadFromDeposit = internalMutation({
   args: {

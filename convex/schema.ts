@@ -241,12 +241,15 @@ export default defineSchema({
     stripeDepositSessionId: v.optional(v.string()),  // Stripe checkout session ID for deposit
     stripeDepositPaymentIntentId: v.optional(v.string()), // Stripe payment intent ID for deposit
     depositPaidAt: v.optional(v.number()),  // When deposit was paid
+    // Website Factory - Link to factory org after conversion
+    factoryOrgId: v.optional(v.id("clientOrgs")), // Links lead to created factory org
   })
     .index("by_status", ["status"])
     .index("by_email", ["email"])
     .index("by_industry", ["industry"])
     .index("by_created", ["createdAt"])
-    .index("by_proposalToken", ["proposalToken"]),
+    .index("by_proposalToken", ["proposalToken"])
+    .index("by_factoryOrgId", ["factoryOrgId"]),
 
   // Project Notes - timestamped notes for projects
   projectNotes: defineTable({
