@@ -12,7 +12,8 @@ export function LayoutWrapper({ children }: { children: ReactNode }) {
   const isAdminPage = pathname?.startsWith("/admin");
   const isPortalPage = pathname?.startsWith("/portal");
   const isTVRPage = pathname?.startsWith("/tvr");
-  const hideLayout = isAdminPage || isPortalPage;
+  const isClientSite = pathname?.startsWith("/s/");
+  const hideLayout = isAdminPage || isPortalPage || isClientSite;
 
   if (isTVRPage) {
     return (
