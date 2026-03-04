@@ -25,6 +25,7 @@ import type * as devHelpers from "../devHelpers.js";
 import type * as emailManagement from "../emailManagement.js";
 import type * as emailReplies from "../emailReplies.js";
 import type * as emails from "../emails.js";
+import type * as factory from "../factory.js";
 import type * as googleCalendar from "../googleCalendar.js";
 import type * as http from "../http.js";
 import type * as inbox from "../inbox.js";
@@ -76,6 +77,7 @@ declare const fullApi: ApiFromModules<{
   emailManagement: typeof emailManagement;
   emailReplies: typeof emailReplies;
   emails: typeof emails;
+  factory: typeof factory;
   googleCalendar: typeof googleCalendar;
   http: typeof http;
   inbox: typeof inbox;

@@ -49,7 +49,7 @@ const SOURCE_LABELS: Record<string, { label: string; color: string }> = {
 };
 
 export default function OrgDetailPage() {
-  const params = useParams();
+  const params = useParams() as { orgId: string };
   const orgId = params.orgId as Id<"clientOrgs">;
 
   const org = useQuery(api.factory.getClientOrg, { orgId });
@@ -73,15 +73,21 @@ export default function OrgDetailPage() {
 
   const planStyle = PLAN_COLORS[org.plan];
 
+  type OrgFeature = NonNullable<typeof orgFeatures>[number];
+  type RegistryFeature = typeof registry[number];
+
   // Build feature map for quick lookup
-  const featureMap = new Map(orgFeatures?.map((f) => [f.featureKey, f]));
+  const featureMap: Record<string, OrgFeature> = {};
+  for (const f of orgFeatures ?? []) {
+    featureMap[f.featureKey] = f;
+  }
 
   // Group registry by category
-  const categories = new Map<string, typeof registry>();
-  for (const feat of registry.sort((a, b) => a.sortOrder - b.sortOrder)) {
+  const categoriesMap: Record<string, RegistryFeature[]> = {};
+  for (const feat of [...registry].sort((a, b) => a.sortOrder - b.sortOrder)) {
     const cat = feat.category;
-    if (!categories.has(cat)) categories.set(cat, []);
-    categories.get(cat)!.push(feat);
+    if (!categoriesMap[cat]) categoriesMap[cat] = [];
+    categoriesMap[cat].push(feat);
   }
 
   const categoryLabels: Record<string, string> = {
@@ -131,7 +137,7 @@ export default function OrgDetailPage() {
     }
   }
 
-  const enabledCount = orgFeatures?.filter((f) => f.enabled).length || 0;
+  const enabledCount = orgFeatures?.filter((f: OrgFeature) => f.enabled).length || 0;
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -236,14 +242,14 @@ export default function OrgDetailPage() {
       >
         <h2 className="text-lg font-bold text-white">Feature Controls</h2>
 
-        {Array.from(categories.entries()).map(([category, features]) => (
+        {Object.entries(categoriesMap).map(([category, features]) => (
           <div key={category} className="p-5 rounded-2xl bg-white/[0.03] border border-white/10">
             <h3 className="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-3">
               {categoryLabels[category] || category}
             </h3>
             <div className="space-y-2">
               {features.map((feat) => {
-                const orgFeat = featureMap.get(feat.key);
+                const orgFeat = featureMap[feat.key];
                 const isEnabled = orgFeat?.enabled ?? false;
                 const isToggling = togglingFeature === feat.key;
                 const isTrialing = startingTrial === feat.key;
