@@ -212,6 +212,11 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
   if (!isAuthenticated || !isAdmin) return null;
 
+  // Template preview pages render full-screen without the admin sidebar
+  if (pathname.startsWith("/admin/factory/preview")) {
+    return <>{children}</>;
+  }
+
   const sidebarContent = (
     <>
       {/* Logo */}

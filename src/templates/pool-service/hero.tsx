@@ -85,7 +85,7 @@ export function PoolHero({ content }: { content?: Partial<PoolContent> }) {
       />
 
       {/* Content */}
-      <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-8 lg:px-12 pt-32 pb-24 w-full text-center">
+      <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-8 lg:px-12 pt-40 pb-24 w-full text-center">
         <motion.p
           initial={{ opacity: 0, y: 10 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}

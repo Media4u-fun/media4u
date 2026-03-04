@@ -18,8 +18,8 @@ export function PoolServiceLayout({
 }) {
   return (
     <div className="min-h-screen bg-[#141419] text-white">
-      {/* Simple header bar */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-[#141419]/80 backdrop-blur-xl border-b border-white/[0.06]">
+      {/* Simple header bar - top-10 accounts for preview banner */}
+      <header className="fixed top-10 left-0 right-0 z-50 bg-[#141419]/80 backdrop-blur-xl border-b border-white/[0.06]">
         <div className="max-w-7xl mx-auto px-6 md:px-8 lg:px-12 h-16 flex items-center justify-between">
           <span className="text-lg font-display font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
             Orangecrest Pools
