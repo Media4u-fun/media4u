@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { query, mutation, QueryCtx, MutationCtx } from "./_generated/server";
+import { query, mutation, internalMutation, QueryCtx, MutationCtx } from "./_generated/server";
 import { ConvexError } from "convex/values";
 import { requireAdmin, getAuthenticatedUser } from "./auth";
 import { Id } from "./_generated/dataModel";
@@ -461,6 +461,271 @@ export const getPublicFeatureRegistry = query({
         addonPriceCents: f.addonPriceCents,
         icon: f.icon,
       }));
+  },
+});
+
+// ========================================
+// Internal mutations (called by Stripe webhooks)
+// ========================================
+
+// Map Stripe Price IDs to factory plans
+// You'll set these in your .env or Stripe dashboard metadata
+const STRIPE_PLAN_MAP: Record<string, "starter" | "growth" | "enterprise"> = {
+  // These get populated from env vars at runtime
+  // Format: STRIPE_PRICE_ID -> plan name
+};
+
+function getPlanFromPriceId(priceId: string): "starter" | "growth" | "enterprise" | null {
+  // Check hardcoded map first
+  if (STRIPE_PLAN_MAP[priceId]) return STRIPE_PLAN_MAP[priceId];
+
+  // Check metadata convention: price nickname contains plan name
+  // This is a fallback - Stripe price nicknames like "Factory Starter", "Factory Growth"
+  return null;
+}
+
+// Handle new factory subscription from Stripe webhook
+export const handleFactorySubscriptionCreated = internalMutation({
+  args: {
+    stripeCustomerId: v.string(),
+    stripeSubscriptionId: v.string(),
+    stripePriceId: v.string(),
+    customerEmail: v.string(),
+    planName: v.optional(v.string()), // From Stripe price nickname
+  },
+  handler: async (ctx, args) => {
+    const now = Date.now();
+
+    // Determine the plan from price ID or nickname
+    let plan = getPlanFromPriceId(args.stripePriceId);
+    if (!plan && args.planName) {
+      const lower = args.planName.toLowerCase();
+      if (lower.includes("enterprise")) plan = "enterprise";
+      else if (lower.includes("growth") || lower.includes("pro")) plan = "growth";
+      else if (lower.includes("starter")) plan = "starter";
+    }
+    if (!plan) plan = "starter"; // Default fallback
+
+    // Find org by Stripe customer ID or email
+    let org = await ctx.db
+      .query("clientOrgs")
+      .withIndex("by_stripeCustomerId", (q) => q.eq("stripeCustomerId", args.stripeCustomerId))
+      .first();
+
+    if (!org) {
+      org = await ctx.db
+        .query("clientOrgs")
+        .withIndex("by_ownerEmail", (q) => q.eq("ownerEmail", args.customerEmail))
+        .first();
+    }
+
+    if (!org) {
+      // No org found - log it but don't crash the webhook
+      console.error(`Factory webhook: No org found for ${args.customerEmail} / ${args.stripeCustomerId}`);
+      return;
+    }
+
+    // Update org with Stripe IDs and new plan
+    const limits = PLAN_LIMITS[plan];
+    await ctx.db.patch(org._id, {
+      stripeCustomerId: args.stripeCustomerId,
+      stripeSubscriptionId: args.stripeSubscriptionId,
+      plan,
+      status: "active",
+      maxAdminUsers: limits.maxAdminUsers,
+      maxFormSubmissions: limits.maxFormSubmissions,
+      updatedAt: now,
+    });
+
+    // Apply plan preset
+    const newFeatureKeys = PLAN_PRESETS[plan] || [];
+    const currentFeatures = await ctx.db
+      .query("orgFeatures")
+      .withIndex("by_orgId", (q) => q.eq("orgId", org._id))
+      .collect();
+
+    for (const featureKey of newFeatureKeys) {
+      const existing = currentFeatures.find((f) => f.featureKey === featureKey);
+      if (existing) {
+        await ctx.db.patch(existing._id, { enabled: true, source: "plan", updatedAt: now });
+      } else {
+        await ctx.db.insert("orgFeatures", {
+          orgId: org._id,
+          featureKey,
+          enabled: true,
+          source: "plan",
+          addedAt: now,
+          updatedAt: now,
+        });
+      }
+    }
+  },
+});
+
+// Handle factory subscription updated (plan change / upgrade / downgrade)
+export const handleFactorySubscriptionUpdated = internalMutation({
+  args: {
+    stripeSubscriptionId: v.string(),
+    stripePriceId: v.string(),
+    status: v.string(),
+    planName: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const now = Date.now();
+
+    // Find org by subscription ID
+    const orgs = await ctx.db.query("clientOrgs").collect();
+    const org = orgs.find((o) => o.stripeSubscriptionId === args.stripeSubscriptionId);
+    if (!org) {
+      console.error(`Factory webhook: No org found for subscription ${args.stripeSubscriptionId}`);
+      return;
+    }
+
+    // Handle cancellation / past_due
+    if (args.status === "canceled" || args.status === "unpaid") {
+      await ctx.db.patch(org._id, {
+        status: args.status === "canceled" ? "cancelled" : "suspended",
+        updatedAt: now,
+      });
+      return;
+    }
+
+    if (args.status === "past_due") {
+      await ctx.db.patch(org._id, { status: "suspended", updatedAt: now });
+      return;
+    }
+
+    // Active subscription - check if plan changed
+    let newPlan = getPlanFromPriceId(args.stripePriceId);
+    if (!newPlan && args.planName) {
+      const lower = args.planName.toLowerCase();
+      if (lower.includes("enterprise")) newPlan = "enterprise";
+      else if (lower.includes("growth") || lower.includes("pro")) newPlan = "growth";
+      else if (lower.includes("starter")) newPlan = "starter";
+    }
+
+    if (newPlan && newPlan !== org.plan) {
+      // Plan changed - update features
+      const limits = PLAN_LIMITS[newPlan];
+      await ctx.db.patch(org._id, {
+        plan: newPlan,
+        status: "active",
+        maxAdminUsers: limits.maxAdminUsers,
+        maxFormSubmissions: limits.maxFormSubmissions,
+        updatedAt: now,
+      });
+
+      // Re-apply plan preset
+      const newFeatureKeys = PLAN_PRESETS[newPlan] || [];
+      const currentFeatures = await ctx.db
+        .query("orgFeatures")
+        .withIndex("by_orgId", (q) => q.eq("orgId", org._id))
+        .collect();
+
+      // Disable plan-sourced features not in new plan
+      for (const feature of currentFeatures) {
+        if (feature.source === "plan" && !newFeatureKeys.includes(feature.featureKey)) {
+          await ctx.db.patch(feature._id, { enabled: false, updatedAt: now });
+        }
+      }
+
+      // Enable new plan features
+      for (const featureKey of newFeatureKeys) {
+        const existing = currentFeatures.find((f) => f.featureKey === featureKey);
+        if (existing) {
+          await ctx.db.patch(existing._id, { enabled: true, source: "plan", updatedAt: now });
+        } else {
+          await ctx.db.insert("orgFeatures", {
+            orgId: org._id,
+            featureKey,
+            enabled: true,
+            source: "plan",
+            addedAt: now,
+            updatedAt: now,
+          });
+        }
+      }
+    } else {
+      // Same plan, just reactivate if was suspended
+      await ctx.db.patch(org._id, { status: "active", updatedAt: now });
+    }
+  },
+});
+
+// Handle factory subscription deleted (cancelled)
+export const handleFactorySubscriptionDeleted = internalMutation({
+  args: {
+    stripeSubscriptionId: v.string(),
+  },
+  handler: async (ctx, { stripeSubscriptionId }) => {
+    const orgs = await ctx.db.query("clientOrgs").collect();
+    const org = orgs.find((o) => o.stripeSubscriptionId === stripeSubscriptionId);
+    if (!org) return;
+
+    await ctx.db.patch(org._id, {
+      status: "cancelled",
+      updatedAt: Date.now(),
+    });
+
+    // Disable all plan-sourced features (keep addons/manual)
+    const features = await ctx.db
+      .query("orgFeatures")
+      .withIndex("by_orgId", (q) => q.eq("orgId", org._id))
+      .collect();
+
+    for (const feature of features) {
+      if (feature.source === "plan") {
+        await ctx.db.patch(feature._id, { enabled: false, updatedAt: Date.now() });
+      }
+    }
+  },
+});
+
+// Handle factory addon subscription item added
+export const handleFactoryAddonAdded = internalMutation({
+  args: {
+    stripeCustomerId: v.string(),
+    featureKey: v.string(),
+    stripeSubscriptionItemId: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const now = Date.now();
+
+    const org = await ctx.db
+      .query("clientOrgs")
+      .withIndex("by_stripeCustomerId", (q) => q.eq("stripeCustomerId", args.stripeCustomerId))
+      .first();
+
+    if (!org) {
+      console.error(`Factory webhook: No org found for addon ${args.stripeCustomerId}`);
+      return;
+    }
+
+    const existing = await ctx.db
+      .query("orgFeatures")
+      .withIndex("by_orgId_featureKey", (q) =>
+        q.eq("orgId", org._id).eq("featureKey", args.featureKey)
+      )
+      .first();
+
+    if (existing) {
+      await ctx.db.patch(existing._id, {
+        enabled: true,
+        source: "addon",
+        stripeSubscriptionItemId: args.stripeSubscriptionItemId,
+        updatedAt: now,
+      });
+    } else {
+      await ctx.db.insert("orgFeatures", {
+        orgId: org._id,
+        featureKey: args.featureKey,
+        enabled: true,
+        source: "addon",
+        stripeSubscriptionItemId: args.stripeSubscriptionItemId,
+        addedAt: now,
+        updatedAt: now,
+      });
+    }
   },
 });
 

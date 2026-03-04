@@ -88,7 +88,23 @@ http.route({
               });
             }
           } else if (session.mode === "subscription") {
-            // Subscription checkout completed - subscription created event will handle the details
+            // Check if this is a Website Factory subscription
+            if (session.metadata?.factoryOrg === "true") {
+              // Get the subscription details from the session
+              const factorySub = await stripe.subscriptions.retrieve(
+                session.subscription as string
+              );
+              const factoryPriceId = factorySub.items?.data?.[0]?.price?.id ?? "";
+              const factoryPlanName = factorySub.items?.data?.[0]?.price?.nickname ?? undefined;
+
+              await ctx.runMutation(internal.factory.handleFactorySubscriptionCreated, {
+                stripeCustomerId: session.customer as string,
+                stripeSubscriptionId: session.subscription as string,
+                stripePriceId: factoryPriceId,
+                customerEmail: session.customer_email ?? session.metadata?.email ?? "",
+                planName: factoryPlanName ?? undefined,
+              });
+            }
             console.log("Subscription checkout completed:", session.id);
           }
           break;
@@ -161,6 +177,18 @@ http.route({
             currentPeriodEnd: periodEnd * 1000,
             cancelAtPeriodEnd: subscription.cancel_at_period_end,
           });
+
+          // Website Factory: if this subscription has factory metadata, update org features
+          if (subscription.metadata?.factoryOrg === "true") {
+            const factoryPriceId = subscription.items?.data?.[0]?.price?.id ?? "";
+            const factoryPlanName = subscription.items?.data?.[0]?.price?.nickname ?? undefined;
+            await ctx.runMutation(internal.factory.handleFactorySubscriptionUpdated, {
+              stripeSubscriptionId: subscription.id,
+              stripePriceId: factoryPriceId,
+              status: subscription.status,
+              planName: factoryPlanName ?? undefined,
+            });
+          }
           break;
         }
 
@@ -170,6 +198,13 @@ http.route({
             stripeSubscriptionId: subscription.id,
             status: "canceled",
           });
+
+          // Website Factory: if factory subscription, disable features
+          if (subscription.metadata?.factoryOrg === "true") {
+            await ctx.runMutation(internal.factory.handleFactorySubscriptionDeleted, {
+              stripeSubscriptionId: subscription.id,
+            });
+          }
           break;
         }
 

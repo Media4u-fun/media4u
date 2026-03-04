@@ -32,6 +32,7 @@ import type * as inbox from "../inbox.js";
 import type * as leads from "../leads.js";
 import type * as lib_appointmentConfig from "../lib/appointmentConfig.js";
 import type * as lib_emailTemplates from "../lib/emailTemplates.js";
+import type * as lib_featureMiddleware from "../lib/featureMiddleware.js";
 import type * as messages from "../messages.js";
 import type * as newsletter from "../newsletter.js";
 import type * as newsletters from "../newsletters.js";
@@ -84,6 +85,7 @@ declare const fullApi: ApiFromModules<{
   leads: typeof leads;
   "lib/appointmentConfig": typeof lib_appointmentConfig;
   "lib/emailTemplates": typeof lib_emailTemplates;
+  "lib/featureMiddleware": typeof lib_featureMiddleware;
   messages: typeof messages;
   newsletter: typeof newsletter;
   newsletters: typeof newsletters;
