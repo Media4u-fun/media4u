@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { motion } from "motion/react";
 import Link from "next/link";
@@ -16,6 +16,14 @@ const PLAN_INFO = {
 };
 
 export default function SignupPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#0a0a0f]" />}>
+      <SignupForm />
+    </Suspense>
+  );
+}
+
+function SignupForm() {
   const searchParams = useSearchParams();
   const planKey = (searchParams?.get("plan") || "starter") as keyof typeof PLAN_INFO;
   const plan = PLAN_INFO[planKey] || PLAN_INFO.starter;
