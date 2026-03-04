@@ -97,6 +97,16 @@ body {
   color: #fff;
 }
 
+select,
+select option {
+  background-color: #1c1c22;
+  color: #fff;
+}
+
+select option:checked {
+  background-color: #2d2d3a;
+}
+
 ::-webkit-scrollbar {
   width: 6px;
 }
