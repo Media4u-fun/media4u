@@ -483,6 +483,25 @@ export const getEnabledFeatureKeys = query({
   },
 });
 
+// Get domain-to-slug mappings for middleware routing
+export const getDomainMappings = query({
+  args: {},
+  handler: async (ctx) => {
+    const orgs = await ctx.db.query("clientOrgs").collect();
+    const mappings: Record<string, string> = {};
+    for (const org of orgs) {
+      if (org.domain && org.status === "active") {
+        mappings[org.domain] = org.slug;
+        // Also map www variant
+        if (!org.domain.startsWith("www.")) {
+          mappings[`www.${org.domain}`] = org.slug;
+        }
+      }
+    }
+    return mappings;
+  },
+});
+
 // Get org by slug (for multi-tenant routing)
 export const getOrgBySlug = query({
   args: { slug: v.string() },
@@ -1074,5 +1093,563 @@ export const seedFeatureRegistry = mutation({
     }
 
     return { inserted: features.length };
+  },
+});
+
+// ========================================
+// Public Site Data (no auth - for rendering client sites)
+// ========================================
+
+// Get everything needed to render a client's public site
+export const getPublicSiteData = query({
+  args: { slug: v.string() },
+  handler: async (ctx, { slug }) => {
+    const org = await ctx.db
+      .query("clientOrgs")
+      .withIndex("by_slug", (q) => q.eq("slug", slug))
+      .first();
+
+    if (!org || org.status === "cancelled") return null;
+
+    // Get enabled features
+    const features = await getOrgFeatures(ctx, org._id);
+    const enabledKeys = features.map((f) => f.featureKey);
+
+    // Get all template content
+    const contentRows = await ctx.db
+      .query("templateContent")
+      .withIndex("by_orgId", (q) => q.eq("orgId", org._id))
+      .collect();
+    const content: Record<string, unknown> = {};
+    for (const row of contentRows) {
+      try {
+        content[row.sectionKey] = JSON.parse(row.content);
+      } catch {
+        content[row.sectionKey] = row.content;
+      }
+    }
+
+    // Get approved reviews (if reviews feature enabled)
+    let reviews: Array<{
+      customerName: string;
+      customerLocation?: string;
+      rating: number;
+      text: string;
+    }> = [];
+    if (enabledKeys.includes("reviews")) {
+      const reviewDocs = await ctx.db
+        .query("templateReviews")
+        .withIndex("by_orgId_status", (q) =>
+          q.eq("orgId", org._id).eq("status", "approved")
+        )
+        .order("desc")
+        .collect();
+      reviews = reviewDocs.map((r) => ({
+        customerName: r.customerName,
+        customerLocation: r.customerLocation,
+        rating: r.rating,
+        text: r.text,
+      }));
+    }
+
+    // Get gallery items (if gallery feature enabled)
+    let galleryItems: Array<{
+      imageUrl: string;
+      title?: string;
+      category?: string;
+    }> = [];
+    if (enabledKeys.includes("gallery")) {
+      const items = await ctx.db
+        .query("templateGalleryItems")
+        .withIndex("by_orgId", (q) => q.eq("orgId", org._id))
+        .collect();
+      galleryItems = items
+        .sort((a, b) => a.sortOrder - b.sortOrder)
+        .map((i) => ({
+          imageUrl: i.imageUrl,
+          title: i.title,
+          category: i.category,
+        }));
+    }
+
+    return {
+      org: {
+        _id: org._id,
+        name: org.name,
+        slug: org.slug,
+        plan: org.plan,
+        industry: org.industry,
+        domain: org.domain,
+        status: org.status,
+      },
+      enabledFeatures: enabledKeys,
+      content,
+      reviews,
+      galleryItems,
+    };
+  },
+});
+
+// ========================================
+// Template Content (editable per-org section content)
+// ========================================
+
+export const getTemplateContent = query({
+  args: { orgId: v.id("clientOrgs"), sectionKey: v.string() },
+  handler: async (ctx, { orgId, sectionKey }) => {
+    const row = await ctx.db
+      .query("templateContent")
+      .withIndex("by_orgId_sectionKey", (q) =>
+        q.eq("orgId", orgId).eq("sectionKey", sectionKey)
+      )
+      .first();
+    if (!row) return null;
+    return JSON.parse(row.content);
+  },
+});
+
+export const getAllTemplateContent = query({
+  args: { orgId: v.id("clientOrgs") },
+  handler: async (ctx, { orgId }) => {
+    const rows = await ctx.db
+      .query("templateContent")
+      .withIndex("by_orgId", (q) => q.eq("orgId", orgId))
+      .collect();
+    const result: Record<string, unknown> = {};
+    for (const row of rows) {
+      result[row.sectionKey] = JSON.parse(row.content);
+    }
+    return result;
+  },
+});
+
+export const updateTemplateContent = mutation({
+  args: {
+    orgId: v.id("clientOrgs"),
+    sectionKey: v.string(),
+    content: v.string(), // JSON stringified
+  },
+  handler: async (ctx, { orgId, sectionKey, content }) => {
+    await requireAdmin(ctx);
+    const existing = await ctx.db
+      .query("templateContent")
+      .withIndex("by_orgId_sectionKey", (q) =>
+        q.eq("orgId", orgId).eq("sectionKey", sectionKey)
+      )
+      .first();
+
+    if (existing) {
+      await ctx.db.patch(existing._id, { content, updatedAt: Date.now() });
+    } else {
+      await ctx.db.insert("templateContent", {
+        orgId,
+        sectionKey,
+        content,
+        updatedAt: Date.now(),
+      });
+    }
+  },
+});
+
+// ========================================
+// Template Blog Posts (Growth tier)
+// ========================================
+
+export const listBlogPosts = query({
+  args: { orgId: v.id("clientOrgs"), status: v.optional(v.string()) },
+  handler: async (ctx, { orgId, status }) => {
+    if (status) {
+      return await ctx.db
+        .query("templateBlogPosts")
+        .withIndex("by_orgId_status", (q) =>
+          q.eq("orgId", orgId).eq("status", status as "draft" | "published")
+        )
+        .order("desc")
+        .collect();
+    }
+    return await ctx.db
+      .query("templateBlogPosts")
+      .withIndex("by_orgId", (q) => q.eq("orgId", orgId))
+      .order("desc")
+      .collect();
+  },
+});
+
+export const getBlogPost = query({
+  args: { orgId: v.id("clientOrgs"), slug: v.string() },
+  handler: async (ctx, { orgId, slug }) => {
+    return await ctx.db
+      .query("templateBlogPosts")
+      .withIndex("by_orgId_slug", (q) => q.eq("orgId", orgId).eq("slug", slug))
+      .first();
+  },
+});
+
+export const createBlogPost = mutation({
+  args: {
+    orgId: v.id("clientOrgs"),
+    title: v.string(),
+    slug: v.string(),
+    excerpt: v.string(),
+    content: v.string(),
+    coverImage: v.optional(v.string()),
+    category: v.optional(v.string()),
+    tags: v.optional(v.array(v.string())),
+    author: v.optional(v.string()),
+    status: v.union(v.literal("draft"), v.literal("published")),
+  },
+  handler: async (ctx, args) => {
+    await requireAdmin(ctx);
+    await requireFeature(ctx, args.orgId, "blog");
+    const now = Date.now();
+    return await ctx.db.insert("templateBlogPosts", {
+      ...args,
+      publishedAt: args.status === "published" ? now : undefined,
+      createdAt: now,
+      updatedAt: now,
+    });
+  },
+});
+
+export const updateBlogPost = mutation({
+  args: {
+    postId: v.id("templateBlogPosts"),
+    title: v.optional(v.string()),
+    slug: v.optional(v.string()),
+    excerpt: v.optional(v.string()),
+    content: v.optional(v.string()),
+    coverImage: v.optional(v.string()),
+    category: v.optional(v.string()),
+    tags: v.optional(v.array(v.string())),
+    author: v.optional(v.string()),
+    status: v.optional(v.union(v.literal("draft"), v.literal("published"))),
+  },
+  handler: async (ctx, { postId, ...updates }) => {
+    await requireAdmin(ctx);
+    const post = await ctx.db.get(postId);
+    if (!post) throw new ConvexError("Blog post not found");
+    await requireFeature(ctx, post.orgId, "blog");
+
+    const patch: Record<string, unknown> = { ...updates, updatedAt: Date.now() };
+    if (updates.status === "published" && post.status !== "published") {
+      patch.publishedAt = Date.now();
+    }
+    await ctx.db.patch(postId, patch);
+  },
+});
+
+export const deleteBlogPost = mutation({
+  args: { postId: v.id("templateBlogPosts") },
+  handler: async (ctx, { postId }) => {
+    await requireAdmin(ctx);
+    await ctx.db.delete(postId);
+  },
+});
+
+// ========================================
+// Template Reviews (Growth tier)
+// ========================================
+
+export const listReviews = query({
+  args: { orgId: v.id("clientOrgs"), status: v.optional(v.string()) },
+  handler: async (ctx, { orgId, status }) => {
+    if (status) {
+      return await ctx.db
+        .query("templateReviews")
+        .withIndex("by_orgId_status", (q) =>
+          q.eq("orgId", orgId).eq("status", status as "pending" | "approved" | "rejected")
+        )
+        .order("desc")
+        .collect();
+    }
+    return await ctx.db
+      .query("templateReviews")
+      .withIndex("by_orgId", (q) => q.eq("orgId", orgId))
+      .order("desc")
+      .collect();
+  },
+});
+
+export const submitReview = mutation({
+  args: {
+    orgId: v.id("clientOrgs"),
+    customerName: v.string(),
+    customerLocation: v.optional(v.string()),
+    rating: v.number(),
+    text: v.string(),
+    serviceType: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    await requireFeature(ctx, args.orgId, "reviews");
+    return await ctx.db.insert("templateReviews", {
+      ...args,
+      status: "pending",
+      submittedAt: Date.now(),
+    });
+  },
+});
+
+export const moderateReview = mutation({
+  args: {
+    reviewId: v.id("templateReviews"),
+    status: v.union(v.literal("approved"), v.literal("rejected")),
+  },
+  handler: async (ctx, { reviewId, status }) => {
+    await requireAdmin(ctx);
+    await ctx.db.patch(reviewId, {
+      status,
+      approvedAt: status === "approved" ? Date.now() : undefined,
+    });
+  },
+});
+
+// ========================================
+// Template Bookings (Growth tier)
+// ========================================
+
+export const listBookings = query({
+  args: { orgId: v.id("clientOrgs"), status: v.optional(v.string()) },
+  handler: async (ctx, { orgId, status }) => {
+    if (status) {
+      return await ctx.db
+        .query("templateBookings")
+        .withIndex("by_orgId_status", (q) =>
+          q.eq("orgId", orgId).eq("status", status as "pending" | "confirmed" | "cancelled" | "completed")
+        )
+        .order("desc")
+        .collect();
+    }
+    return await ctx.db
+      .query("templateBookings")
+      .withIndex("by_orgId", (q) => q.eq("orgId", orgId))
+      .order("desc")
+      .collect();
+  },
+});
+
+export const createBooking = mutation({
+  args: {
+    orgId: v.id("clientOrgs"),
+    customerName: v.string(),
+    customerEmail: v.string(),
+    customerPhone: v.optional(v.string()),
+    serviceType: v.string(),
+    preferredDate: v.string(),
+    preferredTime: v.optional(v.string()),
+    notes: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    await requireFeature(ctx, args.orgId, "booking");
+    const now = Date.now();
+    return await ctx.db.insert("templateBookings", {
+      ...args,
+      status: "pending",
+      createdAt: now,
+      updatedAt: now,
+    });
+  },
+});
+
+export const updateBookingStatus = mutation({
+  args: {
+    bookingId: v.id("templateBookings"),
+    status: v.union(
+      v.literal("confirmed"),
+      v.literal("cancelled"),
+      v.literal("completed")
+    ),
+  },
+  handler: async (ctx, { bookingId, status }) => {
+    await requireAdmin(ctx);
+    await ctx.db.patch(bookingId, { status, updatedAt: Date.now() });
+  },
+});
+
+// ========================================
+// Template Gallery Items (Starter tier)
+// ========================================
+
+export const listGalleryItems = query({
+  args: { orgId: v.id("clientOrgs"), category: v.optional(v.string()) },
+  handler: async (ctx, { orgId, category }) => {
+    if (category) {
+      return await ctx.db
+        .query("templateGalleryItems")
+        .withIndex("by_orgId_category", (q) =>
+          q.eq("orgId", orgId).eq("category", category)
+        )
+        .collect();
+    }
+    return await ctx.db
+      .query("templateGalleryItems")
+      .withIndex("by_orgId", (q) => q.eq("orgId", orgId))
+      .collect();
+  },
+});
+
+export const addGalleryItem = mutation({
+  args: {
+    orgId: v.id("clientOrgs"),
+    imageUrl: v.string(),
+    title: v.optional(v.string()),
+    description: v.optional(v.string()),
+    category: v.optional(v.string()),
+    sortOrder: v.optional(v.number()),
+  },
+  handler: async (ctx, { sortOrder, ...args }) => {
+    await requireAdmin(ctx);
+    await requireFeature(ctx, args.orgId, "gallery");
+    return await ctx.db.insert("templateGalleryItems", {
+      ...args,
+      sortOrder: sortOrder ?? 0,
+      createdAt: Date.now(),
+    });
+  },
+});
+
+export const deleteGalleryItem = mutation({
+  args: { itemId: v.id("templateGalleryItems") },
+  handler: async (ctx, { itemId }) => {
+    await requireAdmin(ctx);
+    await ctx.db.delete(itemId);
+  },
+});
+
+// ========================================
+// Template Newsletter Subscribers (Growth tier)
+// ========================================
+
+export const subscribeNewsletter = mutation({
+  args: {
+    orgId: v.id("clientOrgs"),
+    email: v.string(),
+    name: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    await requireFeature(ctx, args.orgId, "newsletter");
+    // Check if already subscribed
+    const existing = await ctx.db
+      .query("templateSubscribers")
+      .withIndex("by_orgId_email", (q) =>
+        q.eq("orgId", args.orgId).eq("email", args.email)
+      )
+      .first();
+    if (existing) {
+      if (existing.status === "unsubscribed") {
+        await ctx.db.patch(existing._id, {
+          status: "active",
+          subscribedAt: Date.now(),
+          unsubscribedAt: undefined,
+        });
+      }
+      return existing._id;
+    }
+    return await ctx.db.insert("templateSubscribers", {
+      ...args,
+      subscribedAt: Date.now(),
+      status: "active",
+    });
+  },
+});
+
+export const listSubscribers = query({
+  args: { orgId: v.id("clientOrgs") },
+  handler: async (ctx, { orgId }) => {
+    await requireAdmin(ctx);
+    return await ctx.db
+      .query("templateSubscribers")
+      .withIndex("by_orgId", (q) => q.eq("orgId", orgId))
+      .collect();
+  },
+});
+
+// ========================================
+// Template Portal Users (Enterprise tier)
+// ========================================
+
+export const listPortalUsers = query({
+  args: { orgId: v.id("clientOrgs") },
+  handler: async (ctx, { orgId }) => {
+    await requireAdmin(ctx);
+    return await ctx.db
+      .query("templatePortalUsers")
+      .withIndex("by_orgId", (q) => q.eq("orgId", orgId))
+      .collect();
+  },
+});
+
+export const createPortalUser = mutation({
+  args: {
+    orgId: v.id("clientOrgs"),
+    email: v.string(),
+    name: v.string(),
+    phone: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    await requireAdmin(ctx);
+    await requireFeature(ctx, args.orgId, "client_portal");
+    return await ctx.db.insert("templatePortalUsers", {
+      ...args,
+      status: "active",
+      createdAt: Date.now(),
+    });
+  },
+});
+
+// ========================================
+// Template Documents (Enterprise tier)
+// ========================================
+
+export const listDocuments = query({
+  args: { orgId: v.id("clientOrgs"), type: v.optional(v.string()) },
+  handler: async (ctx, { orgId, type }) => {
+    if (type) {
+      return await ctx.db
+        .query("templateDocuments")
+        .withIndex("by_orgId_type", (q) =>
+          q.eq("orgId", orgId).eq("type", type as "invoice" | "contract" | "proposal" | "receipt")
+        )
+        .order("desc")
+        .collect();
+    }
+    return await ctx.db
+      .query("templateDocuments")
+      .withIndex("by_orgId", (q) => q.eq("orgId", orgId))
+      .order("desc")
+      .collect();
+  },
+});
+
+export const createDocument = mutation({
+  args: {
+    orgId: v.id("clientOrgs"),
+    portalUserId: v.optional(v.id("templatePortalUsers")),
+    title: v.string(),
+    type: v.union(
+      v.literal("invoice"),
+      v.literal("contract"),
+      v.literal("proposal"),
+      v.literal("receipt")
+    ),
+    fileUrl: v.optional(v.string()),
+    content: v.optional(v.string()),
+    status: v.optional(v.union(
+      v.literal("draft"),
+      v.literal("sent"),
+      v.literal("viewed"),
+      v.literal("signed")
+    )),
+    amount: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    await requireAdmin(ctx);
+    await requireFeature(ctx, args.orgId, "client_portal");
+    const now = Date.now();
+    return await ctx.db.insert("templateDocuments", {
+      ...args,
+      status: args.status ?? "draft",
+      createdAt: now,
+      updatedAt: now,
+    });
   },
 });

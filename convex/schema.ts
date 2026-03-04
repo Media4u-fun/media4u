@@ -855,4 +855,132 @@ export default defineSchema({
     .index("by_orgId_featureKey", ["orgId", "featureKey"])
     .index("by_featureKey", ["featureKey"])
     .index("by_source", ["source"]),
+
+  // Template content - editable content per org per section
+  templateContent: defineTable({
+    orgId: v.id("clientOrgs"),
+    sectionKey: v.string(), // "hero", "services", "about", etc.
+    content: v.string(), // JSON stringified content for the section
+    updatedAt: v.number(),
+  })
+    .index("by_orgId", ["orgId"])
+    .index("by_orgId_sectionKey", ["orgId", "sectionKey"]),
+
+  // Template blog posts - Growth tier
+  templateBlogPosts: defineTable({
+    orgId: v.id("clientOrgs"),
+    title: v.string(),
+    slug: v.string(),
+    excerpt: v.string(),
+    content: v.string(), // HTML content
+    coverImage: v.optional(v.string()),
+    category: v.optional(v.string()),
+    tags: v.optional(v.array(v.string())),
+    author: v.optional(v.string()),
+    status: v.union(v.literal("draft"), v.literal("published")),
+    publishedAt: v.optional(v.number()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_orgId", ["orgId"])
+    .index("by_orgId_slug", ["orgId", "slug"])
+    .index("by_orgId_status", ["orgId", "status"])
+    .index("by_orgId_category", ["orgId", "category"]),
+
+  // Template reviews - Growth tier
+  templateReviews: defineTable({
+    orgId: v.id("clientOrgs"),
+    customerName: v.string(),
+    customerLocation: v.optional(v.string()),
+    rating: v.number(), // 1-5
+    text: v.string(),
+    serviceType: v.optional(v.string()),
+    status: v.union(v.literal("pending"), v.literal("approved"), v.literal("rejected")),
+    submittedAt: v.number(),
+    approvedAt: v.optional(v.number()),
+  })
+    .index("by_orgId", ["orgId"])
+    .index("by_orgId_status", ["orgId", "status"]),
+
+  // Template bookings - Growth tier
+  templateBookings: defineTable({
+    orgId: v.id("clientOrgs"),
+    customerName: v.string(),
+    customerEmail: v.string(),
+    customerPhone: v.optional(v.string()),
+    serviceType: v.string(),
+    preferredDate: v.string(), // ISO date string
+    preferredTime: v.optional(v.string()),
+    notes: v.optional(v.string()),
+    status: v.union(
+      v.literal("pending"),
+      v.literal("confirmed"),
+      v.literal("cancelled"),
+      v.literal("completed")
+    ),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_orgId", ["orgId"])
+    .index("by_orgId_status", ["orgId", "status"]),
+
+  // Template gallery items - Starter tier
+  templateGalleryItems: defineTable({
+    orgId: v.id("clientOrgs"),
+    imageUrl: v.string(),
+    title: v.optional(v.string()),
+    description: v.optional(v.string()),
+    category: v.optional(v.string()),
+    sortOrder: v.number(),
+    createdAt: v.number(),
+  })
+    .index("by_orgId", ["orgId"])
+    .index("by_orgId_category", ["orgId", "category"]),
+
+  // Template newsletter subscribers - Growth tier
+  templateSubscribers: defineTable({
+    orgId: v.id("clientOrgs"),
+    email: v.string(),
+    name: v.optional(v.string()),
+    subscribedAt: v.number(),
+    unsubscribedAt: v.optional(v.number()),
+    status: v.union(v.literal("active"), v.literal("unsubscribed")),
+  })
+    .index("by_orgId", ["orgId"])
+    .index("by_orgId_email", ["orgId", "email"]),
+
+  // Template portal users - Enterprise tier
+  templatePortalUsers: defineTable({
+    orgId: v.id("clientOrgs"),
+    email: v.string(),
+    name: v.string(),
+    phone: v.optional(v.string()),
+    status: v.union(v.literal("active"), v.literal("inactive")),
+    lastLoginAt: v.optional(v.number()),
+    createdAt: v.number(),
+  })
+    .index("by_orgId", ["orgId"])
+    .index("by_orgId_email", ["orgId", "email"]),
+
+  // Template documents - Enterprise tier (invoices, contracts, proposals)
+  templateDocuments: defineTable({
+    orgId: v.id("clientOrgs"),
+    portalUserId: v.optional(v.id("templatePortalUsers")),
+    title: v.string(),
+    type: v.union(
+      v.literal("invoice"),
+      v.literal("contract"),
+      v.literal("proposal"),
+      v.literal("receipt")
+    ),
+    fileUrl: v.optional(v.string()),
+    content: v.optional(v.string()), // HTML content for PDF generation
+    status: v.union(v.literal("draft"), v.literal("sent"), v.literal("viewed"), v.literal("signed")),
+    amount: v.optional(v.number()), // In cents
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_orgId", ["orgId"])
+    .index("by_portalUserId", ["portalUserId"])
+    .index("by_orgId_type", ["orgId", "type"]),
 });

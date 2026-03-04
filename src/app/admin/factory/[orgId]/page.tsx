@@ -13,8 +13,10 @@ import {
   Loader2, Check, Map, FileText, Calendar, Star, DollarSign,
   Bell, BarChart, Users, Lock, Download, Route,
   Layout, Image, Search as SearchIcon, Newspaper,
-  CreditCard, ExternalLink, Eye,
+  CreditCard, ExternalLink, Eye, Palette, PenLine,
 } from "lucide-react";
+import { ContentEditor } from "./content-editor";
+import { SkinPicker } from "./skin-picker";
 
 const PLAN_COLORS = {
   starter: { bg: "bg-blue-500/10", text: "text-blue-400", border: "border-blue-500/30", icon: Zap, label: "Starter - $79/mo", price: 79 },
@@ -71,6 +73,7 @@ export default function OrgDetailPage() {
   const toggleFeature = useMutation(api.factory.toggleOrgFeature);
   const startTrial = useMutation(api.factory.startFeatureTrial);
 
+  const [activeTab, setActiveTab] = useState<"overview" | "content" | "skin">("overview");
   const [changingPlan, setChangingPlan] = useState(false);
   const [togglingFeature, setTogglingFeature] = useState<string | null>(null);
   const [startingTrial, setStartingTrial] = useState<string | null>(null);
@@ -259,18 +262,55 @@ export default function OrgDetailPage() {
               View Project
             </Link>
           )}
-          {org.industry && (
-            <Link
-              href={`/admin/factory/preview/${org.industry}`}
-              target="_blank"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500/20 border border-cyan-500/30 text-xs transition-all"
-            >
-              <Eye className="w-3.5 h-3.5" />
-              Preview Template
-            </Link>
-          )}
+          <Link
+            href={`/s/${org.slug}`}
+            target="_blank"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-green-500/10 text-green-400 hover:bg-green-500/20 border border-green-500/30 text-xs transition-all"
+          >
+            <Eye className="w-3.5 h-3.5" />
+            View Live Site
+          </Link>
+          <Link
+            href={`/admin/factory/${orgId}/preview`}
+            target="_blank"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500/20 border border-cyan-500/30 text-xs transition-all"
+          >
+            <Eye className="w-3.5 h-3.5" />
+            Preview Site
+          </Link>
         </div>
       </motion.div>
+
+      {/* Tab Navigation */}
+      <div className="flex gap-1 p-1 rounded-xl bg-white/[0.03] border border-white/10">
+        {([
+          { key: "overview" as const, label: "Overview & Features", icon: Layout },
+          { key: "content" as const, label: "Content Editor", icon: PenLine },
+          { key: "skin" as const, label: "Industry Skin", icon: Palette },
+        ]).map((tab) => (
+          <button
+            key={tab.key}
+            onClick={() => setActiveTab(tab.key)}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all flex-1 justify-center ${
+              activeTab === tab.key
+                ? "bg-white/[0.08] text-white"
+                : "text-gray-500 hover:text-gray-300"
+            }`}
+          >
+            <tab.icon className="w-4 h-4" />
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Content Editor Tab */}
+      {activeTab === "content" && <ContentEditor orgId={orgId} />}
+
+      {/* Skin Picker Tab */}
+      {activeTab === "skin" && <SkinPicker orgId={orgId} />}
+
+      {/* Overview Tab */}
+      {activeTab === "overview" && <>
 
       {/* B. Project Build Status */}
       {project && (
@@ -581,6 +621,8 @@ export default function OrgDetailPage() {
           <p className="text-sm text-gray-400 whitespace-pre-wrap">{org.notes}</p>
         </motion.div>
       )}
+
+      </>}
     </div>
   );
 }

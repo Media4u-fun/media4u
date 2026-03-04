@@ -7,6 +7,33 @@ const TVR_HOSTS = ["trivirtualroundtable.net", "www.trivirtualroundtable.net"];
 // Shared routes that both sites can access (no rewriting)
 const SHARED_PREFIXES = ["/admin", "/portal", "/api", "/login", "/signup", "/forgot-password", "/reset-password", "/_next", "/favicon.ico"];
 
+// Known Media4U hostnames (not factory client domains)
+const MEDIA4U_HOSTS = ["localhost", "127.0.0.1", "media4u.com", "www.media4u.com"];
+
+// Factory client domain-to-slug cache (refreshed periodically)
+// In production, this would be populated from Convex via an API route
+// For now, we check against a simple pattern: if the domain isn't known, try /s/ routing
+let domainCache: Record<string, string> = {};
+let lastCacheRefresh = 0;
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+async function refreshDomainCache(request: NextRequest) {
+  const now = Date.now();
+  if (now - lastCacheRefresh < CACHE_TTL) return;
+
+  try {
+    // Call our own API to get domain mappings
+    const url = new URL("/api/factory/domains", request.url);
+    const res = await fetch(url.toString(), { next: { revalidate: 300 } });
+    if (res.ok) {
+      domainCache = await res.json();
+    }
+  } catch {
+    // Silently fail - use existing cache
+  }
+  lastCacheRefresh = now;
+}
+
 export function middleware(request: NextRequest) {
   const hostname = request.headers.get("host")?.split(":")[0] || "";
   const pathname = request.nextUrl.pathname;
@@ -20,6 +47,30 @@ export function middleware(request: NextRequest) {
       const url = request.nextUrl.clone();
       url.pathname = `/tvr${pathname}`;
       return NextResponse.rewrite(url);
+    }
+  }
+
+  // Factory client custom domain routing
+  // If the hostname isn't a known Media4U host or TVR host, check if it's a factory client domain
+  const isKnownHost =
+    MEDIA4U_HOSTS.some((h) => hostname === h || hostname.endsWith(`.${h}`)) ||
+    TVR_HOSTS.includes(hostname);
+
+  if (!isKnownHost) {
+    const isShared = SHARED_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+    const isAlreadySite = pathname.startsWith("/s/");
+
+    if (!isShared && !isAlreadySite) {
+      // Check domain cache for a slug mapping
+      const slug = domainCache[hostname];
+      if (slug) {
+        const url = request.nextUrl.clone();
+        url.pathname = `/s/${slug}${pathname}`;
+        return NextResponse.rewrite(url);
+      }
+
+      // If not in cache, try refreshing (async, won't block this request)
+      refreshDomainCache(request);
     }
   }
 
