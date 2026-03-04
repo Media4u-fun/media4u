@@ -7,10 +7,29 @@ import { api } from "@convex/_generated/api";
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { Id } from "@convex/_generated/dataModel";
-import { Search, Plus, X, ExternalLink, FileDown, MessageSquarePlus, Trash2, Palette, Share2, Lock, Copy, Check, Upload, Image as ImageIcon, File, Mail, Receipt, ToggleLeft, ToggleRight, CheckCircle, Clock, CreditCard, AlertCircle, RotateCcw, Monitor } from "lucide-react";
+import { Search, Plus, X, ExternalLink, FileDown, MessageSquarePlus, Trash2, Palette, Share2, Lock, Copy, Check, Upload, Image as ImageIcon, File, Mail, Receipt, ToggleLeft, ToggleRight, CheckCircle, Clock, CreditCard, AlertCircle, RotateCcw, Monitor, Eye } from "lucide-react";
+import Link from "next/link";
 import { EmailReplyModal } from "@/components/admin/EmailReplyModal";
 import { EmailListManager } from "@/components/admin/EmailListManager";
 import JSZip from "jszip";
+
+// Detect template slug from project data (company name, description, notes)
+function detectTemplateSlug(project: any): string | null {
+  const text = [project.company, project.description, project.notes, project.projectType]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+  if (text.includes("pool")) return "pool-service";
+  if (text.includes("pest")) return "pest-control";
+  if (text.includes("door")) return "door-company";
+  if (text.includes("barber")) return "barbershop";
+  if (text.includes("hvac")) return "hvac";
+  if (text.includes("plumb")) return "plumbing";
+  if (text.includes("roof")) return "roofing";
+  if (text.includes("landscap")) return "landscaping";
+  if (text.includes("clean")) return "cleaning-service";
+  return null;
+}
 
 type ProjectStatus = "new" | "planning" | "design" | "development" | "review" | "completed" | "launched";
 
@@ -726,6 +745,16 @@ export default function ProjectsAdminPage() {
                   <p className="text-xl font-semibold text-white">{selected.name}</p>
                 </div>
                 <div className="flex items-center gap-2">
+                  {detectTemplateSlug(selected) && (
+                    <Link
+                      href={`/admin/factory/preview/${detectTemplateSlug(selected)}`}
+                      target="_blank"
+                      className="px-3 py-2 rounded-lg border text-sm font-medium flex items-center gap-2 transition-all bg-cyan-500/10 border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/20 hover:border-cyan-400/50"
+                    >
+                      <Eye className="w-4 h-4" />
+                      Preview Template
+                    </Link>
+                  )}
                   <button
                     onClick={handleExportForClaude}
                     className={`px-3 py-2 rounded-lg border text-sm font-medium flex items-center gap-2 transition-all ${
