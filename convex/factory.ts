@@ -1,7 +1,7 @@
 import { v } from "convex/values";
 import { query, mutation, QueryCtx, MutationCtx } from "./_generated/server";
 import { ConvexError } from "convex/values";
-import { requireAdmin } from "./auth";
+import { requireAdmin, getAuthenticatedUser } from "./auth";
 import { Id } from "./_generated/dataModel";
 
 // ========================================
@@ -391,6 +391,76 @@ export const startFeatureTrial = mutation({
         updatedAt: now,
       });
     }
+  },
+});
+
+// ========================================
+// Client-facing queries (for useFeature hook)
+// ========================================
+
+// Get org by owner's user ID (for clients to look up their own org)
+export const getMyOrg = query({
+  args: {},
+  handler: async (ctx) => {
+    const user = await getAuthenticatedUser(ctx);
+    if (!user) return null;
+
+    return await ctx.db
+      .query("clientOrgs")
+      .withIndex("by_ownerUserId", (q) => q.eq("ownerUserId", user._id))
+      .first();
+  },
+});
+
+// Get enabled feature keys for an org (lightweight - just returns keys)
+export const getEnabledFeatureKeys = query({
+  args: { orgId: v.id("clientOrgs") },
+  handler: async (ctx, { orgId }) => {
+    const features = await ctx.db
+      .query("orgFeatures")
+      .withIndex("by_orgId", (q) => q.eq("orgId", orgId))
+      .collect();
+
+    const now = Date.now();
+    return features
+      .filter((f) => {
+        if (!f.enabled) return false;
+        if (f.source === "trial" && f.trialEndsAt && now > f.trialEndsAt) return false;
+        return true;
+      })
+      .map((f) => f.featureKey);
+  },
+});
+
+// Get org by slug (for multi-tenant routing)
+export const getOrgBySlug = query({
+  args: { slug: v.string() },
+  handler: async (ctx, { slug }) => {
+    return await ctx.db
+      .query("clientOrgs")
+      .withIndex("by_slug", (q) => q.eq("slug", slug))
+      .first();
+  },
+});
+
+// Get feature registry (public - for pricing page display)
+export const getPublicFeatureRegistry = query({
+  args: {},
+  handler: async (ctx) => {
+    const features = await ctx.db.query("featureRegistry").collect();
+    return features
+      .filter((f) => f.isActive)
+      .sort((a, b) => a.sortOrder - b.sortOrder)
+      .map((f) => ({
+        key: f.key,
+        name: f.name,
+        description: f.description,
+        category: f.category,
+        includedInPlan: f.includedInPlan,
+        isAddon: f.isAddon,
+        addonPriceCents: f.addonPriceCents,
+        icon: f.icon,
+      }));
   },
 });
 
