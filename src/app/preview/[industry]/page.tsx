@@ -5,7 +5,7 @@ import { getTemplate, templateRegistry } from "@/templates";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
-export default function TemplatePreviewPage({
+export default function PublicTemplatePreviewPage({
   params,
 }: {
   params: Promise<{ industry: string }>;
@@ -28,11 +28,11 @@ export default function TemplatePreviewPage({
             {Object.keys(templateRegistry).join(", ") || "none"}
           </p>
           <Link
-            href="/admin/factory"
+            href="/"
             className="inline-flex items-center gap-2 text-cyan-400 hover:text-cyan-300 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
-            Back to Factory
+            Back to Home
           </Link>
         </div>
       </div>
@@ -41,22 +41,5 @@ export default function TemplatePreviewPage({
 
   const Template = template.component;
 
-  return (
-    <>
-      {/* Admin preview banner */}
-      <div className="fixed top-0 left-0 right-0 z-[100] bg-amber-500/90 backdrop-blur-sm text-black text-center py-2 text-sm font-medium">
-        Preview Mode - {template.name} Template
-        <Link
-          href="/admin/factory"
-          className="ml-4 underline hover:no-underline"
-        >
-          Back to Factory
-        </Link>
-      </div>
-
-      <div className="pt-10">
-        <Template headerOffset />
-      </div>
-    </>
-  );
+  return <Template />;
 }

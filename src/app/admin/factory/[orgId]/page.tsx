@@ -13,7 +13,7 @@ import {
   Loader2, Check, Map, FileText, Calendar, Star, DollarSign,
   Bell, BarChart, Users, Lock, Download, Route,
   Layout, Image, Search as SearchIcon, Newspaper,
-  CreditCard, ExternalLink,
+  CreditCard, ExternalLink, Eye,
 } from "lucide-react";
 
 const PLAN_COLORS = {
@@ -257,6 +257,16 @@ export default function OrgDetailPage() {
             >
               <FileText className="w-3.5 h-3.5" />
               View Project
+            </Link>
+          )}
+          {org.industry && (
+            <Link
+              href={`/admin/factory/preview/${org.industry}`}
+              target="_blank"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500/20 border border-cyan-500/30 text-xs transition-all"
+            >
+              <Eye className="w-3.5 h-3.5" />
+              Preview Template
             </Link>
           )}
         </div>

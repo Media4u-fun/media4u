@@ -8,7 +8,7 @@ import { Doc } from "../../../convex/_generated/dataModel";
 import { useAuth } from "@/components/AuthContext";
 import Link from "next/link";
 import { format } from "date-fns";
-import { Briefcase, Lock, ExternalLink, CreditCard, ArrowRight, MessageCircle } from "lucide-react";
+import { Briefcase, Lock, ExternalLink, CreditCard, ArrowRight, MessageCircle, Eye } from "lucide-react";
 
 const GETTING_STARTED_STEPS = [
   {
@@ -387,6 +387,21 @@ export default function PortalPage(): ReactElement {
                       Live Site
                     </a>
                   )}
+                  {(() => {
+                    const text = [project.company, project.description, project.notes].filter(Boolean).join(" ").toLowerCase();
+                    const slug = text.includes("pool") ? "pool-service" : text.includes("pest") ? "pest-control" : text.includes("door") ? "door-company" : null;
+                    return slug ? (
+                      <a
+                        href={`/preview/${slug}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500/20 border border-cyan-500/30 transition-colors text-sm font-medium"
+                      >
+                        <Eye className="w-4 h-4" />
+                        Preview Site
+                      </a>
+                    ) : null;
+                  })()}
                   <Link
                     href={`/portal/projects/${project._id}/vault`}
                     className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-zinc-800 text-zinc-300 hover:bg-zinc-700 border border-zinc-700 transition-colors text-sm font-medium ${!project.liveUrl ? 'flex-1' : ''}`}

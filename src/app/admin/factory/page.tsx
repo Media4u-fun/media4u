@@ -8,7 +8,7 @@ import Link from "next/link";
 import {
   Factory, Plus, Search, Building2, Globe, ChevronRight,
   Crown, Zap, Rocket, X, Loader2, DollarSign, Users,
-  TrendingUp, AlertCircle, Check, Mail,
+  TrendingUp, AlertCircle, Check, Mail, Eye,
 } from "lucide-react";
 
 const PLAN_COLORS = {
@@ -305,6 +305,18 @@ export default function FactoryPage() {
                     {org.ownerEmail}
                   </span>
                   <div className="flex items-center gap-2 flex-shrink-0">
+                    {org.industry && (
+                      <span
+                        onClick={(e) => {
+                          e.preventDefault();
+                          window.open(`/admin/factory/preview/${org.industry}`, "_blank");
+                        }}
+                        className="flex items-center gap-1 text-cyan-400 hover:text-cyan-300 cursor-pointer transition-colors"
+                      >
+                        <Eye className="w-3 h-3" />
+                        Preview
+                      </span>
+                    )}
                     {org.domain && (
                       <span className="flex items-center gap-1">
                         <Globe className="w-3 h-3" />
