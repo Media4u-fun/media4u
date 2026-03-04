@@ -5,7 +5,7 @@ import { useQuery } from "convex/react";
 import { api } from "@convex/_generated/api";
 import { motion } from "motion/react";
 import {
-  Zap, Rocket, Crown, Check, Lock, Gift, Loader2,
+  Zap, Rocket, Crown, Check, Lock, Loader2,
   Map, FileText, Calendar, Star, DollarSign, Bell,
   BarChart, Users, Download, Globe, Route,
   Layout, Image, Search, Mail, Newspaper,
@@ -63,7 +63,6 @@ export default function PlanPage() {
   const enabledSet = new Set(enabledFeatures ?? []);
 
   // Group features by plan tier for the comparison
-  const starterFeatures = registry?.filter((f) => f.includedInPlan === "starter") ?? [];
   const growthFeatures = registry?.filter((f) => f.includedInPlan === "growth") ?? [];
   const enterpriseFeatures = registry?.filter((f) => f.includedInPlan === "enterprise") ?? [];
 
