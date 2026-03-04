@@ -786,6 +786,7 @@ export default defineSchema({
     industry: v.optional(v.string()), // "pest-control", "doors", "pools", etc.
     projectId: v.optional(v.id("projects")), // Link to existing project record
     notes: v.optional(v.string()),
+    publishedAt: v.optional(v.number()), // When the site was published live
     createdAt: v.number(),
     updatedAt: v.number(),
   })

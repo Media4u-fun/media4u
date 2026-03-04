@@ -1653,3 +1653,41 @@ export const createDocument = mutation({
     });
   },
 });
+
+// ---- Publish / Unpublish Site ----
+export const publishSite = mutation({
+  args: { orgId: v.id("clientOrgs") },
+  handler: async (ctx, args) => {
+    await requireAdmin(ctx);
+    const org = await ctx.db.get(args.orgId);
+    if (!org) throw new ConvexError({ code: "NOT_FOUND", message: "Org not found" });
+    await ctx.db.patch(args.orgId, {
+      publishedAt: org.publishedAt ? undefined : Date.now(),
+      updatedAt: Date.now(),
+    });
+  },
+});
+
+// ---- Org Stats (counts for modules) ----
+export const getOrgStats = query({
+  args: { orgId: v.id("clientOrgs") },
+  handler: async (ctx, args) => {
+    await requireAdmin(ctx);
+    const [blogPosts, reviews, bookings, gallery, subscribers] = await Promise.all([
+      ctx.db.query("templateBlogPosts").withIndex("by_orgId", (q) => q.eq("orgId", args.orgId)).collect(),
+      ctx.db.query("templateReviews").withIndex("by_orgId", (q) => q.eq("orgId", args.orgId)).collect(),
+      ctx.db.query("templateBookings").withIndex("by_orgId", (q) => q.eq("orgId", args.orgId)).collect(),
+      ctx.db.query("templateGalleryItems").withIndex("by_orgId", (q) => q.eq("orgId", args.orgId)).collect(),
+      ctx.db.query("templateSubscribers").withIndex("by_orgId", (q) => q.eq("orgId", args.orgId)).collect(),
+    ]);
+    return {
+      blogCount: blogPosts.length,
+      reviewCount: reviews.length,
+      pendingReviews: reviews.filter((r) => !r.approved).length,
+      bookingCount: bookings.length,
+      pendingBookings: bookings.filter((b) => b.status === "pending").length,
+      galleryCount: gallery.length,
+      subscriberCount: subscribers.length,
+    };
+  },
+});

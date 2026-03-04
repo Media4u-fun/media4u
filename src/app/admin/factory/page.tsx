@@ -8,7 +8,7 @@ import Link from "next/link";
 import {
   Factory, Plus, Search, Building2, Globe, ChevronRight,
   Crown, Zap, Rocket, X, Loader2, DollarSign, Users,
-  TrendingUp, AlertCircle, Check, Mail, Eye,
+  TrendingUp, AlertCircle, Check, Mail, Eye, ExternalLink,
 } from "lucide-react";
 
 const PLAN_COLORS = {
@@ -305,24 +305,34 @@ export default function FactoryPage() {
                     {org.ownerEmail}
                   </span>
                   <div className="flex items-center gap-2 flex-shrink-0">
-                    {org.industry && (
-                      <span
-                        onClick={(e) => {
-                          e.preventDefault();
-                          window.open(`/admin/factory/preview/${org.industry}`, "_blank");
-                        }}
-                        className="flex items-center gap-1 text-cyan-400 hover:text-cyan-300 cursor-pointer transition-colors"
-                      >
-                        <Eye className="w-3 h-3" />
-                        Preview
-                      </span>
-                    )}
-                    {org.domain && (
-                      <span className="flex items-center gap-1">
-                        <Globe className="w-3 h-3" />
-                        {org.domain}
-                      </span>
-                    )}
+                    {/* Published status */}
+                    <span className={`flex items-center gap-1 ${
+                      org.publishedAt ? "text-green-400" : "text-gray-600"
+                    }`}>
+                      <Globe className="w-3 h-3" />
+                      {org.publishedAt ? "Live" : "Draft"}
+                    </span>
+                    {/* Live site link */}
+                    <span
+                      onClick={(e) => {
+                        e.preventDefault();
+                        window.open(`/s/${org.slug}`, "_blank");
+                      }}
+                      className="flex items-center gap-1 text-cyan-400 hover:text-cyan-300 cursor-pointer transition-colors"
+                    >
+                      <ExternalLink className="w-3 h-3" />
+                      Site
+                    </span>
+                    {/* Preview */}
+                    <span
+                      onClick={(e) => {
+                        e.preventDefault();
+                        window.open(`/admin/factory/${org._id}/preview`, "_blank");
+                      }}
+                      className="flex items-center gap-1 text-gray-400 hover:text-gray-300 cursor-pointer transition-colors"
+                    >
+                      <Eye className="w-3 h-3" />
+                    </span>
                   </div>
                 </div>
               </Link>

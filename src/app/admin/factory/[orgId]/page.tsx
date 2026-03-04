@@ -232,6 +232,23 @@ export default function OrgDetailPage() {
           </div>
         </div>
 
+        {/* Setup banner - show if not published */}
+        {!org.publishedAt && (
+          <div className="mt-4 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Rocket className="w-4 h-4 text-amber-400" />
+              <span className="text-sm text-amber-400 font-medium">Site not published yet</span>
+            </div>
+            <Link
+              href={`/admin/factory/${orgId}/setup`}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500/20 text-amber-400 border border-amber-500/30 text-xs font-medium hover:bg-amber-500/30 transition-all"
+            >
+              Complete Setup
+              <ArrowLeft className="w-3 h-3 rotate-180" />
+            </Link>
+          </div>
+        )}
+
         {/* Quick Actions */}
         <div className="flex gap-2 mt-4 pt-4 border-t border-white/5">
           <a
