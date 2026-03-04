@@ -533,7 +533,7 @@ function SignupsTab({
     createdAt: number;
   }> | undefined;
   convertSignup: (args: { leadId: Id<"leads"> }) => Promise<Id<"clientOrgs">>;
-  updateLeadStatus: (args: { leadId: Id<"leads">; status: "new" | "contacted" | "researching" | "building" | "presented" | "qualified" | "converted" | "won" | "lost" }) => Promise<void>;
+  updateLeadStatus: (args: { leadId: Id<"leads">; status: "new" | "contacted" | "researching" | "building" | "presented" | "qualified" | "converted" | "won" | "lost" }) => Promise<null | void>;
   convertingId: string | null;
   setConvertingId: (id: string | null) => void;
 }) {
