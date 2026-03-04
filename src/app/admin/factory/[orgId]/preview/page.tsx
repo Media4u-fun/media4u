@@ -88,7 +88,7 @@ export default function OrgPreviewPage() {
   return (
     <div className="min-h-screen bg-[#0a0a0f]">
       {/* Top toolbar */}
-      <div className="sticky top-0 z-50 bg-[#141419]/95 backdrop-blur-xl border-b border-white/10 px-4 py-3">
+      <div className="sticky top-0 z-[100] bg-[#141419]/95 backdrop-blur-xl border-b border-white/10 px-4 py-3">
         <div className="flex items-center justify-between max-w-[1800px] mx-auto">
           {/* Left - back + org name */}
           <div className="flex items-center gap-4">
@@ -177,8 +177,8 @@ export default function OrgPreviewPage() {
         </div>
       </div>
 
-      {/* Preview area */}
-      <div className="flex justify-center py-6 px-4">
+      {/* Preview area - isolate z-index so template headers don't overlap toolbar */}
+      <div className="flex justify-center py-6 px-4 relative" style={{ zIndex: 0, isolation: "isolate" }}>
         <div
           className={`transition-all duration-300 ${
             viewMode !== "desktop" ? "border border-white/10 rounded-2xl overflow-hidden shadow-2xl" : "w-full"
