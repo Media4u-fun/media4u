@@ -13,12 +13,13 @@ import {
   Loader2, Check, Map, FileText, Calendar, Star, DollarSign,
   Bell, BarChart, Users, Lock, Download, Route,
   Layout, Image, Search as SearchIcon, Newspaper,
+  CreditCard, ExternalLink,
 } from "lucide-react";
 
 const PLAN_COLORS = {
-  starter: { bg: "bg-blue-500/10", text: "text-blue-400", border: "border-blue-500/30", icon: Zap, label: "Starter - $79/mo" },
-  growth: { bg: "bg-purple-500/10", text: "text-purple-400", border: "border-purple-500/30", icon: Rocket, label: "Growth - $149/mo" },
-  enterprise: { bg: "bg-amber-500/10", text: "text-amber-400", border: "border-amber-500/30", icon: Crown, label: "Enterprise - $299/mo" },
+  starter: { bg: "bg-blue-500/10", text: "text-blue-400", border: "border-blue-500/30", icon: Zap, label: "Starter - $79/mo", price: 79 },
+  growth: { bg: "bg-purple-500/10", text: "text-purple-400", border: "border-purple-500/30", icon: Rocket, label: "Growth - $149/mo", price: 149 },
+  enterprise: { bg: "bg-amber-500/10", text: "text-amber-400", border: "border-amber-500/30", icon: Crown, label: "Enterprise - $299/mo", price: 299 },
 };
 
 const FEATURE_ICONS: Record<string, typeof Map> = {
@@ -48,6 +49,16 @@ const SOURCE_LABELS: Record<string, { label: string; color: string }> = {
   manual: { label: "Manual", color: "bg-purple-500/20 text-purple-400 border-purple-500/30" },
 };
 
+const PROJECT_STATUS_STEPS = [
+  { key: "new", label: "New" },
+  { key: "planning", label: "Planning" },
+  { key: "design", label: "Design" },
+  { key: "development", label: "Development" },
+  { key: "review", label: "Review" },
+  { key: "completed", label: "Completed" },
+  { key: "launched", label: "Launched" },
+];
+
 export default function OrgDetailPage() {
   const params = useParams() as { orgId: string };
   const orgId = params.orgId as Id<"clientOrgs">;
@@ -55,6 +66,7 @@ export default function OrgDetailPage() {
   const org = useQuery(api.factory.getClientOrg, { orgId });
   const orgFeatures = useQuery(api.factory.getOrgFeaturesQuery, { orgId });
   const registry = useQuery(api.factory.listFeatureRegistry);
+  const project = useQuery(api.factory.getLinkedProject, { orgId });
   const changePlan = useMutation(api.factory.changeClientPlan);
   const toggleFeature = useMutation(api.factory.toggleOrgFeature);
   const startTrial = useMutation(api.factory.startFeatureTrial);
@@ -139,8 +151,13 @@ export default function OrgDetailPage() {
 
   const enabledCount = orgFeatures?.filter((f: OrgFeature) => f.enabled).length || 0;
 
+  // Project build status
+  const currentStepIdx = project
+    ? PROJECT_STATUS_STEPS.findIndex((s) => s.key === project.status)
+    : -1;
+
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-5xl mx-auto space-y-6">
       {/* Back */}
       <Link
         href="/admin/factory"
@@ -150,7 +167,7 @@ export default function OrgDetailPage() {
         Back to Client Sites
       </Link>
 
-      {/* Header */}
+      {/* A. Client Header Card */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -162,7 +179,7 @@ export default function OrgDetailPage() {
               <Building2 className="w-6 h-6 text-gray-400" />
               {org.name}
             </h1>
-            <div className="flex items-center gap-4 mt-2 text-sm text-gray-400">
+            <div className="flex flex-wrap items-center gap-4 mt-2 text-sm text-gray-400">
               <span className="flex items-center gap-1">
                 <Mail className="w-3.5 h-3.5" />
                 {org.ownerEmail}
@@ -171,28 +188,240 @@ export default function OrgDetailPage() {
                 <span className="capitalize">{org.industry}</span>
               )}
               {org.domain && (
-                <span className="flex items-center gap-1">
+                <a
+                  href={`https://${org.domain}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 text-brand-light hover:underline"
+                >
                   <Globe className="w-3.5 h-3.5" />
                   {org.domain}
-                </span>
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+              )}
+              {project?.liveUrl && (
+                <a
+                  href={project.liveUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 text-green-400 hover:underline"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  Live Site
+                </a>
               )}
             </div>
           </div>
-          <div className="text-right">
+          <div className="text-right flex flex-col items-end gap-2">
             <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold ${planStyle.bg} ${planStyle.text} border ${planStyle.border}`}>
               <planStyle.icon className="w-4 h-4" />
               {planStyle.label}
             </span>
-            <p className="text-xs text-gray-500 mt-2">{enabledCount} features enabled</p>
+            <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase border ${
+              org.status === "active" ? "bg-green-500/20 text-green-400 border-green-500/30" :
+              org.status === "trial" ? "bg-yellow-500/20 text-yellow-400 border-yellow-500/30" :
+              org.status === "suspended" ? "bg-red-500/20 text-red-400 border-red-500/30" :
+              "bg-gray-500/20 text-gray-400 border-gray-500/30"
+            }`}>
+              {org.status}
+            </span>
+            <p className="text-xs text-gray-500">{enabledCount} features enabled</p>
           </div>
+        </div>
+
+        {/* Quick Actions */}
+        <div className="flex gap-2 mt-4 pt-4 border-t border-white/5">
+          <a
+            href={`mailto:${org.ownerEmail}`}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 text-gray-400 hover:text-white hover:bg-white/10 text-xs transition-all"
+          >
+            <Mail className="w-3.5 h-3.5" />
+            Email Client
+          </a>
+          {org.stripeCustomerId && (
+            <a
+              href={`https://dashboard.stripe.com/customers/${org.stripeCustomerId}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 text-gray-400 hover:text-white hover:bg-white/10 text-xs transition-all"
+            >
+              <CreditCard className="w-3.5 h-3.5" />
+              Stripe
+              <ExternalLink className="w-3 h-3" />
+            </a>
+          )}
+          {project && (
+            <Link
+              href={`/admin/projects`}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 text-gray-400 hover:text-white hover:bg-white/10 text-xs transition-all"
+            >
+              <FileText className="w-3.5 h-3.5" />
+              View Project
+            </Link>
+          )}
         </div>
       </motion.div>
 
-      {/* Plan Selector */}
+      {/* B. Project Build Status */}
+      {project && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05 }}
+          className="p-6 rounded-2xl bg-white/[0.03] border border-white/10"
+        >
+          <h2 className="text-lg font-bold text-white mb-4">Build Status</h2>
+
+          {/* Pipeline */}
+          <div className="flex items-center gap-1 mb-4">
+            {PROJECT_STATUS_STEPS.map((step, idx) => {
+              const isComplete = idx <= currentStepIdx;
+              const isCurrent = idx === currentStepIdx;
+              return (
+                <div key={step.key} className="flex-1 flex flex-col items-center">
+                  <div className={`w-full h-2 rounded-full ${
+                    isComplete ? "bg-brand-light" : "bg-white/10"
+                  } ${isCurrent ? "ring-2 ring-brand-light/30" : ""}`} />
+                  <span className={`text-[10px] mt-1 ${
+                    isCurrent ? "text-brand-light font-bold" : isComplete ? "text-gray-400" : "text-gray-600"
+                  }`}>
+                    {step.label}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Project Info */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 text-sm">
+            <div>
+              <p className="text-gray-500 text-xs">Project Type</p>
+              <p className="text-white">{project.projectType}</p>
+            </div>
+            <div>
+              <p className="text-gray-500 text-xs">Company</p>
+              <p className="text-white">{project.company || "-"}</p>
+            </div>
+            {project.brandColors?.primary && (
+              <div>
+                <p className="text-gray-500 text-xs mb-1">Brand Colors</p>
+                <div className="flex gap-1">
+                  {[project.brandColors.primary, project.brandColors.secondary, project.brandColors.accent].filter(Boolean).map((color, i) => (
+                    <div
+                      key={i}
+                      className="w-6 h-6 rounded border border-white/20"
+                      style={{ backgroundColor: color }}
+                      title={color}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+            {project.liveUrl && (
+              <div>
+                <p className="text-gray-500 text-xs">Live URL</p>
+                <a href={project.liveUrl} target="_blank" rel="noopener noreferrer" className="text-brand-light hover:underline flex items-center gap-1">
+                  {project.liveUrl.replace(/^https?:\/\//, "")}
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+              </div>
+            )}
+          </div>
+
+          {project.notes && (
+            <div className="mt-3 p-3 rounded-lg bg-white/[0.03] border border-white/5">
+              <p className="text-xs text-gray-500 mb-1">Project Notes</p>
+              <p className="text-sm text-gray-300 whitespace-pre-wrap">{project.notes}</p>
+            </div>
+          )}
+        </motion.div>
+      )}
+
+      {/* C. Billing & Payments Card */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
+        className="p-6 rounded-2xl bg-white/[0.03] border border-white/10"
+      >
+        <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+          <CreditCard className="w-5 h-5 text-gray-400" />
+          Billing & Payments
+        </h2>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          {/* Setup Fee */}
+          <div className="p-4 rounded-xl bg-white/[0.03] border border-white/8">
+            <p className="text-xs text-gray-500 uppercase mb-2">Setup Fee</p>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xl font-bold text-white">
+                  {org.setupFeeAmount ? `$${(org.setupFeeAmount / 100).toLocaleString()}` : "N/A"}
+                </p>
+              </div>
+              <span className={`px-2 py-1 rounded-lg text-xs font-semibold ${
+                org.setupFeePaid
+                  ? "bg-green-500/20 text-green-400 border border-green-500/30"
+                  : "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30"
+              }`}>
+                {org.setupFeePaid ? "Paid" : "Pending"}
+              </span>
+            </div>
+          </div>
+
+          {/* Monthly Subscription */}
+          <div className="p-4 rounded-xl bg-white/[0.03] border border-white/8">
+            <p className="text-xs text-gray-500 uppercase mb-2">Monthly</p>
+            <div className="flex items-center justify-between">
+              <p className="text-xl font-bold text-white">${planStyle.price}/mo</p>
+              <span className={`px-2 py-1 rounded-lg text-xs font-semibold ${
+                org.status === "active"
+                  ? "bg-green-500/20 text-green-400 border border-green-500/30"
+                  : "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30"
+              }`}>
+                {org.status === "active" ? "Active" : org.status}
+              </span>
+            </div>
+          </div>
+
+          {/* Stripe Link */}
+          <div className="p-4 rounded-xl bg-white/[0.03] border border-white/8">
+            <p className="text-xs text-gray-500 uppercase mb-2">Stripe</p>
+            {org.stripeCustomerId ? (
+              <div className="space-y-2">
+                <a
+                  href={`https://dashboard.stripe.com/customers/${org.stripeCustomerId}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 text-sm text-brand-light hover:underline"
+                >
+                  Customer Portal
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+                {org.stripeSubscriptionId && (
+                  <a
+                    href={`https://dashboard.stripe.com/subscriptions/${org.stripeSubscriptionId}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-white"
+                  >
+                    Subscription
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                )}
+              </div>
+            ) : (
+              <p className="text-sm text-gray-500">Not linked yet</p>
+            )}
+          </div>
+        </div>
+      </motion.div>
+
+      {/* D. Plan Selector */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.15 }}
         className="p-6 rounded-2xl bg-white/[0.03] border border-white/10"
       >
         <h2 className="text-lg font-bold text-white mb-4">Change Plan</h2>
@@ -214,7 +443,7 @@ export default function OrgDetailPage() {
               >
                 <Icon className={`w-6 h-6 mx-auto mb-2 ${isActive ? style.text : ""}`} />
                 <p className="text-sm font-semibold capitalize">{plan}</p>
-                <p className="text-xs mt-1 opacity-70">{style.label.split(" - ")[1]}</p>
+                <p className="text-xs mt-1 opacity-70">${style.price}/mo</p>
                 {isActive && (
                   <div className="flex items-center justify-center gap-1 mt-2">
                     <Check className="w-3 h-3" />
@@ -233,7 +462,7 @@ export default function OrgDetailPage() {
         )}
       </motion.div>
 
-      {/* Feature Toggles */}
+      {/* E. Feature Toggles */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -329,6 +558,19 @@ export default function OrgDetailPage() {
           </div>
         ))}
       </motion.div>
+
+      {/* Org Notes */}
+      {org.notes && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.25 }}
+          className="p-5 rounded-2xl bg-white/[0.03] border border-white/10"
+        >
+          <h2 className="text-lg font-bold text-white mb-2">Notes</h2>
+          <p className="text-sm text-gray-400 whitespace-pre-wrap">{org.notes}</p>
+        </motion.div>
+      )}
     </div>
   );
 }

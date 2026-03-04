@@ -169,6 +169,57 @@ export const listFeatureRegistry = query({
   },
 });
 
+// Get linked project for a client org (admin only)
+export const getLinkedProject = query({
+  args: { orgId: v.id("clientOrgs") },
+  handler: async (ctx, { orgId }) => {
+    await requireAdmin(ctx);
+    const org = await ctx.db.get(orgId);
+    if (!org?.projectId) return null;
+    return await ctx.db.get(org.projectId);
+  },
+});
+
+// Get revenue stats for all orgs (admin only)
+export const getRevenueStats = query({
+  args: {},
+  handler: async (ctx) => {
+    await requireAdmin(ctx);
+    const orgs = await ctx.db.query("clientOrgs").collect();
+
+    // Plan pricing in cents
+    const planPricing: Record<string, number> = {
+      starter: 7900,
+      growth: 14900,
+      enterprise: 29900,
+    };
+
+    let totalMRR = 0;
+    let activeCount = 0;
+    let suspendedCount = 0;
+    let setupFeesCollected = 0;
+
+    for (const org of orgs) {
+      if (org.status === "active" || org.status === "trial") {
+        totalMRR += planPricing[org.plan] || 0;
+        activeCount++;
+      }
+      if (org.status === "suspended") suspendedCount++;
+      if (org.setupFeePaid && org.setupFeeAmount) {
+        setupFeesCollected += org.setupFeeAmount;
+      }
+    }
+
+    return {
+      totalMRR,
+      totalClients: orgs.length,
+      activeCount,
+      suspendedCount,
+      setupFeesCollected,
+    };
+  },
+});
+
 // Get plan presets (for display in admin UI)
 export const getPlanPresets = query({
   args: {},
@@ -569,16 +620,41 @@ export const handleFactorySubscriptionUpdated = internalMutation({
     stripePriceId: v.string(),
     status: v.string(),
     planName: v.optional(v.string()),
+    stripeCustomerId: v.optional(v.string()),
+    customerEmail: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const now = Date.now();
 
-    // Find org by subscription ID
+    // Find org by subscription ID first
     const orgs = await ctx.db.query("clientOrgs").collect();
-    const org = orgs.find((o) => o.stripeSubscriptionId === args.stripeSubscriptionId);
+    let org = orgs.find((o) => o.stripeSubscriptionId === args.stripeSubscriptionId);
+
+    // Fallback: search by Stripe customer ID
+    if (!org && args.stripeCustomerId) {
+      org = await ctx.db
+        .query("clientOrgs")
+        .withIndex("by_stripeCustomerId", (q) => q.eq("stripeCustomerId", args.stripeCustomerId))
+        .first() ?? undefined;
+    }
+
+    // Fallback: search by email
+    const email = args.customerEmail;
+    if (!org && email) {
+      org = await ctx.db
+        .query("clientOrgs")
+        .withIndex("by_ownerEmail", (q) => q.eq("ownerEmail", email))
+        .first() ?? undefined;
+    }
+
     if (!org) {
       console.error(`Factory webhook: No org found for subscription ${args.stripeSubscriptionId}`);
       return;
+    }
+
+    // Update subscription ID if it wasn't set
+    if (!org.stripeSubscriptionId) {
+      await ctx.db.patch(org._id, { stripeSubscriptionId: args.stripeSubscriptionId, updatedAt: now });
     }
 
     // Handle cancellation / past_due
@@ -656,10 +732,19 @@ export const handleFactorySubscriptionUpdated = internalMutation({
 export const handleFactorySubscriptionDeleted = internalMutation({
   args: {
     stripeSubscriptionId: v.string(),
+    stripeCustomerId: v.optional(v.string()),
   },
-  handler: async (ctx, { stripeSubscriptionId }) => {
+  handler: async (ctx, { stripeSubscriptionId, stripeCustomerId }) => {
     const orgs = await ctx.db.query("clientOrgs").collect();
-    const org = orgs.find((o) => o.stripeSubscriptionId === stripeSubscriptionId);
+    let org = orgs.find((o) => o.stripeSubscriptionId === stripeSubscriptionId);
+
+    // Fallback: search by customer ID
+    if (!org && stripeCustomerId) {
+      org = await ctx.db
+        .query("clientOrgs")
+        .withIndex("by_stripeCustomerId", (q) => q.eq("stripeCustomerId", stripeCustomerId))
+        .first() ?? undefined;
+    }
     if (!org) return;
 
     await ctx.db.patch(org._id, {
@@ -726,6 +811,214 @@ export const handleFactoryAddonAdded = internalMutation({
         updatedAt: now,
       });
     }
+  },
+});
+
+// ========================================
+// Migration & Stripe Linking Mutations
+// ========================================
+
+// Migrate a project to a factory org
+export const migrateProjectToFactory = mutation({
+  args: {
+    projectId: v.id("projects"),
+    plan: v.union(v.literal("starter"), v.literal("growth"), v.literal("enterprise")),
+    setupFeeAmount: v.optional(v.number()), // In cents
+    monthlyAmount: v.optional(v.number()), // In cents
+    notes: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    await requireAdmin(ctx);
+
+    const project = await ctx.db.get(args.projectId);
+    if (!project) throw new ConvexError({ code: "NOT_FOUND", message: "Project not found" });
+
+    // Check if project already migrated
+    const existingOrg = await ctx.db
+      .query("clientOrgs")
+      .filter((q) => q.eq(q.field("projectId"), args.projectId))
+      .first();
+    if (existingOrg) {
+      throw new ConvexError({ code: "ALREADY_MIGRATED", message: "This project is already linked to a factory org" });
+    }
+
+    const now = Date.now();
+    const limits = PLAN_LIMITS[args.plan];
+    const slug = (project.company || project.name).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+
+    // Check slug uniqueness
+    const slugExists = await ctx.db
+      .query("clientOrgs")
+      .withIndex("by_slug", (q) => q.eq("slug", slug))
+      .first();
+    const finalSlug = slugExists ? `${slug}-${now}` : slug;
+
+    // Look up Stripe data by email
+    const stripeCustomer = await ctx.db
+      .query("stripeCustomers")
+      .withIndex("by_email", (q) => q.eq("email", project.email))
+      .first();
+
+    const subscription = await ctx.db
+      .query("subscriptions")
+      .filter((q) => q.eq(q.field("customerEmail"), project.email))
+      .first();
+
+    // Determine setup fee paid status
+    const setupFeePaid = project.setupInvoiceStatus === "paid" ||
+      project.setupInvoicePaid === true ||
+      project.paymentStatus === "paid";
+
+    // Create the org
+    const orgId = await ctx.db.insert("clientOrgs", {
+      name: project.company || project.name,
+      slug: finalSlug,
+      ownerEmail: project.email,
+      plan: args.plan,
+      status: "active",
+      setupFeePaid,
+      setupFeeAmount: args.setupFeeAmount || (project.setupFeeAmount ? project.setupFeeAmount * 100 : undefined),
+      maxAdminUsers: limits.maxAdminUsers,
+      maxFormSubmissions: limits.maxFormSubmissions,
+      industry: undefined,
+      projectId: args.projectId,
+      stripeCustomerId: stripeCustomer?.stripeCustomerId,
+      stripeSubscriptionId: subscription?.stripeSubscriptionId,
+      notes: args.notes,
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    // Apply plan preset features
+    const features = PLAN_PRESETS[args.plan] || [];
+    for (const featureKey of features) {
+      await ctx.db.insert("orgFeatures", {
+        orgId,
+        featureKey,
+        enabled: true,
+        source: "plan",
+        addedAt: now,
+        updatedAt: now,
+      });
+    }
+
+    return orgId;
+  },
+});
+
+// Link existing Stripe subscription to a factory org
+export const linkStripeToOrg = mutation({
+  args: {
+    orgId: v.id("clientOrgs"),
+    stripeCustomerId: v.string(),
+    stripeSubscriptionId: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    await requireAdmin(ctx);
+
+    const org = await ctx.db.get(args.orgId);
+    if (!org) throw new ConvexError({ code: "NOT_FOUND", message: "Org not found" });
+
+    await ctx.db.patch(args.orgId, {
+      stripeCustomerId: args.stripeCustomerId,
+      stripeSubscriptionId: args.stripeSubscriptionId,
+      updatedAt: Date.now(),
+    });
+  },
+});
+
+// Migrate all existing custom deal projects to factory orgs
+export const migrateExistingClients = mutation({
+  args: {},
+  handler: async (ctx) => {
+    await requireAdmin(ctx);
+
+    // Seed feature registry if not already done
+    const existingFeature = await ctx.db.query("featureRegistry").first();
+    if (!existingFeature) {
+      // Will need to run seedFeatureRegistry first
+      throw new ConvexError({
+        code: "NO_REGISTRY",
+        message: "Run seedFeatureRegistry first before migrating clients",
+      });
+    }
+
+    const projects = await ctx.db.query("projects").collect();
+    const customDeals = projects.filter((p) => p.isCustomDeal === true);
+
+    const results: Array<{ name: string; orgId: string; plan: string }> = [];
+
+    for (const project of customDeals) {
+      // Skip if already migrated
+      const existingOrg = await ctx.db
+        .query("clientOrgs")
+        .filter((q) => q.eq(q.field("projectId"), project._id))
+        .first();
+      if (existingOrg) continue;
+
+      const now = Date.now();
+      const plan = project.planTier === "basic" ? "starter"
+        : project.planTier === "growth" ? "growth"
+        : "growth"; // Default to growth
+
+      const limits = PLAN_LIMITS[plan];
+      const slug = (project.company || project.name).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+
+      const slugExists = await ctx.db
+        .query("clientOrgs")
+        .withIndex("by_slug", (q) => q.eq("slug", slug))
+        .first();
+      const finalSlug = slugExists ? `${slug}-${now}` : slug;
+
+      // Look up Stripe data
+      const stripeCustomer = await ctx.db
+        .query("stripeCustomers")
+        .withIndex("by_email", (q) => q.eq("email", project.email))
+        .first();
+
+      const subscription = await ctx.db
+        .query("subscriptions")
+        .filter((q) => q.eq(q.field("customerEmail"), project.email))
+        .first();
+
+      const setupFeePaid = project.setupInvoiceStatus === "paid" ||
+        project.setupInvoicePaid === true;
+
+      const orgId = await ctx.db.insert("clientOrgs", {
+        name: project.company || project.name,
+        slug: finalSlug,
+        ownerEmail: project.email,
+        plan,
+        status: "active",
+        setupFeePaid,
+        setupFeeAmount: project.setupFeeAmount ? project.setupFeeAmount * 100 : undefined,
+        maxAdminUsers: limits.maxAdminUsers,
+        maxFormSubmissions: limits.maxFormSubmissions,
+        projectId: project._id,
+        stripeCustomerId: stripeCustomer?.stripeCustomerId,
+        stripeSubscriptionId: subscription?.stripeSubscriptionId,
+        notes: `Migrated from project. Monthly: $${project.monthlyAmount || "N/A"}`,
+        createdAt: now,
+        updatedAt: now,
+      });
+
+      // Apply plan features
+      const features = PLAN_PRESETS[plan] || [];
+      for (const featureKey of features) {
+        await ctx.db.insert("orgFeatures", {
+          orgId,
+          featureKey,
+          enabled: true,
+          source: "plan",
+          addedAt: now,
+          updatedAt: now,
+        });
+      }
+
+      results.push({ name: project.company || project.name, orgId, plan });
+    }
+
+    return { migrated: results.length, clients: results };
   },
 });
 

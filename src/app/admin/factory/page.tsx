@@ -7,21 +7,26 @@ import { motion, AnimatePresence } from "motion/react";
 import Link from "next/link";
 import {
   Factory, Plus, Search, Building2, Globe, ChevronRight,
-  Crown, Zap, Rocket, X, Loader2,
+  Crown, Zap, Rocket, X, Loader2, DollarSign, Users,
+  TrendingUp, AlertCircle, Check, Mail,
 } from "lucide-react";
 
 const PLAN_COLORS = {
-  starter: { bg: "bg-blue-500/10", text: "text-blue-400", border: "border-blue-500/30", icon: Zap },
-  growth: { bg: "bg-purple-500/10", text: "text-purple-400", border: "border-purple-500/30", icon: Rocket },
-  enterprise: { bg: "bg-amber-500/10", text: "text-amber-400", border: "border-amber-500/30", icon: Crown },
+  starter: { bg: "bg-blue-500/10", text: "text-blue-400", border: "border-blue-500/30", icon: Zap, price: 79 },
+  growth: { bg: "bg-purple-500/10", text: "text-purple-400", border: "border-purple-500/30", icon: Rocket, price: 149 },
+  enterprise: { bg: "bg-amber-500/10", text: "text-amber-400", border: "border-amber-500/30", icon: Crown, price: 299 },
 };
 
-const STATUS_COLORS: Record<string, string> = {
-  active: "bg-green-500/20 text-green-400 border-green-500/30",
-  trial: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
-  suspended: "bg-red-500/20 text-red-400 border-red-500/30",
-  cancelled: "bg-gray-500/20 text-gray-400 border-gray-500/30",
+const STATUS_COLORS: Record<string, { dot: string; bg: string; text: string }> = {
+  active: { dot: "bg-green-400", bg: "bg-green-500/10", text: "text-green-400" },
+  trial: { dot: "bg-yellow-400", bg: "bg-yellow-500/10", text: "text-yellow-400" },
+  suspended: { dot: "bg-red-400", bg: "bg-red-500/10", text: "text-red-400" },
+  cancelled: { dot: "bg-gray-400", bg: "bg-gray-500/10", text: "text-gray-500" },
 };
+
+type SortKey = "name" | "revenue" | "date";
+type FilterPlan = "all" | "starter" | "growth" | "enterprise";
+type FilterStatus = "all" | "active" | "trial" | "suspended" | "cancelled";
 
 function slugify(name: string) {
   return name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
@@ -29,10 +34,14 @@ function slugify(name: string) {
 
 export default function FactoryPage() {
   const orgs = useQuery(api.factory.listClientOrgs);
+  const stats = useQuery(api.factory.getRevenueStats);
   const createOrg = useMutation(api.factory.createClientOrg);
   const [search, setSearch] = useState("");
   const [showCreate, setShowCreate] = useState(false);
   const [creating, setCreating] = useState(false);
+  const [sortBy, setSortBy] = useState<SortKey>("date");
+  const [filterPlan, setFilterPlan] = useState<FilterPlan>("all");
+  const [filterStatus, setFilterStatus] = useState<FilterStatus>("all");
 
   // Create form state
   const [newName, setNewName] = useState("");
@@ -40,11 +49,28 @@ export default function FactoryPage() {
   const [newPlan, setNewPlan] = useState<"starter" | "growth" | "enterprise">("starter");
   const [newIndustry, setNewIndustry] = useState("");
 
-  const filtered = orgs?.filter((org) =>
-    org.name.toLowerCase().includes(search.toLowerCase()) ||
-    org.ownerEmail.toLowerCase().includes(search.toLowerCase()) ||
-    (org.industry || "").toLowerCase().includes(search.toLowerCase())
-  );
+  // Filter and sort
+  const filtered = orgs
+    ?.filter((org) => {
+      if (filterPlan !== "all" && org.plan !== filterPlan) return false;
+      if (filterStatus !== "all" && org.status !== filterStatus) return false;
+      if (search) {
+        const q = search.toLowerCase();
+        return org.name.toLowerCase().includes(q) ||
+          org.ownerEmail.toLowerCase().includes(q) ||
+          (org.industry || "").toLowerCase().includes(q);
+      }
+      return true;
+    })
+    .sort((a, b) => {
+      if (sortBy === "name") return a.name.localeCompare(b.name);
+      if (sortBy === "revenue") {
+        const aPrice = PLAN_COLORS[a.plan]?.price || 0;
+        const bPrice = PLAN_COLORS[b.plan]?.price || 0;
+        return bPrice - aPrice;
+      }
+      return b.createdAt - a.createdAt;
+    });
 
   const planCounts = {
     starter: orgs?.filter((o) => o.plan === "starter").length || 0,
@@ -76,15 +102,15 @@ export default function FactoryPage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
+    <div className="max-w-7xl mx-auto space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-white flex items-center gap-3">
             <Factory className="w-7 h-7 text-brand-light" />
-            Website Factory
+            Client Sites
           </h1>
-          <p className="text-gray-400 text-sm mt-1">Manage client sites, plans, and features</p>
+          <p className="text-gray-400 text-sm mt-1">Manage client sites, plans, billing, and features</p>
         </div>
         <button
           onClick={() => setShowCreate(true)}
@@ -95,53 +121,129 @@ export default function FactoryPage() {
         </button>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="p-4 rounded-xl bg-white/5 border border-white/10">
-          <p className="text-3xl font-bold text-white">{orgs?.length || 0}</p>
-          <p className="text-sm text-gray-400">Total Sites</p>
+      {/* Revenue Dashboard Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="p-4 rounded-xl bg-gradient-to-br from-green-500/10 to-green-600/5 border border-green-500/20">
+          <div className="flex items-center justify-between mb-1">
+            <DollarSign className="w-5 h-5 text-green-400" />
+            <TrendingUp className="w-4 h-4 text-green-400/60" />
+          </div>
+          <p className="text-2xl font-bold text-green-400">
+            ${stats ? (stats.totalMRR / 100).toLocaleString() : "..."}
+          </p>
+          <p className="text-xs text-green-400/60">Monthly Revenue</p>
         </div>
+
+        <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+          <div className="flex items-center justify-between mb-1">
+            <Users className="w-5 h-5 text-gray-400" />
+          </div>
+          <p className="text-2xl font-bold text-white">{stats?.totalClients ?? "..."}</p>
+          <p className="text-xs text-gray-500">Total Clients</p>
+        </div>
+
+        <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+          <div className="flex items-center justify-between mb-1">
+            <Check className="w-5 h-5 text-green-400" />
+          </div>
+          <p className="text-2xl font-bold text-white">{stats?.activeCount ?? "..."}</p>
+          <p className="text-xs text-gray-500">Active</p>
+        </div>
+
+        <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+          <div className="flex items-center justify-between mb-1">
+            <AlertCircle className="w-5 h-5 text-red-400" />
+          </div>
+          <p className="text-2xl font-bold text-white">{stats?.suspendedCount ?? "..."}</p>
+          <p className="text-xs text-gray-500">Suspended</p>
+        </div>
+
+        <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+          <div className="flex items-center justify-between mb-1">
+            <DollarSign className="w-5 h-5 text-gray-400" />
+          </div>
+          <p className="text-2xl font-bold text-white">
+            ${stats ? (stats.setupFeesCollected / 100).toLocaleString() : "..."}
+          </p>
+          <p className="text-xs text-gray-500">Setup Fees</p>
+        </div>
+      </div>
+
+      {/* Plan Tier Ribbon */}
+      <div className="flex gap-3">
         {(["starter", "growth", "enterprise"] as const).map((plan) => {
           const style = PLAN_COLORS[plan];
           const Icon = style.icon;
           return (
-            <div key={plan} className={`p-4 rounded-xl ${style.bg} border ${style.border}`}>
-              <div className="flex items-center justify-between">
-                <p className={`text-3xl font-bold ${style.text}`}>{planCounts[plan]}</p>
-                <Icon className={`w-5 h-5 ${style.text}`} />
-              </div>
-              <p className={`text-sm ${style.text} capitalize`}>{plan}</p>
-            </div>
+            <button
+              key={plan}
+              onClick={() => setFilterPlan(filterPlan === plan ? "all" : plan)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-all text-sm ${
+                filterPlan === plan
+                  ? `${style.bg} ${style.border} ${style.text}`
+                  : "bg-white/5 border-white/10 text-gray-400 hover:border-white/20"
+              }`}
+            >
+              <Icon className="w-4 h-4" />
+              <span className="font-medium capitalize">{plan}</span>
+              <span className="text-xs opacity-70">({planCounts[plan]})</span>
+            </button>
           );
         })}
       </div>
 
-      {/* Search */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-        <input
-          type="text"
-          placeholder="Search by name, email, or industry..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-full pl-10 pr-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 text-sm focus:outline-none focus:border-brand-light/50"
-        />
+      {/* Search + Filters */}
+      <div className="flex gap-3">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+          <input
+            type="text"
+            placeholder="Search by name, email, or industry..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full pl-10 pr-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 text-sm focus:outline-none focus:border-brand-light/50"
+          />
+        </div>
+
+        <select
+          value={filterStatus}
+          onChange={(e) => setFilterStatus(e.target.value as FilterStatus)}
+          className="px-3 py-3 rounded-xl bg-white/5 border border-white/10 text-gray-300 text-sm focus:outline-none focus:border-brand-light/50 appearance-none cursor-pointer"
+        >
+          <option value="all">All Status</option>
+          <option value="active">Active</option>
+          <option value="trial">Trial</option>
+          <option value="suspended">Suspended</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
+
+        <select
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value as SortKey)}
+          className="px-3 py-3 rounded-xl bg-white/5 border border-white/10 text-gray-300 text-sm focus:outline-none focus:border-brand-light/50 appearance-none cursor-pointer"
+        >
+          <option value="date">Newest First</option>
+          <option value="name">By Name</option>
+          <option value="revenue">By Revenue</option>
+        </select>
       </div>
 
-      {/* Client list */}
-      <div className="space-y-2">
+      {/* Client Cards */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {!orgs ? (
-          <div className="text-center py-12">
+          <div className="col-span-2 text-center py-12">
             <Loader2 className="w-8 h-8 animate-spin text-gray-500 mx-auto mb-3" />
             <p className="text-gray-500">Loading client sites...</p>
           </div>
         ) : filtered?.length === 0 ? (
-          <div className="text-center py-12">
+          <div className="col-span-2 text-center py-12">
             <Building2 className="w-12 h-12 text-gray-600 mx-auto mb-3" />
             <p className="text-gray-400 font-medium">
-              {search ? "No clients match your search" : "No client sites yet"}
+              {search || filterPlan !== "all" || filterStatus !== "all"
+                ? "No clients match your filters"
+                : "No client sites yet"}
             </p>
-            {!search && (
+            {!search && filterPlan === "all" && filterStatus === "all" && (
               <p className="text-gray-500 text-sm mt-1">Click &quot;New Client Site&quot; to add your first one</p>
             )}
           </div>
@@ -149,49 +251,68 @@ export default function FactoryPage() {
           filtered?.map((org) => {
             const planStyle = PLAN_COLORS[org.plan];
             const PlanIcon = planStyle.icon;
+            const statusStyle = STATUS_COLORS[org.status] || STATUS_COLORS.active;
+
             return (
               <Link
                 key={org._id}
                 href={`/admin/factory/${org._id}`}
-                className="flex items-center gap-4 p-4 rounded-xl bg-white/[0.03] border border-white/8 hover:bg-white/[0.06] hover:border-white/15 transition-all group"
+                className="p-5 rounded-2xl bg-white/[0.03] border border-white/8 hover:bg-white/[0.06] hover:border-white/15 transition-all group"
               >
-                {/* Icon */}
-                <div className={`w-10 h-10 rounded-lg ${planStyle.bg} border ${planStyle.border} flex items-center justify-center flex-shrink-0`}>
-                  <PlanIcon className={`w-5 h-5 ${planStyle.text}`} />
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded-lg ${planStyle.bg} border ${planStyle.border} flex items-center justify-center flex-shrink-0`}>
+                      <PlanIcon className={`w-5 h-5 ${planStyle.text}`} />
+                    </div>
+                    <div>
+                      <p className="text-white font-semibold">{org.name}</p>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className={`flex items-center gap-1.5 text-xs ${statusStyle.text}`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${statusStyle.dot}`} />
+                          <span className="capitalize">{org.status}</span>
+                        </span>
+                        {org.industry && (
+                          <span className="text-xs text-gray-600 capitalize">{org.industry}</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-gray-600 group-hover:text-gray-400 transition-colors mt-1" />
                 </div>
 
-                {/* Info */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <p className="text-white font-medium truncate">{org.name}</p>
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase border ${STATUS_COLORS[org.status]}`}>
-                      {org.status}
-                    </span>
+                <div className="grid grid-cols-3 gap-3 mb-3">
+                  <div className="text-center p-2 rounded-lg bg-white/[0.03]">
+                    <p className={`text-sm font-bold ${planStyle.text}`}>${planStyle.price}/mo</p>
+                    <p className="text-[10px] text-gray-500 uppercase">{org.plan}</p>
                   </div>
-                  <div className="flex items-center gap-3 text-xs text-gray-500 mt-1">
-                    <span>{org.ownerEmail}</span>
-                    {org.industry && (
-                      <>
-                        <span className="text-gray-700">|</span>
-                        <span className="capitalize">{org.industry}</span>
-                      </>
-                    )}
+                  <div className="text-center p-2 rounded-lg bg-white/[0.03]">
+                    <p className={`text-sm font-bold ${org.setupFeePaid ? "text-green-400" : "text-yellow-400"}`}>
+                      {org.setupFeePaid ? "Paid" : "Pending"}
+                    </p>
+                    <p className="text-[10px] text-gray-500 uppercase">Setup Fee</p>
+                  </div>
+                  <div className="text-center p-2 rounded-lg bg-white/[0.03]">
+                    <p className="text-sm font-bold text-gray-300">
+                      {new Date(org.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                    </p>
+                    <p className="text-[10px] text-gray-500 uppercase">Added</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between text-xs text-gray-500">
+                  <span className="flex items-center gap-1 truncate">
+                    <Mail className="w-3 h-3 flex-shrink-0" />
+                    {org.ownerEmail}
+                  </span>
+                  <div className="flex items-center gap-2 flex-shrink-0">
                     {org.domain && (
-                      <>
-                        <span className="text-gray-700">|</span>
-                        <Globe className="w-3 h-3 inline" />
-                        <span>{org.domain}</span>
-                      </>
+                      <span className="flex items-center gap-1">
+                        <Globe className="w-3 h-3" />
+                        {org.domain}
+                      </span>
                     )}
                   </div>
                 </div>
-
-                {/* Plan badge */}
-                <span className={`px-3 py-1 rounded-lg text-xs font-semibold capitalize ${planStyle.bg} ${planStyle.text} border ${planStyle.border}`}>
-                  {org.plan}
-                </span>
-
-                <ChevronRight className="w-4 h-4 text-gray-600 group-hover:text-gray-400 transition-colors" />
               </Link>
             );
           })

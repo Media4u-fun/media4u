@@ -178,15 +178,35 @@ http.route({
             cancelAtPeriodEnd: subscription.cancel_at_period_end,
           });
 
-          // Website Factory: if this subscription has factory metadata, update org features
-          if (subscription.metadata?.factoryOrg === "true") {
+          // Website Factory: update org features
+          // Check factory metadata OR try matching by customer ID/email for existing clients
+          {
             const factoryPriceId = subscription.items?.data?.[0]?.price?.id ?? "";
             const factoryPlanName = subscription.items?.data?.[0]?.price?.nickname ?? undefined;
+            const customerId = typeof subscription.customer === "string"
+              ? subscription.customer
+              : subscription.customer?.id ?? "";
+
+            // Get customer email for fallback matching
+            let customerEmail: string | undefined;
+            if (customerId) {
+              try {
+                const customer = await stripe.customers.retrieve(customerId);
+                if (!customer.deleted && "email" in customer) {
+                  customerEmail = customer.email ?? undefined;
+                }
+              } catch {
+                // Ignore - just a fallback
+              }
+            }
+
             await ctx.runMutation(internal.factory.handleFactorySubscriptionUpdated, {
               stripeSubscriptionId: subscription.id,
               stripePriceId: factoryPriceId,
               status: subscription.status,
               planName: factoryPlanName ?? undefined,
+              stripeCustomerId: customerId || undefined,
+              customerEmail,
             });
           }
           break;
@@ -199,10 +219,14 @@ http.route({
             status: "canceled",
           });
 
-          // Website Factory: if factory subscription, disable features
-          if (subscription.metadata?.factoryOrg === "true") {
+          // Website Factory: disable features for matching org
+          {
+            const customerId = typeof subscription.customer === "string"
+              ? subscription.customer
+              : subscription.customer?.id ?? "";
             await ctx.runMutation(internal.factory.handleFactorySubscriptionDeleted, {
               stripeSubscriptionId: subscription.id,
+              stripeCustomerId: customerId || undefined,
             });
           }
           break;
