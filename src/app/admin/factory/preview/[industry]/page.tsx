@@ -45,7 +45,7 @@ export default function TemplatePreviewPage({
     <>
       {/* Admin preview banner */}
       <div className="fixed top-0 left-0 right-0 z-[100] bg-amber-500/90 backdrop-blur-sm text-black text-center py-2 text-sm font-medium">
-        Preview Mode - {template.name} Template
+        Preview Mode - {template.name}
         <Link
           href="/admin/factory"
           className="ml-4 underline hover:no-underline"
