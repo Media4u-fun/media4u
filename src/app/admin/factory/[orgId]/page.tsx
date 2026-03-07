@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { useQuery, useMutation } from "convex/react";
+import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "@convex/_generated/api";
 import { Id } from "@convex/_generated/dataModel";
 import { motion } from "motion/react";
@@ -76,6 +76,7 @@ export default function OrgDetailPage() {
 
   const router = useRouter();
   const deleteOrg = useMutation(api.factory.deleteClientOrg);
+  const sendEmail = useAction(api.emailReplies.sendEmailReply);
 
   const [activeTab, setActiveTab] = useState<"overview" | "content" | "skin">("overview");
   const [changingPlan, setChangingPlan] = useState(false);
@@ -85,6 +86,8 @@ export default function OrgDetailPage() {
   const [checkoutUrl, setCheckoutUrl] = useState<string | null>(null);
   const [generatingCheckout, setGeneratingCheckout] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [sendingEmail, setSendingEmail] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
 
   if (!org || !registry) {
     return (
@@ -210,13 +213,24 @@ export default function OrgDetailPage() {
     setTimeout(() => setCopied(false), 2000);
   }
 
-  function handleEmailCheckout() {
+  async function handleEmailCheckout() {
     if (!checkoutUrl || !org) return;
-    const subject = encodeURIComponent(`Your ${org.name} Website - Complete Setup`);
-    const body = encodeURIComponent(
-      `Hi!\n\nYour website is ready to go. Please complete your subscription setup using the link below:\n\n${checkoutUrl}\n\nThis is for the ${org.plan.charAt(0).toUpperCase() + org.plan.slice(1)} plan at $${PLAN_COLORS[org.plan].price}/mo.\n\nLet me know if you have any questions!\n\n- Media4U Team`
-    );
-    window.open(`mailto:${org.ownerEmail}?subject=${subject}&body=${body}`);
+    setSendingEmail(true);
+    setEmailSent(false);
+    try {
+      const planLabel = org.plan.charAt(0).toUpperCase() + org.plan.slice(1);
+      await sendEmail({
+        to: org.ownerEmail,
+        subject: `Your ${org.name} Website - Complete Setup`,
+        recipientName: org.name,
+        message: `Your website is ready to go! Please complete your subscription setup using the link below:\n\n${checkoutUrl}\n\nThis is for the ${planLabel} plan at $${PLAN_COLORS[org.plan].price}/mo.\n\nOnce you complete the payment, your site will be fully activated with all ${planLabel} features.\n\nIf you have any questions, just reply to this email!`,
+      });
+      setEmailSent(true);
+    } catch (e) {
+      console.error("Failed to send checkout email:", e);
+    } finally {
+      setSendingEmail(false);
+    }
   }
 
   const enabledCount = orgFeatures?.filter((f: OrgFeature) => f.enabled).length || 0;
@@ -601,10 +615,21 @@ export default function OrgDetailPage() {
             <div className="flex gap-2">
               <button
                 onClick={handleEmailCheckout}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 border border-blue-500/30 text-xs font-medium transition-all"
+                disabled={sendingEmail || emailSent}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all border ${
+                  emailSent
+                    ? "bg-green-500/10 text-green-400 border-green-500/30"
+                    : "bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 border-blue-500/30"
+                }`}
               >
-                <Send className="w-3.5 h-3.5" />
-                Email Link to Client
+                {sendingEmail ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : emailSent ? (
+                  <Check className="w-3.5 h-3.5" />
+                ) : (
+                  <Send className="w-3.5 h-3.5" />
+                )}
+                {sendingEmail ? "Sending..." : emailSent ? "Email Sent!" : "Email Link to Client"}
               </button>
               <a
                 href={checkoutUrl}
