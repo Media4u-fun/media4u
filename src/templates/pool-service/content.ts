@@ -3,9 +3,9 @@
 
 export const defaultPoolContent = {
   business: {
-    name: "Orangecrest Pools",
+    name: "Orangecrest Pool Repair & Maintenance",
     tagline: "Crystal Clear Service, Every Time",
-    phone: "(951) 555-0123",
+    phone: "(951) 519-8510",
     email: "info@orangecrestpools.com",
     address: "Riverside, CA",
     yearsInBusiness: 15,
@@ -95,7 +95,7 @@ export const defaultPoolContent = {
       name: "James T.",
       location: "Corona, CA",
       rating: 5,
-      text: "Reliable, professional, and always on time. Our pool has never looked better since switching to Orangecrest Pools.",
+      text: "Reliable, professional, and always on time. Our pool has never looked better since switching to Orangecrest Pool Repair & Maintenance.",
     },
     {
       name: "Linda K.",

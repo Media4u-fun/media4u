@@ -443,6 +443,40 @@ export const createClientOrg = mutation({
   },
 });
 
+// Delete a client org and its related data (admin only)
+export const deleteClientOrg = mutation({
+  args: { orgId: v.id("clientOrgs") },
+  handler: async (ctx, { orgId }) => {
+    await requireAdmin(ctx);
+
+    const org = await ctx.db.get(orgId);
+    if (!org) throw new ConvexError({ code: "NOT_FOUND", message: "Org not found" });
+
+    // Delete related orgFeatures
+    const features = await ctx.db
+      .query("orgFeatures")
+      .withIndex("by_orgId", (q) => q.eq("orgId", orgId))
+      .collect();
+    for (const f of features) {
+      await ctx.db.delete(f._id);
+    }
+
+    // Delete related template content
+    const templates = await ctx.db
+      .query("templateContent")
+      .withIndex("by_orgId", (q) => q.eq("orgId", orgId))
+      .collect();
+    for (const t of templates) {
+      await ctx.db.delete(t._id);
+    }
+
+    // Delete the org itself
+    await ctx.db.delete(orgId);
+
+    return { success: true, deleted: org.name };
+  },
+});
+
 // Change a client's plan (upgrades/downgrades)
 export const changeClientPlan = mutation({
   args: {

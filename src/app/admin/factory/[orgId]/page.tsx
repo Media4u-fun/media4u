@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
 import { Id } from "@convex/_generated/dataModel";
@@ -13,7 +13,8 @@ import {
   Loader2, Check, Map, FileText, Calendar, Star, DollarSign,
   Bell, BarChart, Users, Lock, Download, Route,
   Layout, Image, Search as SearchIcon, Newspaper,
-  CreditCard, ExternalLink, Eye, Palette, PenLine,
+  CreditCard, ExternalLink, Eye, Palette, PenLine, Trash2,
+  Link2, Copy, Send,
 } from "lucide-react";
 import { ContentEditor } from "./content-editor";
 import { SkinPicker } from "./skin-picker";
@@ -73,10 +74,17 @@ export default function OrgDetailPage() {
   const toggleFeature = useMutation(api.factory.toggleOrgFeature);
   const startTrial = useMutation(api.factory.startFeatureTrial);
 
+  const router = useRouter();
+  const deleteOrg = useMutation(api.factory.deleteClientOrg);
+
   const [activeTab, setActiveTab] = useState<"overview" | "content" | "skin">("overview");
   const [changingPlan, setChangingPlan] = useState(false);
   const [togglingFeature, setTogglingFeature] = useState<string | null>(null);
   const [startingTrial, setStartingTrial] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [checkoutUrl, setCheckoutUrl] = useState<string | null>(null);
+  const [generatingCheckout, setGeneratingCheckout] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   if (!org || !registry) {
     return (
@@ -150,6 +158,65 @@ export default function OrgDetailPage() {
     } finally {
       setStartingTrial(null);
     }
+  }
+
+  async function handleDeleteOrg() {
+    const confirmed = window.confirm(
+      `Are you sure you want to delete "${org!.name}"? This will remove the client site and all its features. This cannot be undone.`
+    );
+    if (!confirmed) return;
+    setDeleting(true);
+    try {
+      await deleteOrg({ orgId });
+      router.push("/admin/factory");
+    } catch (e) {
+      console.error("Failed to delete org:", e);
+      setDeleting(false);
+    }
+  }
+
+  async function handleGenerateCheckout() {
+    if (!org) return;
+    setGeneratingCheckout(true);
+    setCheckoutUrl(null);
+    try {
+      const res = await fetch("/api/stripe/create-factory-checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          plan: org.plan,
+          paymentType: "subscribe",
+          customerEmail: org.ownerEmail,
+          orgSlug: org.slug,
+        }),
+      });
+      const data = await res.json();
+      if (data.url) {
+        setCheckoutUrl(data.url);
+      } else {
+        console.error("Checkout error:", data.error);
+      }
+    } catch (e) {
+      console.error("Failed to generate checkout:", e);
+    } finally {
+      setGeneratingCheckout(false);
+    }
+  }
+
+  function handleCopyCheckout() {
+    if (!checkoutUrl) return;
+    navigator.clipboard.writeText(checkoutUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
+  function handleEmailCheckout() {
+    if (!checkoutUrl || !org) return;
+    const subject = encodeURIComponent(`Your ${org.name} Website - Complete Setup`);
+    const body = encodeURIComponent(
+      `Hi!\n\nYour website is ready to go. Please complete your subscription setup using the link below:\n\n${checkoutUrl}\n\nThis is for the ${org.plan.charAt(0).toUpperCase() + org.plan.slice(1)} plan at $${PLAN_COLORS[org.plan].price}/mo.\n\nLet me know if you have any questions!\n\n- Media4U Team`
+    );
+    window.open(`mailto:${org.ownerEmail}?subject=${subject}&body=${body}`);
   }
 
   const enabledCount = orgFeatures?.filter((f: OrgFeature) => f.enabled).length || 0;
@@ -295,6 +362,14 @@ export default function OrgDetailPage() {
             <Eye className="w-3.5 h-3.5" />
             Preview Site
           </Link>
+          <button
+            onClick={handleDeleteOrg}
+            disabled={deleting}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/30 text-xs transition-all ml-auto"
+          >
+            {deleting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+            {deleting ? "Deleting..." : "Delete Site"}
+          </button>
         </div>
       </motion.div>
 
@@ -478,10 +553,74 @@ export default function OrgDetailPage() {
                 )}
               </div>
             ) : (
-              <p className="text-sm text-gray-500">Not linked yet</p>
+              <div className="space-y-2">
+                <p className="text-sm text-gray-500">Not linked yet</p>
+                <button
+                  onClick={handleGenerateCheckout}
+                  disabled={generatingCheckout}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/30 text-xs font-medium transition-all w-full justify-center"
+                >
+                  {generatingCheckout ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Link2 className="w-3.5 h-3.5" />
+                  )}
+                  {generatingCheckout ? "Generating..." : "Generate Checkout Link"}
+                </button>
+              </div>
             )}
           </div>
         </div>
+
+        {/* Checkout Link Panel */}
+        {checkoutUrl && (
+          <div className="mt-4 p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/20">
+            <div className="flex items-center gap-2 mb-3">
+              <Link2 className="w-4 h-4 text-emerald-400" />
+              <p className="text-sm font-semibold text-emerald-400">Checkout Link Ready</p>
+            </div>
+            <div className="flex items-center gap-2 mb-3">
+              <input
+                type="text"
+                readOnly
+                value={checkoutUrl}
+                className="flex-1 px-3 py-2 rounded-lg bg-black/30 border border-white/10 text-xs text-gray-300 font-mono truncate"
+              />
+              <button
+                onClick={handleCopyCheckout}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                  copied
+                    ? "bg-green-500/20 text-green-400 border border-green-500/30"
+                    : "bg-white/5 text-gray-400 hover:text-white border border-white/10 hover:bg-white/10"
+                }`}
+              >
+                {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                {copied ? "Copied!" : "Copy"}
+              </button>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={handleEmailCheckout}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 border border-blue-500/30 text-xs font-medium transition-all"
+              >
+                <Send className="w-3.5 h-3.5" />
+                Email Link to Client
+              </button>
+              <a
+                href={checkoutUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 text-gray-400 hover:text-white hover:bg-white/10 border border-white/10 text-xs font-medium transition-all"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+                Open Link
+              </a>
+            </div>
+            <p className="text-[10px] text-gray-500 mt-2">
+              When the client pays, Stripe will auto-link to this org via webhook.
+            </p>
+          </div>
+        )}
       </motion.div>
 
       {/* D. Plan Selector */}
