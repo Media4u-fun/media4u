@@ -88,6 +88,8 @@ export default function OrgDetailPage() {
   const [copied, setCopied] = useState(false);
   const [sendingEmail, setSendingEmail] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
+  const [showEmailPreview, setShowEmailPreview] = useState(false);
+  const [emailMessage, setEmailMessage] = useState("");
 
   if (!org || !registry) {
     return (
@@ -213,19 +215,28 @@ export default function OrgDetailPage() {
     setTimeout(() => setCopied(false), 2000);
   }
 
-  async function handleEmailCheckout() {
+  function handleEmailCheckout() {
     if (!checkoutUrl || !org) return;
+    const planLabel = org.plan.charAt(0).toUpperCase() + org.plan.slice(1);
+    setEmailMessage(
+      `Your website is ready to go! Please complete your subscription setup using the link below:\n\n${checkoutUrl}\n\nThis is for the ${planLabel} plan at $${PLAN_COLORS[org.plan].price}/mo.\n\nOnce you complete the payment, your site will be fully activated with all ${planLabel} features.\n\nIf you have any questions, just reply to this email!`
+    );
+    setShowEmailPreview(true);
+  }
+
+  async function handleSendEmail() {
+    if (!org || !emailMessage) return;
     setSendingEmail(true);
     setEmailSent(false);
     try {
-      const planLabel = org.plan.charAt(0).toUpperCase() + org.plan.slice(1);
       await sendEmail({
         to: org.ownerEmail,
         subject: `Your ${org.name} Website - Complete Setup`,
         recipientName: org.name,
-        message: `Your website is ready to go! Please complete your subscription setup using the link below:\n\n${checkoutUrl}\n\nThis is for the ${planLabel} plan at $${PLAN_COLORS[org.plan].price}/mo.\n\nOnce you complete the payment, your site will be fully activated with all ${planLabel} features.\n\nIf you have any questions, just reply to this email!`,
+        message: emailMessage,
       });
       setEmailSent(true);
+      setShowEmailPreview(false);
     } catch (e) {
       console.error("Failed to send checkout email:", e);
     } finally {
@@ -644,6 +655,60 @@ export default function OrgDetailPage() {
             <p className="text-[10px] text-gray-500 mt-2">
               When the client pays, Stripe will auto-link to this org via webhook.
             </p>
+          </div>
+        )}
+
+        {/* Email Preview Modal */}
+        {showEmailPreview && (
+          <div className="mt-4 p-4 rounded-xl bg-blue-500/5 border border-blue-500/20">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Send className="w-4 h-4 text-blue-400" />
+                <p className="text-sm font-semibold text-blue-400">Preview Email</p>
+              </div>
+              <button
+                onClick={() => setShowEmailPreview(false)}
+                className="text-gray-500 hover:text-white text-xs"
+              >
+                Cancel
+              </button>
+            </div>
+            <div className="space-y-2 mb-3">
+              <div className="flex items-center gap-2 text-xs text-gray-400">
+                <span className="font-medium">To:</span>
+                <span className="text-white">{org.ownerEmail}</span>
+              </div>
+              <div className="flex items-center gap-2 text-xs text-gray-400">
+                <span className="font-medium">Subject:</span>
+                <span className="text-white">Your {org.name} Website - Complete Setup</span>
+              </div>
+            </div>
+            <textarea
+              value={emailMessage}
+              onChange={(e) => setEmailMessage(e.target.value)}
+              rows={10}
+              className="w-full px-3 py-2 rounded-lg bg-black/30 border border-white/10 text-sm text-gray-200 font-mono resize-y focus:outline-none focus:border-blue-500/50"
+            />
+            <div className="flex gap-2 mt-3">
+              <button
+                onClick={handleSendEmail}
+                disabled={sendingEmail}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 border border-blue-500/30 text-xs font-medium transition-all"
+              >
+                {sendingEmail ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <Send className="w-3.5 h-3.5" />
+                )}
+                {sendingEmail ? "Sending..." : "Send Email via Resend"}
+              </button>
+              <button
+                onClick={() => setShowEmailPreview(false)}
+                className="px-4 py-2 rounded-lg bg-white/5 text-gray-400 hover:text-white border border-white/10 text-xs font-medium transition-all"
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         )}
       </motion.div>
