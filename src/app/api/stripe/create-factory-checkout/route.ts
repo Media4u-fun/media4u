@@ -22,6 +22,11 @@ interface FactoryCheckoutRequest {
   cancelUrl?: string;
 }
 
+function cleanEnvValue(val: string | undefined): string | null {
+  if (!val) return null;
+  return val.replace(/^["']|["']$/g, "").trim();
+}
+
 function getFactoryPriceId(plan: FactoryPlan): string | null {
   const envMap: Record<FactoryPlan, string> = {
     starter: "STRIPE_FACTORY_PRICE_STARTER",
@@ -29,7 +34,7 @@ function getFactoryPriceId(plan: FactoryPlan): string | null {
     enterprise: "STRIPE_FACTORY_PRICE_ENTERPRISE",
   };
 
-  return process.env[envMap[plan]] || null;
+  return cleanEnvValue(process.env[envMap[plan]]);
 }
 
 function getOwnItPriceIds(plan: FactoryPlan): { setup: string | null; maintenance: string | null } {
@@ -44,8 +49,8 @@ function getOwnItPriceIds(plan: FactoryPlan): { setup: string | null; maintenanc
     enterprise: "STRIPE_FACTORY_MAINT_ENTERPRISE",
   };
   return {
-    setup: process.env[setupMap[plan]] || null,
-    maintenance: process.env[maintMap[plan]] || null,
+    setup: cleanEnvValue(process.env[setupMap[plan]]),
+    maintenance: cleanEnvValue(process.env[maintMap[plan]]),
   };
 }
 
@@ -124,9 +129,10 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ url: session.url });
   } catch (error) {
-    console.error("Factory checkout error:", error);
+    const message = error instanceof Error ? error.message : "Unknown error";
+    console.error("Factory checkout error:", message, error);
     return NextResponse.json(
-      { error: "Failed to create checkout session" },
+      { error: "Failed to create checkout session", detail: message },
       { status: 500 }
     );
   }
